@@ -248,18 +248,20 @@ void frequency(unsigned long new_freq) {
 
 void setfreq(OscType type) {
   si5351PLL_t pllSource = type == TX ? SI5351_PLL_B : SI5351_PLL_A;
+  if (type == RX) {
 #ifdef RX_IF
-  freqRX = freqTX > RX_IF ? (RX_IF + freqTX) : (RX_IF - freqTX);
+      freqRX = freqTX > RX_IF ? (freqTX - RX_IF) : (RX_IF - freqTX);
 #else
-  freqRX = freqTX;
+      freqRX = freqTX;
+      if (freqTX < 10000000) {
+        freqRX += keyerConf.sidetone;
+      } else {
+        freqRX -= keyerConf.sidetone;
+      }
 #endif
-  if (freqTX > 10000000) {
-    freqRX += keyerConf.sidetone;
-  } else {
-    freqRX -= keyerConf.sidetone;
   }
   unsigned long freq = type == TX ? freqTX : freqRX;
-  freq -= correctTX7;
+  freq += correctFreq;
 
   uint32_t a = pllFreq / freq;
   uint32_t b = ((pllFreq / ((float) freq)) - a) * rFractPr;
