@@ -21,7 +21,7 @@ String serialCommand = "";
 
 //#define DDS_KEYING	1
 //#define RX_IF		65650000L //39980000L
-//#define RX_IF		600L
+#define RX_IF		4915200L
 //#define FIXED_RX_LO	0
 //AD9850 osc(PIN_DDS_CLK, PIN_DDS_UPDATE, PIN_DDS_DATA); // w_clk, fq_ud, data
 const uint8_t pllMult = 36;
@@ -68,8 +68,8 @@ void setup() {
   selectBPF();
   
   Serial.begin(115200/*38400*115200*/);
-  while (!Serial) {;} // wait for port connected
-  Serial.setTimeout(200); // TODO
+//   while (!Serial) {;} // wait for port connected
+//   Serial.setTimeout(200); // TODO
 
   encoder = new ClickEncoder(A2, A1, A3);
   Timer1.initialize(1000);
@@ -122,7 +122,9 @@ void initialize_keyer() {
 // --------------------------------------------------------------------------------------------
 void loop()
 {
-  serialControl();
+  if (Serial) {
+    serialControl();
+  }
   int16_t encState = encoder->getValue();
   if (encState != 0) {
     frequency(freqTX + (encState * 100));
@@ -245,22 +247,22 @@ void frequency(unsigned long new_freq) {
 //}
 
 void setfreq(OscType type) {
-//  uint8_t output = type;
-//  switch (type) {
-//  	case RX: output = 0; break;
-//  	case TX: output = 1; break;
-//  	case BFO: output = 2;
-//  }
   si5351PLL_t pllSource = type == TX ? SI5351_PLL_B : SI5351_PLL_A;
 #ifdef RX_IF
-  freqRX = RX_IF - freqTX - correctRX7 + keyerConf.sidetone;
+  freqRX = freqTX > RX_IF ? (RX_IF + freqTX) : (RX_IF - freqTX);
 #else
-  freqRX = freqTX - correctTX7 + keyerConf.sidetone;
+  freqRX = freqTX;
 #endif
-  unsigned long freq = type == TX ? (freqTX - correctTX7) : freqRX;//(RX_IF - freqTX - keyerConf.sidetone); // TODO BFO U/L freq
+  if (freqTX > 10000000) {
+    freqRX += keyerConf.sidetone;
+  } else {
+    freqRX -= keyerConf.sidetone;
+  }
+  unsigned long freq = type == TX ? freqTX : freqRX;
+  freq -= correctTX7;
 
   uint32_t a = pllFreq / freq;
-  uint32_t b = ((pllFreq / ((float)freq)) - a) * rFractPr;
+  uint32_t b = ((pllFreq / ((float) freq)) - a) * rFractPr;
   uint32_t c = b ? rFractPr : 1;
 //  Serial.print("a=");
 //  Serial.print(a);
