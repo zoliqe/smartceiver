@@ -287,6 +287,13 @@ typedef enum
   SI5351_R_DIV_128 = 7,
 } si5351RDiv_t;
 
+typedef enum {
+  SI5351_DRIVE_2MA = 0,
+  SI5351_DRIVE_4MA = 1,
+  SI5351_DRIVE_6MA = 2,
+  SI5351_DRIVE_8MA = 3,
+} si5351DriveStrength_t;
+
 typedef struct
 {
   bool                initialised;
@@ -305,13 +312,11 @@ class Adafruit_SI5351
   Adafruit_SI5351(void);
   
   err_t begin(void);
-  err_t setClockBuilderData(void);
   err_t setupPLL(si5351PLL_t pll, uint8_t mult, uint32_t num, uint32_t denom);
-  err_t setupPLLInt(si5351PLL_t pll, uint8_t mult);
   err_t setupMultisynth(uint8_t output, si5351PLL_t pllSource, uint32_t div, uint32_t num, uint32_t denom);
-  err_t setupMultisynthInt(uint8_t output, si5351PLL_t pllSource, si5351MultisynthDiv_t div);
+  err_t setupDriveStrength(uint8_t output, si5351DriveStrength_t drive);
   err_t enableOutputs(uint8_t state);
-  err_t setupRdiv(uint8_t  output, si5351RDiv_t div);
+//  err_t setupRdiv(uint8_t  output, si5351RDiv_t div);
 
  private:
   si5351Config_t m_si5351Config;

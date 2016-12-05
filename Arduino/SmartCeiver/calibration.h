@@ -1,6 +1,3 @@
-typedef enum {RX = 0, TX = 1, BFO = 2} OscType;
-
-const int32_t correctFreq = 100; // 50
 //const int32_t correctRX7 = -500;
 
 //#define BAND_1_8	0

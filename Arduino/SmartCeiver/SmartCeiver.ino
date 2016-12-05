@@ -4,9 +4,8 @@
 //#include <AD9850.h>
 #include <Wire.h>
 #include <si5351.h>
-#include <ClickEncoder.h>
-#include <TimerOne.h>
-#include "calibration.h"
+// #include <ClickEncoder.h>
+// #include <TimerOne.h>
 #include "pins.h"
 #include "keyer.h"
 
@@ -19,7 +18,6 @@ WebUSB WebUSBSerial(URLS, 2, 1, ALLOWED_ORIGINS, 2);
 #define Serial WebUSBSerial
 String serialCommand = "";
 
-//#define DDS_KEYING	1
 //#define RX_IF		65650000L //39980000L
 #define RX_IF		4915200L
 //#define FIXED_RX_LO	0
@@ -28,7 +26,7 @@ const uint8_t pllMult = 36;
 const uint32_t pllFreq = pllMult * SI5351_CRYSTAL_FREQ_25MHZ;
 const uint32_t rFractPr = 100000;
 Adafruit_SI5351 osc = Adafruit_SI5351();
-unsigned long freqTX = 7000000L;
+unsigned long freqTX = 7030000L;
 //#ifdef FIXED_RX_LO
 //unsigned long freqRX = FIXED_RX_LO;
 //#else
@@ -37,15 +35,16 @@ bool freqChanged = true;
 //#endif
 
 byte pwrLevel = HIGH;
+byte lpfState = 255; // LPF selected band state 1..3
 byte bpfState = 255; // BPF selected band state: 0..3; out of range to force set pin values
 byte attnState = HIGH;
+byte xfilWidth = HIGH;
 
-ClickEncoder *encoder;
-//unsigned long lastFreqTX = freqTX;
+// ClickEncoder *encoder;
 
-void encoderTimer() {
-  encoder->service();
-}
+// void encoderTimer() {
+//   encoder->service();
+// }
 
 void setup() {
   initialize_keyer();
@@ -59,21 +58,23 @@ void setup() {
   osc.setupPLL(SI5351_PLL_A, pllMult, 0, 1);
   osc.setupPLL(SI5351_PLL_B, pllMult, 0, 1);
   frequency(freqTX);
-	osc.enableOutputs(RXLO);
-//  osc.init(SI5351_CRYSTAL_LOAD_8PF, 0);
-//  osc.set_pll(SI5351_PLL_FIXED, SI5351_PLLA);
-//  osc.set_pll(SI5351_PLL_FIXED, SI5351_PLLB);
-//  set_corrected_rx_freq(freqTX);
-//  osc.setfreq(freqRX);
+#ifdef RX_IF
+  unsigned long freqIF = RX_IF - keyerConf.sidetone;
+  osc.setupMultisynth(BFO, SI5351_PLL_A, pllFreq / freqIF, ((pllFreq / ((float) freqIF)) - (pllFreq / freqIF)) * rFractPr, rFractPr);
+#endif
+	osc.enableOutputs(PIN_RXLO);
+  osc.setupDriveStrength(RX, SI5351_DRIVE_2MA);
+  osc.setupDriveStrength(BFO, SI5351_DRIVE_2MA);
+
   selectBPF();
   
-  Serial.begin(115200/*38400*115200*/);
+  Serial.begin(115200);
 //   while (!Serial) {;} // wait for port connected
 //   Serial.setTimeout(200); // TODO
 
-  encoder = new ClickEncoder(A2, A1, A3);
-  Timer1.initialize(1000);
-  Timer1.attachInterrupt(encoderTimer);
+  // encoder = new ClickEncoder(A2, A1, A3);
+  // Timer1.initialize(1000);
+  // Timer1.attachInterrupt(encoderTimer);
 }
 
 void initialize_pins() {
@@ -84,21 +85,23 @@ void initialize_pins() {
 
   pinMode(PIN_LED, OUTPUT);
   digitalWrite(PIN_LED, LOW);
-  pinMode(PIN_KEY, OUTPUT);
-  digitalWrite(PIN_KEY, HIGH);
   pinMode(PIN_PTT, OUTPUT);
   digitalWrite(PIN_PTT, HIGH);
   pinMode(PIN_ATTN, OUTPUT);
   digitalWrite(PIN_ATTN, attnState);
-  pinMode(PIN_MAXPWR, OUTPUT);
-  digitalWrite(PIN_MAXPWR, LOW);
   pinMode(PIN_SIDETONE, OUTPUT);
   digitalWrite(PIN_SIDETONE, LOW);
+  pinMode(PIN_XFIL, OUTPUT);
+  digitalWrite(PIN_XFIL, xfilWidth);
   
   pinMode(PIN_BPF_S0, OUTPUT);
+  digitalWrite(PIN_BPF_S0, LOW);
   pinMode(PIN_BPF_S1, OUTPUT);
-//  pinMode(PIN_BPF_S2, OUTPUT);
-//  pinMode(PIN_BPF_S3, OUTPUT);
+  digitalWrite(PIN_BPF_S1, LOW);
+  pinMode(PIN_LPF_S0, OUTPUT);
+  digitalWrite(PIN_LPF_S0, LOW);
+  pinMode(PIN_LPF_S1, OUTPUT);
+  digitalWrite(PIN_LPF_S1, LOW);
 }
 
 void initialize_keyer() {
@@ -110,8 +113,8 @@ void initialize_keyer() {
   keyerConf.autospace = 1;
   keyerConf.sidetone = 650; // Hz
   keyerConf.dah_to_dit_ratio = 300; // 300 = 3 / normal 3:1 ratio
-  keyerConf.ptt_tail_time = 900; // ms
-  keyerConf.ptt_lead_time = 10; // ms
+  keyerConf.ptt_tail_time = 50; // ms
+  keyerConf.ptt_lead_time = 0; // ms
   keyerConf.length_wordspace = 7;
   keyerConf.length_letterspace = 3;
   keyerConf.weighting = 50; // 50 = weighting factor of 1 (normal)
@@ -125,15 +128,10 @@ void loop()
   if (Serial) {
     serialControl();
   }
-  int16_t encState = encoder->getValue();
-  if (encState != 0) {
-    frequency(freqTX + (encState * 100));
-  }
-//  frequency(freqTX + 10);
-//  if (freqTX > 7300000L) {
-//    freqTX = 7000000L;
-//  }
-//  delay(10);
+  // int16_t encState = encoder->getValue();
+  // if (encState != 0) {
+  //   frequency(freqTX + (encState * 100));
+  // }
 
   check_paddles();
   service_dit_dah_buffers();
@@ -205,6 +203,9 @@ void serialProcessCommand() {
 				case 'A':
 					attenuator(_bool(param));
 					break;
+        case 'W':
+          switchXfilterWidth(_bool(param));
+          break;
 			}
 			break;
 //		case 'T':
@@ -225,26 +226,12 @@ bool _bool(String s) {
 void frequency(unsigned long new_freq) {
 	if (new_freq >= 1e6 && new_freq <= 1e8) {
 		freqTX = new_freq;
-//		freqRX = abs(RX_IF - new_freq);
 		freqChanged = true;
 		setfreq(RX);
-//		setfreq(true);
-//		set_corrected_rx_freq(new_freq);
 		selectBPF();
     serialSendFreq();
 	}
 }
-
-//void set_corrected_rx_freq(unsigned long freq) {
-//#ifndef FIXED_RX_LO
-//	freqRX = abs(RX_IF - freq);
-//	int correction = freq_correction[find_nearest_calibration(freq)];
-//	freqRX += correction;
-//#endif
-//	osc.setfreq(freqRX);
-//	setfreq(false);
-// TODO DC-RX: freqRX = abs(new_freq + RX_IF);
-//}
 
 void setfreq(OscType type) {
   si5351PLL_t pllSource = type == TX ? SI5351_PLL_B : SI5351_PLL_A;
@@ -275,20 +262,6 @@ void setfreq(OscType type) {
   osc.setupMultisynth(type, pllSource, a, b, c);
 }
 
-//byte find_nearest_calibration(unsigned long freq) {
-//	unsigned long delta = freq;
-//	byte band = 255;
-//	for (byte i = 0; i < sizeof(calibration_freq); i++) {
-//		unsigned long curr_delta = abs(freq - calibration_freq[i]);
-//		if (band > BAND_28 || curr_delta < delta) {
-//			delta = curr_delta;
-//			band = i;
-//		}
-//	}
-//	
-//	return band;
-//}
-
 void serialSendFreq() {
 	Serial.print("FA000");
 	if (freqTX < 10000000) { // <10MHz
@@ -304,8 +277,20 @@ void attenuator(bool state) {
 	if (!keyed) {
 		digitalWrite(PIN_ATTN, attnState);
 	}
+	Serial.print("RA");
+	Serial.print(attnState);
+	Serial.print(';');
+  Serial.flush();
 }
 
+void switchXfilterWidth(bool state) {
+  xfilWidth = state ? HIGH : LOW;
+  digitalWrite(PIN_XFIL, xfilWidth);
+	Serial.print("RW");
+	Serial.print(xfilWidth);
+	Serial.print(';');
+  Serial.flush();
+}
 
 void wpm(byte wpm) {
 	if (wpm >= WPM_MIN && wpm <= WPM_MAX) {
@@ -369,24 +354,11 @@ void txEnabled(bool enabled) {
 void tune(bool enabled) {
 	if (enabled) {
 		pwrLevel = LOW;
-		tx(1);
-		pwrLevel = HIGH;
-//		if (keyerConf.tx_enabled) {
-//			ptt_key();
-////#ifdef DDS_KEYING
-////		    osc.setfreq(freqTX); // set current TX freq
-////#endif
-//			digitalWrite(PIN_MAXPWR, LOW);
-//			digitalWrite(PIN_KEY, HIGH);
-//			keyed = 1;
-//		}
-//		tone(PIN_SIDETONE, keyerConf.sidetone);
+//    osc.setupDriveStrength(TX, SI5351_DRIVE_2MA);
+//		tx(1);
 	} else {
-		tx(0);
-//		keyed = 0;
-//		digitalWrite(PIN_KEY, LOW);
-//		ptt_unkey();
-//		noTone(PIN_SIDETONE);
+//		tx(0);
+    pwrLevel = HIGH;
 	}
 	Serial.print("KT");
 	Serial.print(enabled ? '1' : '0');
@@ -400,54 +372,40 @@ void tx(int state) {
 		if (keyerConf.tx_enabled) {
 //        byte first_element = !ptt_active;
 			ptt_key();
-//#ifdef DDS_KEYING
 //		    osc.setfreq(freqTX); // set current TX freq
-//#endif
-			digitalWrite(PIN_ATTN, LOW);
-			digitalWrite(PIN_KEY, LOW);
-			digitalWrite(PIN_LED, HIGH);
-//			digitalWrite(PIN_MAXPWR, pwrLevel);
 			if (freqChanged) {
 				setfreq(TX);
 				freqChanged = false;
 			}
-			osc.enableOutputs(TXLO);
+osc.setupDriveStrength(TX, pwrLevel == LOW ? SI5351_DRIVE_2MA : SI5351_DRIVE_8MA);
+			osc.enableOutputs(PIN_TXLO);
 //        if (keyerConf.first_extension_time && first_element) {
 //          delay(keyerConf.first_extension_time);
 //        }
 		}
-
 		tone(PIN_SIDETONE, keyerConf.sidetone);
 		keyed = 1;
-	} else {
-		if (!state && keyed) {
-			if (keyerConf.tx_enabled) {
-				osc.enableOutputs(RXLO);
-				digitalWrite(PIN_KEY, HIGH);
-				digitalWrite(PIN_ATTN, attnState);
-				digitalWrite(PIN_LED, LOW);
-//				digitalWrite(PIN_MAXPWR, LOW);
-//#ifdef DDS_KEYING
+	} else if (!state && keyed) {
+		if (keyerConf.tx_enabled) {
+			osc.enableOutputs(PIN_RXLO);
 //	osc.down();
-//#endif
-				ptt_key();
-        	}
-
-			noTone(PIN_SIDETONE);
-			keyed = 0;
-		}
+			ptt_key();
+//      if (pwrLevel == LOW) {
+//    		pwrLevel = HIGH;
+//        osc.setupDriveStrength(TX, SI5351_DRIVE_8MA);
+//      }
+    }
+		noTone(PIN_SIDETONE);
+		keyed = 0;
 	}
 }
 
 void ptt_key() {
   if (!ptt_active) {   // if PTT is currently deactivated, bring it up and insert PTT lead time delay
-//#ifndef DDS_KEYING
-//    osc.setfreq(freqTX); // set current TX freq
-//#endif
-    if (PIN_PTT) {
-      digitalWrite(PIN_PTT, LOW);
-      delay(keyerConf.ptt_lead_time);
-    }
+    digitalWrite(PIN_PTT, LOW);
+    // delay(keyerConf.ptt_lead_time);
+		digitalWrite(PIN_ATTN, LOW);
+		digitalWrite(PIN_LED, HIGH);
     ptt_active = 1;
   }
   ptt_time = millis();
@@ -455,9 +413,9 @@ void ptt_key() {
 
 void ptt_unkey() {
   if (ptt_active) {
-    if (PIN_PTT) {
-      digitalWrite(PIN_PTT, HIGH);
-    }
+		digitalWrite(PIN_ATTN, attnState);
+  	digitalWrite(PIN_LED, LOW);
+    digitalWrite(PIN_PTT, HIGH);
     ptt_active = 0;
 //	osc.setfreq(freqRX); // set RX IF freq
   }
@@ -484,16 +442,18 @@ void selectBPF() {
 //	} else if (freqTX >= 4000000L) { // 4-8 MHz
 //		new_state = 1;
 //	}
-	byte new_state = freqTX >= 12000000 ? 2 : 1;
+	byte state = 3;
+  if (freqTX < 12000000L) {
+    state = freqTX < 4000000L ? 1 : 2;
+  }
 	
-	if (bpfState != new_state) { // write the state only when changed
-		bpfState = new_state;
-		digitalWrite(PIN_BPF_S0, bpfState == 1);
-		digitalWrite(PIN_BPF_S1, bpfState == 2);
-//		digitalWrite(PIN_BPF_S0, bpfState == 1);
-//		digitalWrite(PIN_BPF_S1, bpfState == 2);
-//		digitalWrite(PIN_BPF_S2, bpfState == 3);
-//		digitalWrite(PIN_BPF_S3, bpfState == 4);
+	if (lpfState != state) { // write the state only when changed
+    lpfState = state;
+		digitalWrite(PIN_LPF_S0, state < 3);
+		digitalWrite(PIN_LPF_S1, state == 3);
+    delay(10);
+    digitalWrite(PIN_LPF_S0, state == 1);
+    digitalWrite(PIN_LPF_S1, state == 1);
 	}
 }
 
@@ -525,8 +485,6 @@ byte one_paddle_touched() {
 byte both_paddles_touched() {
   return digitalRead(PIN_PADDLE_LEFT) == LOW && digitalRead(PIN_PADDLE_RIGHT) == LOW;
 }
-
-//-------------------------------------------------------------------------------------------------------
 
 void service_dit_dah_buffers() {
 //  if ((keyerConf.keyer_mode != IAMBIC_A) && (keyerConf.keyer_mode != IAMBIC_B)) {
@@ -586,82 +544,34 @@ void insert_autospace(byte sending_type) {
   }
 }
 
-//-------------------------------------------------------------------------------------------------------
+void loop_element_lengths(float lengths, float additional_time_ms, byte sending_type){
+  if (lengths <= 0) {
+    return;
+  }
+  float element_length = 1200/keyerConf.wpm;
 
-
-//#ifndef FEATURE_HI_PRECISION_LOOP_TIMING
-//
-//  void loop_element_lengths(float lengths, float additional_time_ms, byte sending_type)
-//  {
-//    if (lengths <= 0) {
-//      return;
-//    }
-//
-//    float element_length = 1200/keyerConf.wpm;
-//
-//    unsigned long endtime = millis() + long(element_length*lengths) + long(additional_time_ms);
-//    while ((millis() < endtime) && (millis() > 200)) {  // the second condition is to account for millis() rollover
-////      if (keyerConf.keyer_mode != ULTIMATIC) {
-//        if ((keyerConf.keyer_mode == IAMBIC_A) && both_paddles_touched()) {
-//            iambic_flag = 1;
-//        }
-//     
-//          if (being_sent == SENDING_DIT) {
-//            check_dah_paddle();
-//          } else if (being_sent == SENDING_DAH) {
-//            check_dit_paddle();
-//          }
-////      }
-//      
-//        if (sending_type == AUTOMATIC_SENDING && (one_paddle_touched() || dit_buffer || dah_buffer)) {
-//            return;
-//        }
-//    }  //while ((millis() < endtime) && (millis() > 200))
-//   
-//    if ((keyerConf.keyer_mode == IAMBIC_A) && (iambic_flag) && !one_paddle_touched()) {
-//        iambic_flag = 0;
-//        dit_buffer = 0;
-//        dah_buffer = 0;
-//    }
-//   
-//  } //void loop_element_lengths
-//
-//
-//#else //FEATURE_HI_PRECISION_LOOP_TIMING
-//
-  void loop_element_lengths(float lengths, float additional_time_ms, byte sending_type){
-    if (lengths <= 0) {
-      return;
-    }
-
-    float element_length = 1200/keyerConf.wpm;
-
-    unsigned long endtime = micros() + long(element_length*lengths*1000) + long(additional_time_ms*1000);
-    while ((micros() < endtime) && (micros() > 200000)) {  // the second condition is to account for millis() rollover
+  unsigned long endtime = micros() + long(element_length*lengths*1000) + long(additional_time_ms*1000);
+  while ((micros() < endtime) && (micros() > 200000)) {  // the second condition is to account for millis() rollover
 //      if (keyerConf.keyer_mode != ULTIMATIC) {
-        if ((keyerConf.keyer_mode == IAMBIC_A) && both_paddles_touched()) {
-            iambic_flag = 1;
-        }
+    if ((keyerConf.keyer_mode == IAMBIC_A) && both_paddles_touched()) {
+      iambic_flag = 1;
+    }
     
-          if (being_sent == SENDING_DIT) {
-            check_dah_paddle();
-          } else if (being_sent == SENDING_DAH) {
-              check_dit_paddle();
-          }
+    if (being_sent == SENDING_DIT) {
+      check_dah_paddle();
+    } else if (being_sent == SENDING_DAH) {
+      check_dit_paddle();
+    }
 //      } //while ((millis() < endtime) && (millis() > 200))
       
-        if (sending_type == AUTOMATIC_SENDING && (one_paddle_touched() || dit_buffer || dah_buffer)) {
-            return;
-        }
+    if (sending_type == AUTOMATIC_SENDING && (one_paddle_touched() || dit_buffer || dah_buffer)) {
+      return;
     }
-  
+  }
    
-    if ((keyerConf.keyer_mode == IAMBIC_A) && (iambic_flag) && !one_paddle_touched()) {
-        iambic_flag = 0;
-        dit_buffer = 0;
-        dah_buffer = 0;
-    }
-
-  } //void loop_element_lengths
-//#endif //FEATURE_HI_PRECISION_LOOP_TIMING
-//-------------------------------------------------------------------------------------------------------
+  if ((keyerConf.keyer_mode == IAMBIC_A) && (iambic_flag) && !one_paddle_touched()) {
+    iambic_flag = 0;
+    dit_buffer = 0;
+    dah_buffer = 0;
+ }
+} //void loop_element_lengths
