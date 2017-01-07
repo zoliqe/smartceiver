@@ -18,21 +18,21 @@ WebUSB WebUSBSerial(URLS, 2, 1, ALLOWED_ORIGINS, 2);
 #define Serial WebUSBSerial
 String serialCommand = "";
 
-//#define RX_IF		65650000L //39980000L
-#define RX_IF		4915200L
-//#define FIXED_RX_LO	0
+// For superhet type of RX use RX_IF with proper IF value (default 4.9152MHz)
+// #define RX_IF		4915200L
+// For RX with SDR dongle (RTL-SDR) use FIXED_RX_LO set to fixed frequency of SDR receiver
+// #define FIXED_RX_LO	65000000L
+#if defined(RX_IF) && defined(FIXED_RX_LO)
+#error "Cannot have both options enabled: RX_IF && FIXED_RX_LO"
+#endif
 //AD9850 osc(PIN_DDS_CLK, PIN_DDS_UPDATE, PIN_DDS_DATA); // w_clk, fq_ud, data
 const uint8_t pllMult = 36;
 const uint32_t pllFreq = pllMult * SI5351_CRYSTAL_FREQ_25MHZ;
 const uint32_t rFractPr = 100000;
 Adafruit_SI5351 osc = Adafruit_SI5351();
 unsigned long freqTX = 7030000L;
-//#ifdef FIXED_RX_LO
-//unsigned long freqRX = FIXED_RX_LO;
-//#else
-unsigned long freqRX = 0;//abs(RX_IF - freqTX);
+unsigned long freqRX = 0; // will be set by calling setfreq(RX)
 bool freqChanged = true;
-//#endif
 
 byte pwrLevel = HIGH;
 byte lpfState = 255; // LPF selected band state 1..3
@@ -58,6 +58,9 @@ void setup() {
   osc.setupPLL(SI5351_PLL_A, pllMult, 0, 1);
   osc.setupPLL(SI5351_PLL_B, pllMult, 0, 1);
   frequency(freqTX);
+#ifdef FIXED_RX_LO
+  setfreq(RX); // explicitly set the RX freq
+#endif
 #ifdef RX_IF
   unsigned long freqIF = RX_IF - keyerConf.sidetone;
   osc.setupMultisynth(BFO, SI5351_PLL_A, pllFreq / freqIF, ((pllFreq / ((float) freqIF)) - (pllFreq / freqIF)) * rFractPr, rFractPr);
@@ -227,7 +230,9 @@ void frequency(unsigned long new_freq) {
 	if (new_freq >= 1e6 && new_freq <= 1e8) {
 		freqTX = new_freq;
 		freqChanged = true;
+#ifndef FIXED_RX_LO
 		setfreq(RX);
+#endif
 		selectBPF();
     serialSendFreq();
 	}
@@ -236,16 +241,15 @@ void frequency(unsigned long new_freq) {
 void setfreq(OscType type) {
   si5351PLL_t pllSource = type == TX ? SI5351_PLL_B : SI5351_PLL_A;
   if (type == RX) {
+#ifdef FIXED_RX_LO
+      freqRX = FIXED_RX_LO;
+#else
 #ifdef RX_IF
       freqRX = freqTX > RX_IF ? (freqTX - RX_IF) : (RX_IF - freqTX);
 #else
-      freqRX = freqTX;
-      if (freqTX < 10000000) {
-        freqRX += keyerConf.sidetone;
-      } else {
-        freqRX -= keyerConf.sidetone;
-      }
-#endif
+      freqRX = freqTX + keyerConf.sidetone; // USB
+#endif // RX_IF
+#endif // FIXED_RX_LO
   }
   unsigned long freq = type == TX ? freqTX : freqRX;
   freq += correctFreq;
