@@ -9,6 +9,15 @@
 #include "pins.h"
 #include "keyer.h"
 
+// For DirectConversion (DC) RX comment out both of following options
+// For superhet type of RX use RX_IF with proper IF value (default 4.9152MHz)
+#define RX_IF    4915200L
+// For RX with SDR dongle (RTL-SDR) use FIXED_RX_LO set to fixed frequency of SDR receiver
+// #define FIXED_RX_LO  65000000L
+#if defined(RX_IF) && defined(FIXED_RX_LO)
+#error "Cannot have both options enabled: RX_IF && FIXED_RX_LO"
+#endif
+
 const WebUSBURL URLS[] = {
   { 1, "zoliqe.github.io/smartceiver" },
   { 0, "localhost:8000" },
@@ -18,13 +27,6 @@ WebUSB WebUSBSerial(URLS, 2, 1, ALLOWED_ORIGINS, 2);
 #define Serial WebUSBSerial
 String serialCommand = "";
 
-// For superhet type of RX use RX_IF with proper IF value (default 4.9152MHz)
-// #define RX_IF		4915200L
-// For RX with SDR dongle (RTL-SDR) use FIXED_RX_LO set to fixed frequency of SDR receiver
-// #define FIXED_RX_LO	65000000L
-#if defined(RX_IF) && defined(FIXED_RX_LO)
-#error "Cannot have both options enabled: RX_IF && FIXED_RX_LO"
-#endif
 //AD9850 osc(PIN_DDS_CLK, PIN_DDS_UPDATE, PIN_DDS_DATA); // w_clk, fq_ud, data
 const uint8_t pllMult = 36;
 const uint32_t pllFreq = pllMult * SI5351_CRYSTAL_FREQ_25MHZ;
