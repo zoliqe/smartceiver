@@ -354,22 +354,22 @@ void txEnabled(bool enabled) {
 	Serial.print("KE");
 	Serial.print(keyerConf.tx_enabled ? '1' : '0');
 	Serial.print(';');
-  Serial.flush();
+	Serial.flush();
 }
 
 void tune(bool enabled) {
 	if (enabled) {
 		pwrLevel = LOW;
-//    osc.setupDriveStrength(TX, SI5351_DRIVE_2MA);
-//		tx(1);
+		tx(0); // stop TX to force re-set PWR level
+		tx(1);
 	} else {
-//		tx(0);
-    pwrLevel = HIGH;
+		tx(0);
+		pwrLevel = HIGH;
 	}
 	Serial.print("KT");
 	Serial.print(enabled ? '1' : '0');
 	Serial.print(';');
-  Serial.flush();
+	Serial.flush();
 }
 
 //--- KEYING -------------------------------------------------------------------
