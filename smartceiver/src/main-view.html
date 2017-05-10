@@ -19,17 +19,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles app-grid-style">
       :host {
         display: block;
-        padding: 5px;
+        padding: 10px;
         --app-grid-columns: 2;
         --app-grid-gutter: 2px;
       }
 
-      @media (max-width: 680px) {
+      @media (max-width: 720px) {
         :host {
           --app-grid-columns: 1;
         }
       }
       ul {
+        padding: 2px;
         list-style: none;
       }
 
@@ -54,9 +55,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         border-radius: 30px;
       }
 
-      paper-item {
-        padding: 0;
-      }
       paper-button {
         font-size: 14pt;
         font-weight: bold;
@@ -151,12 +149,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         super.ready();
 
         this.$.knob.addEventListener("touchstart", (event) => {
-          this.centerX = this.$.knob.offsetLeft + (this.$.knob.offsetWidth / 2);
-          this.centerY = this.$.knob.offsetTop + (this.$.knob.offsetHeight / 2);
-          // console.log('startX=' + this.centerX + ', startY=' + this.centerY);
+          this.startX = this.$.knob.offsetLeft + (this.$.knob.offsetWidth / 2);
+          this.startY = this.$.knob.offsetTop + (this.$.knob.offsetHeight / 2);
+          // console.log('startX=' + this.startX + ', startY=' + this.startY);
 
           var touch = event.changedTouches.item(0);
-          this.startAngle = Math.atan2(touch.pageY - this.centerY, touch.pageX - this.centerX) * 180 / Math.PI;
+          this.startAngle = Math.atan2(touch.pageY - this.startY, touch.pageX - this.startX) * 180 / Math.PI;
           // console.log("startAngle=" + this.startAngle);
         });
         this.$.knob.addEventListener("touchmove", e => {this.rotateByTouch(e)});
@@ -167,7 +165,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         var touch = event.changedTouches.item(0);
         event.preventDefault();// Turn off default event handling
 
-        var currentAngle = Math.atan2(touch.pageY - this.centerY, touch.pageX - this.centerX) * 180 / Math.PI;
+        var currentAngle = Math.atan2(touch.pageY - this.startY, touch.pageX - this.startX) * 180 / Math.PI;
         var rotation = this.lastAngle + (currentAngle - this.startAngle);
         if (Math.abs(rotation - this.lastRotation) > this.threshold) {
           this.rotateKnob(rotation);

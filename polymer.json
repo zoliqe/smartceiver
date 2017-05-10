@@ -1,13 +1,7 @@
-{
+  {
   "entrypoint": "index.html",
-  "shell": "src/my-app.html",
-  "fragments": [
-    "src/smartceiver-main.html",
-    "src/smartceiver-setup-rx.html",
-    "src/smartceiver-setup-tx.html",
-    "src/smartceiver-cw-mem.html",
-    "src/my-view404.html"
-  ],
+  "shell": "src/smartceiver-app.html",
+  "fragments": [],
   "sources": [
     "src/**/*",
     "images/**/*",
@@ -19,5 +13,21 @@
   ],
   "lint": {
     "rules": ["polymer-2"]
-  }
+  },
+  "builds": [{
+    "name": "unbundled",
+    "bundle": false,
+    "js": {"minify": false},
+    "css": {"minify": false},
+    "html": {"minify": false}
+  },
+  {
+    "name": "bundled",
+    "bundle": true,
+    "addServiceWorker": true,
+    "swPrecacheConfig": "sw-precache-config.js",
+    "js": {"minify": true},
+    "css": {"minify": true},
+    "html": {"minify": true}
+  }]
 }
