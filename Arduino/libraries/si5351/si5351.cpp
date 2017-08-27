@@ -425,16 +425,16 @@ err_t Adafruit_SI5351::setupDriveStrength(uint8_t output, si5351DriveStrength_t 
 switch(drive)
   {
   case SI5351_DRIVE_2MA:
-    reg_val |= 0x00;
+    reg_val |= 0xFC; //0x00;
     break;
   case SI5351_DRIVE_4MA:
-   reg_val |= 0x01;
+   reg_val |= 0xFD; //0x01;
     break;
   case SI5351_DRIVE_6MA:
-    reg_val |= 0x02;
+    reg_val |= 0xFE; //0x02;
     break;
   case SI5351_DRIVE_8MA:
-    reg_val |= 0x03;
+    reg_val |= 0xFF; //0x03;
     break;
   default:
     break;
