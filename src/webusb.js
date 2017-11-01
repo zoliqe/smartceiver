@@ -3,11 +3,11 @@ var connector = {};
 (function() {
   'use strict';
   
-  webusb.encoder_ = new TextEncoder();
-  webusb.decoder_ = new TextDecoder();
+  connector.encoder_ = new TextEncoder();
+  connector.decoder_ = new TextDecoder();
 
-  webusb.connect = function(successCallback) {
-    webusb.requestPort().then(selectedPort => {
+  connector.connect = function(successCallback) {
+    connector.requestPort().then(selectedPort => {
       console.log('Connecting to ' + selectedPort.device_.productName);
       selectedPort.connect().then(() => {
         console.log('Connected ' + selectedPort);
@@ -26,30 +26,30 @@ var connector = {};
     });
   }
 
-  webusb.getPorts = function() {
+  connector.getPorts = function() {
     return navigator.usb.getDevices().then(devices => {
-      return devices.map(device => new webusb.Port(device));
+      return devices.map(device => new connector.Port(device));
     });
   };
 
-  webusb.requestPort = function() {
+  connector.requestPort = function() {
     const filters = [
       { 'vendorId': 0x2341, 'productId': 0x8036 },
       { 'vendorId': 0x2341, 'productId': 0x8037 },
     ];
     return navigator.usb.requestDevice({ 'filters': filters }).then(
-      device => new webusb.Port(device)
+      device => new connector.Port(device)
     );
   }
 
-  webusb.Port = function(device) {
+  connector.Port = function(device) {
     this.device_ = device;
   };
 
-  webusb.Port.prototype.connect = function() {
+  connector.Port.prototype.connect = function() {
     let readLoop = () => {
       this.device_.transferIn(5, 64).then(result => {
-        this.onReceive(webusb.decoder_.decode(result.data));
+        this.onReceive(connector.decoder_.decode(result.data));
         readLoop();
       }, error => {
         this.onReceiveError(error);
@@ -74,7 +74,7 @@ var connector = {};
         });
   };
 
-  webusb.Port.prototype.disconnect = function() {
+  connector.Port.prototype.disconnect = function() {
     return this.device_.controlTransferOut({
             'requestType': 'class',
             'recipient': 'interface',
@@ -84,7 +84,7 @@ var connector = {};
         .then(() => this.device_.close());
   };
 
-  webusb.Port.prototype.send = function(data) {
-    return this.device_.transferOut(4, webusb.encoder_.encode(data));
+  connector.Port.prototype.send = function(data) {
+    return this.device_.transferOut(4, connector.encoder_.encode(data));
   };
 })();
