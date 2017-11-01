@@ -1,7 +1,7 @@
 BROOT="build/bundled"
 BPROJ="${BROOT}"
 
-DROOT="../../zoliqe.github.io"
+DROOT="../zoliqe.github.io"
 DPROJ="${DROOT}/smartceiver"
 
 mkdir $DROOT

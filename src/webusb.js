@@ -1,10 +1,30 @@
-var webusb = {};
+var connector = {};
 
 (function() {
   'use strict';
   
   webusb.encoder_ = new TextEncoder();
   webusb.decoder_ = new TextDecoder();
+
+  webusb.connect = function(successCallback) {
+    webusb.requestPort().then(selectedPort => {
+      console.log('Connecting to ' + selectedPort.device_.productName);
+      selectedPort.connect().then(() => {
+        console.log('Connected ' + selectedPort);
+        selectedPort.onReceive = data => {
+          console.log('Received: ' + data);
+        };
+        selectedPort.onReceiveError = error => {
+          console.log('Receive error: ' + error);
+        };
+        successCallback(selectedPort);
+      }, error => {
+         console.log('Connection error (2): ' + error);
+      });
+    }).catch(error => {
+      console.error('Connection error (1): ' + error);
+    });
+  }
 
   webusb.getPorts = function() {
     return navigator.usb.getDevices().then(devices => {

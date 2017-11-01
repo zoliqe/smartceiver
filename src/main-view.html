@@ -8,10 +8,14 @@ Code distributed by Google as part of the polymer project is also
 subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
 -->
 
+<!-- Ensure Web Animations polyfill is loaded since neon-animation 2.0 doesn't import it -->
+<link rel="import" href="../bower_components/neon-animation/web-animations.html">
 <link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
 <link rel="import" href="../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../bower_components/paper-dropdown-menu/paper-dropdown-menu.html">
 <link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
 <link rel="import" href="shared-styles.html">
 
 <dom-module id="main-view">
@@ -19,7 +23,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <style include="shared-styles app-grid-style">
       :host {
         display: block;
-        padding: 5px;
+        padding: 0px;
         --app-grid-columns: 2;
         --app-grid-gutter: 2px;
       }
@@ -38,10 +42,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background-color: lightgray;/*#09f*/
         background: radial-gradient(circle, darkgray, black);
         /*margin: 20px auto;*/
-        margin-left: 10px;
-        width: 300px;
-        height: 300px;
-        border-radius: 150px;
+        margin-left: 55px;
+        width: 200px;
+        height: 200px;
+        border-radius: 100px;
       }
       div.dimp {
         position: absolute;
@@ -49,13 +53,26 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background: radial-gradient(circle, #3d3d3d, #1e1e1e);
         margin: 15px auto;
         left: 50%;
-        width: 60px;
-        height: 60px;
-        border-radius: 30px;
+        width: 40px;
+        height: 40px;
+        border-radius: 20px;
       }
 
-      paper-item {
+      paper-dropdown-menu.band {
+        width: 110px;
+      }
+      paper-dropdown-menu.mode {
+        width: 80px;
+        text-align: right;
+        padding-left: 135px;
+      }
+
+      paper-item.controls {
         padding: 0;
+      }
+      paper-item.wpm {
+        padding: 0;
+        padding-left: 15px;
       }
       paper-button {
         font-size: 14pt;
@@ -76,7 +93,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       paper-button.toggles:hover {
         background-color: var(--paper-red-700);
       }
-
       paper-button.wpm {
         background-color: var(--paper-indigo-800);
         --paper-button-raised-keyboard-focus: {
@@ -100,18 +116,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <ul class="app-grid">
     <li><div class="card">
-      <div id="knob" class="knob" on-wheel="rotateByWheel">
+      <paper-dropdown-menu label="BAND" class="band">
+        <paper-listbox slot="dropdown-content" selected="{{band}}">
+          <template is="dom-repeat" items="[[bands]]">
+            <paper-item>{{item}} MHz</paper-item>
+          </template>
+        </paper-listbox>
+      </paper-dropdown-menu>
+      <paper-dropdown-menu label="MODE" class="mode">
+          <paper-listbox slot="dropdown-content" selected="{{mode}}">
+            <template is="dom-repeat" items="[[modes]]">
+              <paper-item>{{item}}</paper-item>
+            </template>
+          </paper-listbox>
+        </paper-dropdown-menu>
+        <div id="knob" class="knob" on-wheel="rotateByWheel">
         <div id="dimp" class="dimp"></div>
       </div>
     </div></li>
     <li><div class="card" role="listbox">
       <h1>Controls</h1>
-      <paper-item>
-      <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button>
-      <paper-button toggles active="{{fast}}" raised class="toggles">FAST</paper-button>
-      <paper-button toggles active="{{narrow}}" raised class="toggles">NARROW</paper-button>
+      <paper-item class="controls">
+        <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button>
+        <paper-button toggles active="{{fast}}" raised class="toggles">FAST</paper-button>
+        <paper-button toggles active="{{narrow}}" raised class="toggles">NAR</paper-button>
       </paper-item>
-      <paper-item>
+      <paper-item class="controls">
+        <paper-button toggles active="{{preamp}}" raised class="toggles">PREAMP</paper-button>
+        <paper-button toggles active="{{attn}}" raised class="toggles">ATTN</paper-button>
+        <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button>
+      </paper-item>
+      <paper-item class="wpm">
         <paper-button raised on-tap="decreaseWpm" class="wpm" disabled="[[decWpmDisabled(wpm)]]">WPM --</paper-button>
         <span class="wpm-control">[[wpm]]</span>
         <paper-button raised on-tap="increaseWpm" class="wpm" disabled="[[incWpmDisabled(wpm)]]">WPM ++</paper-button>
@@ -132,7 +167,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           locked: {type: Boolean, value: false},
           fast: {type: Boolean, value: false},
           narrow: {type: Boolean, notify: true},
-          wpm: {type: Number, notify: true}
+          wpm: {type: Number, notify: true},
+          preamp: {type: Boolean, notify: true},
+          attn: {type: Boolean, notify: true},
+          bands: {type: Array, notify: false},
+          band: {type: Number, notify: true},
+          modes: {type: Array, notify: false},
+          mode: {type: Number, notify: true},
+          ptt: {type: Boolean, notify: true, value: false}
         };
       }
 

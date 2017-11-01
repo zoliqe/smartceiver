@@ -31,8 +31,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        --app-primary-color: #4285f4;
-        --app-secondary-color: black;
+        --app-primary-color: #8f8f8f;
+        --app-secondary-color: #95c029;
 
         display: block;
       }
@@ -42,14 +42,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       app-header {
-        color: #b6fd17;
-        background-color: #777777;
+        color: #95c029;
+        background-color: #888888;
+        border-radius: 10px;
         /*var(--app-primary-color);*/
         /*max-height: 20px;*/
       }
 
       app-header paper-icon-button {
-        --paper-icon-button-ink-color: #b6fd17;
+        --paper-icon-button-ink-color: #95c029;
       }
 
       app-header div.freq-display {
@@ -79,6 +80,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       .drawer-list a.iron-selected {
         color: black;
         font-weight: bold;
+      }
+
+      .remotig {
+        position: absolute;
+        top: 350px;
       }
     </style>
 
@@ -117,7 +123,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="error404"
             role="main">
-          <main-view name="tune" freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}"></main-view>
+          <main-view name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
+            freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}"></main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
           <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}"></setuptx-view>
           <cwmem-view name="cwmem"></cwmem-view>
@@ -125,9 +132,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
+    <div class="remotig">
+      <video id="localStream"></video>
+      <div id="remoteStream"></div>
+    </div>
   </template>
 
-  <script src="webusb.js"></script>
+  <script defer src="https://simplewebrtc.com/latest-v2.js"></script>
+  <script defer src="webrtc.js"></script>
+  <!-- <script defer src="webusb.js"></script> -->
   <script src="tcvr.js"></script>
 
   <script>
