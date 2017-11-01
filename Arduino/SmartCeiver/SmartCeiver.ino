@@ -18,12 +18,7 @@
 #error "Cannot have both options enabled: RX_IF && FIXED_RX_LO"
 #endif
 
-const WebUSBURL URLS[] = {
-  { 1, "zoliqe.github.io/smartceiver" },
-  { 0, "localhost:8000" },
-};
-const uint8_t ALLOWED_ORIGINS[] = { 1, 2 };
-WebUSB WebUSBSerial(URLS, 2, 1, ALLOWED_ORIGINS, 2);
+WebUSB WebUSBSerial(1, "zoliqe.github.io/smartceiver");
 #define Serial WebUSBSerial
 String serialCommand = "";
 
