@@ -1,5 +1,5 @@
 {
-  "name": "SmartCeiver",
+  "name": "smartceiver",
   "license": "BSD-3-Clause",
   "devDependencies": {
     "eslint": "^3.12.0",

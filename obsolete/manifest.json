@@ -1,11 +1,11 @@
 {
-  "name": "SmartCeiver",
-  "short_name": "Transceiver control webapp",
-  "start_url": "/?homescreen=1",
+  "name": "Smartceiver",
+  "short_name": "Smartceiver",
+  "start_url": "/smartceiver/?homescreen=1",
   "display": "fullscreen",
   "orientation": "landscape",
-  "theme_color": "#888888",
-  "background_color": "#888888",
+  "theme_color": "#3f51b5",
+  "background_color": "#3f51b5",
   "icons": [
     {
       "src": "images/manifest/icon-192x192.png",

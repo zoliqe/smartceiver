@@ -1,7 +1,7 @@
 # Smartceiver - An Open platform transceiver
 
 Smartceiver is based on these technologies:
-* **Arduino Micro**
+* **Arduino (Pro) Micro**
 * **Si5351** 
 * **WebUSB** 
 * **Polymer2 WebComponents** 
@@ -15,7 +15,7 @@ Smartceiver is based on these technologies:
 ##### Supported modes
 [Only CW]
 RX is capable to receive SSB signals with WIDE filter.
-TX is keyed by enable/disable Si5351 output.
+TX is keyed by enable/disable Si5351 output (or on AD9850 by power down mode).
 
 ### Control Software
 

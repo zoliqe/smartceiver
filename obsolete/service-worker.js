@@ -8,24 +8,8 @@
  * subject to an additional IP rights grant found at http://polymer.github.io/PATENTS.txt
  */
 
-/* eslint-env node */
+/* eslint no-console: ["error", { allow: ["info"] }] */
 
-module.exports = {
-  cacheId: "smartceiver",
-  // stripPrefix: "smartceiver/",
-  replacePrefix: "/smartceiver/",
-  // stripPrefixMulti: {
-  //   'smartceiver/': '',
-  //   '/smartceiver/': '/',
-  //   '/bower_components': '/smartceiver/bower_components',
-  //   '/smartceiver/smartceiver': '/smartceiver'
-  // },
-  staticFileGlobs: [
-    'index.html',
-    'manifest.json',
-    'bower_components/webcomponentsjs/*',
-    'src/smartceiver-app.html',
-    'images/*',
-  ],
-  navigateFallback: 'index.html',
-};
+console.info(
+  'Service worker disabled for development, will be generated at build time.'
+);
