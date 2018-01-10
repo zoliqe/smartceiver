@@ -6,7 +6,7 @@ BPROJ="${BROOT}"
 DPROJ="../remotig/public"
 
 echo "const selectedConnector = 'k2-ws'" > src/select-connector.js
-
+ln -fs polymer-smartceiver.json polymer.json
 polymer build
 
 echo "Deploying to $DPROJ"
@@ -14,7 +14,7 @@ echo "Deploying to $DPROJ"
 [ -d "$DPROJ/src" ] || mkdir "$DPROJ/src"
 [ -d "$DPROJ/bower_components" ] || mkdir "$DPROJ/bower_components"
 cp "${BPROJ}/src/smartceiver-app.html" "${DPROJ}/src/"
-cp "${BPROJ}/index.html" "${DPROJ}/"
+cp "${BPROJ}/index-smartceiver.html" "${DPROJ}/index.html"
 cp "${BPROJ}/manifest.json" "${DPROJ}/"
 cp "${BROOT}/bower.json" "${DPROJ}/"
 cp "${BROOT}/service-worker.js" "${DPROJ}/"

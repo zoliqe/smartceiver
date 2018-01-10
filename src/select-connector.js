@@ -1,1 +1,1 @@
-const selectedConnector = 'k2-ws'
+const selectedConnector = 'smartceiver-webusb'

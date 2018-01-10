@@ -11,15 +11,8 @@
 /* eslint-env node */
 
 module.exports = {
-  cacheId: "smartceiver",
-  // stripPrefix: "smartceiver/",
-  replacePrefix: "/smartceiver/",
-  // stripPrefixMulti: {
-  //   'smartceiver/': '',
-  //   '/smartceiver/': '/',
-  //   '/bower_components': '/smartceiver/bower_components',
-  //   '/smartceiver/smartceiver': '/smartceiver'
-  // },
+  cacheId: "remotig",
+  replacePrefix: "/remotig/",
   staticFileGlobs: [
     'index.html',
     'manifest.json',
