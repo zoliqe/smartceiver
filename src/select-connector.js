@@ -1,1 +1,1 @@
-const selectedConnector = 'smartceiver-webusb'
+

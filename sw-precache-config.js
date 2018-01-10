@@ -1,0 +1,1 @@
+sw-precache-config-smartceiver.js
