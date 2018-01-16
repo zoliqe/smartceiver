@@ -56,7 +56,7 @@ class SmartceiverWebUSBConnector {
     tcvr.addEventListener(EventType.filter, this.constructor.id, event => {
       // console.log('bandWidth=' + bandWidth)
       // TODO this.player.setFilter(tcvr.sidetoneFreq, event.value)
-      port.send((event.value < 1000 ? "FW0" : "FW") + event.value + ";")
+      port.send((event.value < 1000 ? "RW0" : "RW") + event.value + ";")
     })
     tcvr.addEventListener(EventType.preamp, this.constructor.id, event => port.send("PA" + (event.value ? "1" : "0") + ";"))
     tcvr.addEventListener(EventType.attn, this.constructor.id, event => port.send("RA0" + (event.value ? "1" : "0") + ";"))
