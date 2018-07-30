@@ -20,7 +20,7 @@ class Remoddle {
         };
         this._port = selectedPort;
         if (this._port && this._tcvr) {
-          this._tcvr.addEventListener(EventType.wpm, this.constructor.id, event => this._port.send("KS0" + event.value + ";"))
+          this._tcvr.bind(EventType.wpm, this.constructor.id, event => this._port.send("KS0" + event.value + ";"))
           successCallback(this);
         }
       }, error => {
@@ -68,10 +68,10 @@ class Remoddle {
       let element = data[i];
       if (element == '-') {
         // console.log('remoddle: -');
-        this._tcvr.dispatchEvent(new TcvrEvent(EventType.keyDah, 1));    
+        this._tcvr.fire(new TcvrEvent(EventType.keyDah, 1));    
       } else if (element == '.') {
         // console.log('remoddle: .');
-        this._tcvr.dispatchEvent(new TcvrEvent(EventType.keyDit, 1));    
+        this._tcvr.fire(new TcvrEvent(EventType.keyDit, 1));    
       }
     }
   }

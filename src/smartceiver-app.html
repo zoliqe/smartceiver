@@ -184,7 +184,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       constructor() {
         super();
         document.tcvr = this.tcvr = new Transceiver();
-        this.tcvr.addEventListener(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
+        this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
       }
 
       _freqChanged(freq) {
