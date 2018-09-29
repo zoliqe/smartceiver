@@ -5,7 +5,7 @@ BPROJ="${BROOT}"
 
 DPROJ="../remotig/public"
 
-echo "const selectedConnector = 'k2-ws'" > src/select-connector.js
+echo "const selectedConnector = 'remotig'" > src/select-connector.js
 ln -fs sw-precache-config-smartceiver.js sw-precache-config.js
 ln -fs index-smartceiver.html index.html
 polymer build

@@ -50,13 +50,13 @@ class Transceiver {
   }
 
   switchPower(state) {
-    if ( ! state && this._port) {
+    if ( /*! state &&*/ this._port) {
       this._d("disconnect", true)
       this.unbind(this._connectorId)
       this._port.disconnect()
       this._port = null
       this._disconnectRemoddle()
-    } else if (state) {
+    } else /*if (state)*/ {
       this._d('connect')
       let connector = tcvrConnectors.get(this._connectorId)
       // this._connectRemoddle(connector)

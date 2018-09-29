@@ -1,1 +1,1 @@
-
+const selectedConnector = 'remotig'

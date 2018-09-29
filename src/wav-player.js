@@ -55,6 +55,8 @@ var pad = function pad(buffer) {
 
 var WavPlayer = function WavPlayer() {
     var context = void 0;
+    let lpf = undefined;
+    let hpf = undefined;
     let bpf = undefined;
 
     var hasCanceled_ = false;
