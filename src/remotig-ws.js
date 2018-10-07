@@ -7,8 +7,8 @@ class RemotigConnector {
   constructor() {
   }
 
-  connect(tcvr, successCallback) {
-    let url = "ws://" + window.location.hostname + ":8088/control/om4aa-1999"
+  connect(tcvr, successCallback, token) {
+    let url = "ws://" + window.location.hostname + ":8088/control/" + token
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => {
@@ -17,7 +17,7 @@ class RemotigConnector {
       console.log('ok, powering on')
       port.send('poweron')
       port.send('keyeren')
-      port._playStream('/stream.wav')
+      port._playStream('/stream/' + token)
       
       setTimeout(() => {
         port._startPowerOnTimer(10000)
@@ -54,7 +54,7 @@ class RemotigPort {
   }
 
   _playStream(url) {
-    console.log('playing RX stream')
+    console.log(`playing RX stream ${url}`)
     this._player = new WavPlayer()
     this._player.play(url)
     // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)

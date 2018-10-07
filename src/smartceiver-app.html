@@ -22,9 +22,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="main-view.html">
-<link rel="import" href="setuprx-view.html">
-<link rel="import" href="setuptx-view.html">
-<link rel="import" href="cwmem-view.html">
+<!-- <link rel="import" href="setuprx-view.html"> -->
+<!-- <link rel="import" href="setuptx-view.html"> -->
+<!-- <link rel="import" href="cwmem-view.html"> -->
 <link rel="import" href="error404-view.html">
 
 <dom-module id="smartceiver-app">
@@ -95,24 +95,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
 
     <app-location route="{{route}}"></app-location>
-    <!-- pattern="/remotig/:page" -->
+    <!-- pattern="/smartceiver/:page" -->
     <app-route
         route="{{route}}"
-        pattern="/smartceiver/:page"
+        pattern="/smartceiver/:token"
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
     <app-drawer-layout fullbleed responsive-width="1024px">
       <!-- Drawer content -->
-      <app-drawer id="drawer" slot="drawer" swipe-open>
+      <!-- <app-drawer id="drawer" slot="drawer" swipe-open>
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="tune" href="/smartceiver/tune">Control</a>
-          <!--<a name="setup-rx" href="/setup-rx">Setup RX</a>-->
+          < !--<a name="setup-rx" href="/setup-rx">Setup RX</a>- ->
           <a name="settings" href="/smartceiver/settings">Settings</a>
           <a name="cwmem" href="/smartceiver/cwmem">CW Memories</a>
         </iron-selector>
-      </app-drawer>
+      </app-drawer> -->
 
       <!-- Main content -->
       <app-header-layout has-scrolling-region>
@@ -135,8 +135,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           <main-view id="tune" name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
             freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}"></main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
-          <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view>
-          <cwmem-view name="cwmem"></cwmem-view>
+          <!-- <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view> -->
+          <!-- <cwmem-view name="cwmem"></cwmem-view> -->
           <error404-view name="error404"></error404-view>
         </iron-pages>
       </app-header-layout>
@@ -177,12 +177,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       static get observers() {
         return [
-          '_routePageChanged(routeData.page)',
+          // '_routePageChanged(routeData.page)',
+          '_tokenChanged(routeData.token)',
         ];
       }
 
       constructor() {
         super();
+        this.page = 'tune'
+        document.token = this.token = ''
         document.tcvr = this.tcvr = new Transceiver();
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
       }
@@ -217,30 +220,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       switchPower() {
-        this.tcvr.switchPower();
+        this.tcvr.switchPower(this.token);
       }
 
       // connectRemoddle() {
       //   this.tcvr.connectRemoddle();
       // }
 
-      _routePageChanged(page) {
-        // Polymer 2.0 will call with `undefined` on initialization.
-        // Ignore until we are properly called with a string.
-        if (page === undefined) {
-          return;
-        }
-
-        // If no page was found in the route data, page will be an empty string.
-        // Deault to 'main' in that case.
-        console.log("page=" + page);
-        this.page = page || 'tune';
-
-        // Close a non-persistent drawer when the page & route are changed.
-        if (!this.$.drawer.persistent) {
-          this.$.drawer.close();
-        }
+      _tokenChanged(token) {
+        console.log(`token=${token}`)
+        if ( ! token) return;
+        document.token = this.token = token;
       }
+
+      // _routePageChanged(page) {
+      //   // Polymer 2.0 will call with `undefined` on initialization.
+      //   // Ignore until we are properly called with a string.
+      //   if (page === undefined) {
+      //     return;
+      //   }
+
+      //   // If no page was found in the route data, page will be an empty string.
+      //   // Deault to 'main' in that case.
+      //   console.log("page=" + page);
+      //   this.page = page || 'tune';
+
+      //   // Close a non-persistent drawer when the page & route are changed.
+      //   if (!this.$.drawer.persistent) {
+      //     this.$.drawer.close();
+      //   }
+      // }
 
       // _pageChanged(page) {
       //   // Load page import on demand. Show 404 page if fails

@@ -49,7 +49,7 @@ class Transceiver {
     this._d("tcvr-init", "done")
   }
 
-  switchPower(state) {
+  switchPower(token, state) {
     if ( /*! state &&*/ this._port) {
       this._d("disconnect", true)
       this.unbind(this._connectorId)
@@ -71,7 +71,7 @@ class Transceiver {
         this.narrow = this._narrow
         this.preamp = this._preamp
         this.attn = this._attn
-      })
+      }, token)
     }
   }
 
