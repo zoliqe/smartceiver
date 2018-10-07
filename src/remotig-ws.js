@@ -12,18 +12,18 @@ class RemotigConnector {
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => {
-      // this.ws = ws;
-      const port = new RemotigPort(ws)
-      console.log('ok, powering on')
-      port.send('poweron')
-      port.send('keyeren')
-      port._playStream('/stream/' + token)
+      new RemotigPort(ws).onconnect = (port) => {
+        console.log('ok, powering on')
+        port.send('poweron')
+        port.send('keyeren')
+        port._playStream('/stream/' + token)
       
-      setTimeout(() => {
-        port._startPowerOnTimer(10000)
-        this._bindCommands(tcvr, port)
-        successCallback(port);
-      }, 5000) // delay for tcvr-init after poweron 
+        setTimeout(() => {
+          port._startPowerOnTimer(10000)
+          this._bindCommands(tcvr, port)
+          successCallback(port);
+        }, 5000) // delay for tcvr-init after poweron 
+      }  
     }
   }
 
@@ -51,6 +51,12 @@ class RemotigConnector {
 class RemotigPort {
   constructor(ws) {
     this._ws = ws
+    ws.onmessage = (event) => this.received(event.data)
+    ws.onclose = (event) => {
+      this._ws = null
+      this.disconnect()
+    }
+    ws.onerror = (err) => console.log(`control error: ${err}`)
   }
 
   _playStream(url) {
@@ -71,15 +77,27 @@ class RemotigPort {
     // port.send((bandWidth < 1000 ? "FW0" : "FW") + bandWidth + ";")
   }
 
-  disconnect() {
+  _connectionAck() {
+    this.connected = true
+    this.onconnect(this)
+  }
+
+  onconnect(port) {
+  }
+
+  disconnect(args = {}) {
+    console.log('control disconnect')
     clearInterval(this._timer)
-    this.send('poweroff')
+    args.silent || this.send('poweroff')
+    
     if (this._ws) {
+      this._ws.onclose = undefined
       this._ws.close()
     }
     if (this._player) {
       this._player.stop()
     }
+    window.alert('Transceiver control disconnected!')
   }
 
   send(data) {
@@ -88,6 +106,12 @@ class RemotigPort {
       // console.log('ok')
       this._ws.send(data)
     }
+  }
+
+  received(msg) {
+    console.log(`control msg: ${msg}`)
+    if (msg === 'conack') this._connectionAck()
+    else if (msg === 'disc' && this.connected) this.disconnect({silent: true})
   }
 }
 

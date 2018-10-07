@@ -98,7 +98,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <!-- pattern="/smartceiver/:page" -->
     <app-route
         route="{{route}}"
-        pattern="/smartceiver/:token"
+        pattern="/smartceiver/:page"
         data="{{routeData}}"
         tail="{{subroute}}"></app-route>
 
@@ -108,7 +108,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <app-toolbar>Menu</app-toolbar>
         <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
           <a name="tune" href="/smartceiver/tune">Control</a>
-          < !--<a name="setup-rx" href="/setup-rx">Setup RX</a>- ->
+          <a name="setup-rx" href="/setup-rx">Setup RX</a>
           <a name="settings" href="/smartceiver/settings">Settings</a>
           <a name="cwmem" href="/smartceiver/cwmem">CW Memories</a>
         </iron-selector>
@@ -178,7 +178,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get observers() {
         return [
           // '_routePageChanged(routeData.page)',
-          '_tokenChanged(routeData.token)',
+          '_tokenChanged(route.__queryParams)',
+          // '_queryParams(route)',
         ];
       }
 
@@ -188,6 +189,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         document.token = this.token = ''
         document.tcvr = this.tcvr = new Transceiver();
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
+      }
+
+      _queryParams(p) {
+        console.log(`queryParams=${JSON.stringify(p)}`)
       }
 
       _freqChanged(freq) {
@@ -227,7 +232,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       //   this.tcvr.connectRemoddle();
       // }
 
-      _tokenChanged(token) {
+      _tokenChanged(params) {
+        const token = params['token']
         console.log(`token=${token}`)
         if ( ! token) return;
         document.token = this.token = token;

@@ -51,9 +51,9 @@ class Transceiver {
 
   switchPower(token, state) {
     if ( /*! state &&*/ this._port) {
-      this._d("disconnect", true)
-      this.unbind(this._connectorId)
+      this._d(`disconnect ${this._port}`, true)
       this._port.disconnect()
+      this.unbind(this._connectorId)
       this._port = null
       this._disconnectRemoddle()
     } else /*if (state)*/ {

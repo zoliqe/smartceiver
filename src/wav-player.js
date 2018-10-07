@@ -72,7 +72,7 @@ var WavPlayer = function WavPlayer() {
         context = new AudioContext();
         lpf = context.createBiquadFilter()
         lpf.type = 'lowpass'
-        lpf.frequency.value = 700
+        lpf.frequency.value = 800
         hpf = context.createBiquadFilter()
         hpf.type = 'highpass'
         hpf.frequency.value = 400
@@ -103,7 +103,7 @@ var WavPlayer = function WavPlayer() {
                 bpf.connect(context.destination);
 
                 if (nextTime == 0) {
-                    nextTime = currentTime + 0.8; /// add 700ms latency to work well across systems - tune this if you like
+                    nextTime = currentTime + 0.5; /// add 700ms latency to work well across systems - tune this if you like
                 }
 
                 var duration = source.buffer.duration;
