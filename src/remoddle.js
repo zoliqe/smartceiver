@@ -43,6 +43,7 @@ class Remoddle {
       { 'vendorId': 0x2341, 'productId': 0x8036 },
       { 'vendorId': 0x2341, 'productId': 0x8037 },
     ];
+    if (navigator.usb == null) return Promise.error('WebUSB not supported!')
     return navigator.usb.requestDevice({ 'filters': filters }).then(
       device => new RemoddlePort(device)
     );

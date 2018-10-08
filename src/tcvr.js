@@ -1,12 +1,12 @@
 const _vfos = ['A', 'B']
 const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
 const _bandLowEdges = [1800000, 3500000, 7000000, 10100000, 14000000, 18068000, 21000000, 24890000, 28000000]
-const _modes = ['LSB', 'USB', 'CW', 'CWR'] // order copies mode code for MDn cmd
+const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
 const _narrowFilters = [1800, 1800, 100, 100] // in _modes order
 const _wideFilters =   [2700, 2700, 1000, 1000] // in _modes order
 // const _narrowFilters = ['1800', '1800', '0200', '0200']; // in _modes order
 // const _wideFilters =   ['2700', '2700', '0600', '0600']; // in _modes order
-const _sidetoneFreq = 600
+const _sidetoneFreq = 650
 const _sidetoneLevel = 0.2
 
 class Transceiver {
@@ -39,6 +39,7 @@ class Transceiver {
     this._preamp = false
     this._attn = false
     this._ptt = false
+    this._agc = true
     // this._buildBFO();
 
     this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
@@ -60,11 +61,12 @@ class Transceiver {
     } else /*if (state)*/ {
       this._d('connect')
       let connector = tcvrConnectors.get(this._connectorId)
-      // this._connectRemoddle(connector)
+      // this._connectRemoddle(connector) TODO fix on unsupported platforms
       connector.connect(this, (port) => {
         this._port = port
         // reset tcvr configuration
         this.freq = this._freq[this._band][this._mode][this._rxVfo]
+        this.mode = this._mode
         this.wpm = this._wpm
         this.txEnabled = this._txEnabled
         this.autoSpace = this._autoSpace
@@ -72,6 +74,8 @@ class Transceiver {
         this.narrow = this._narrow
         this.preamp = this._preamp
         this.attn = this._attn
+        this.ptt = this._ptt
+        this.agc = this._agc
       }, token)
     }
   }
@@ -163,7 +167,7 @@ class Transceiver {
         this._mode = value
         this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
         // this._port.send("MD" + (this._mode + 1) + ";");
-        this.fire(new TcvrEvent(EventType.mode, this._mode))
+        this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
       }
     });
   }
@@ -233,6 +237,17 @@ class Transceiver {
       this._d("ptt", this._ptt)
       this.fire(new TcvrEvent(EventType.ptt, this._ptt))
     });
+  }
+
+  get agc() {
+    return this._agc
+  }
+  set agc(state) {
+    this.whenConnected(() => {
+      this._agc = state
+      this._d('agc', this._agc)
+      this.fire(new TcvrEvent(EventType.agc, this._agc))
+    })
   }
 
   // get txEnabled() {
@@ -340,6 +355,7 @@ class EventListener {
 
 const EventType = Object.freeze({
   freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, ptt: 10,
+  agc: 11,
 })
 
 class ConnectorRegister {

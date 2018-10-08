@@ -30,7 +30,7 @@ class RemotigConnector {
   _bindCommands(tcvr, port) {
     tcvr.bind(EventType.keyDit, this.constructor.id, () => port.send("."))
     tcvr.bind(EventType.keyDah, this.constructor.id, () => port.send("-"))
-    tcvr.bind(EventType.mode, this.constructor.id, event => port.send("mode=" + (event.value + 1)))
+    tcvr.bind(EventType.mode, this.constructor.id, event => port.send("mode=" + event.value.toLowerCase()))
     tcvr.bind(EventType.freq, this.constructor.id, event => {
       //let freq = event.value
       //let data = "FA" // + _vfos[this._rxVfo]; // TODO split
@@ -45,7 +45,8 @@ class RemotigConnector {
     tcvr.bind(EventType.filter, this.constructor.id, event => port.filter(event.value, tcvr.sidetoneFreq))
     tcvr.bind(EventType.preamp, this.constructor.id, event => port.send("preamp" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.attn, this.constructor.id, event => port.send("attn" + (event.value ? "on" : "off")))
-    tcvr.bind(EventType.ptt, this.constructor.id, event => port.send('ptt' + (event.value ?  'on' : 'off')))
+    tcvr.bind(EventType.ptt, this.constructor.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
+    tcvr.bind(EventType.agc, this.constructor.id, event => port.send('agc' + (event.value ? 'on' : 'off')))
   }
 }
 

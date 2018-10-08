@@ -144,7 +144,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-item class="controls">
         <paper-button toggles active="{{preamp}}" raised class="toggles">PREAMP</paper-button>
         <paper-button toggles active="{{attn}}" raised class="toggles">ATTN</paper-button>
-        <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button>
+        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
+        <paper-button toggles active="{{agc}}" raised class="toggles">AGC</paper-button>
       </paper-item>
       <paper-item class="wpm">
         <paper-button raised on-tap="decreaseWpm" class="wpm" disabled="[[decWpmDisabled(wpm)]]">WPM --</paper-button>
@@ -174,7 +175,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           band: {type: Number, notify: true},
           modes: {type: Array, notify: false},
           mode: {type: Number, notify: true},
-          ptt: {type: Boolean, notify: true, value: false}
+          ptt: {type: Boolean, notify: true, value: false},
+          agc: {type: Boolean, notify: true, value: true},
         };
       }
 
