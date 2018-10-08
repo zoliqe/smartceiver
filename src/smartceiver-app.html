@@ -122,7 +122,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
             <div main-title class="freq-display">[[freqDisplay]]</div>
             <div>v10</div>
-            <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
+            <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button>
             <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
           </app-toolbar>
         </app-header>
@@ -133,7 +133,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="error404"
             role="main">
           <main-view id="tune" name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
-            freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}"></main-view>
+            freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}" ptt="{{tcvr.ptt}}">
+          </main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
           <!-- <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view> -->
           <!-- <cwmem-view name="cwmem"></cwmem-view> -->
@@ -191,9 +192,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
       }
 
-      _queryParams(p) {
-        console.log(`queryParams=${JSON.stringify(p)}`)
-      }
+      // _queryParams(p) {
+        // console.log(`queryParams=${JSON.stringify(p)}`)
+      // }
 
       _freqChanged(freq) {
         if (freq == this._freq) {
@@ -228,9 +229,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.tcvr.switchPower(this.token);
       }
 
-      // connectRemoddle() {
-      //   this.tcvr.connectRemoddle();
-      // }
+      connectRemoddle() {
+        this.tcvr.connectRemoddle();
+      }
 
       _tokenChanged(params) {
         const token = params['token']

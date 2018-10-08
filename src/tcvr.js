@@ -38,6 +38,7 @@ class Transceiver {
     this._narrow = false
     this._preamp = false
     this._attn = false
+    this._ptt = false
     // this._buildBFO();
 
     this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
@@ -121,143 +122,154 @@ class Transceiver {
   // }
 
   whenConnected(proceed) {
-    if (this._port) {
-      proceed();
+    if (this._port && this._port.connected !== false) { // connected may be also undefined
+      proceed()
     }
   }
 
   get allBands() {
     // return this._freq.keys();
-    return _bands;
+    return _bands
   }
 
   get allModes() {
-    return _modes;
+    return _modes
   }
 
   get allVfos() {
-    return _vfos;
+    return _vfos
   }
 
   get band() {
-    return this._band;
+    return this._band
   }
   set band(band) {
     this.whenConnected(() => {
-      this._d("band", band);
+      this._d("band", band)
       if (band in _bands) {
-        this._band = band;
-        this.freq = this._freq[this._band][this._mode][this._rxVfo]; // call setter  
+        this._band = band
+        this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter  
       }
-    });
+    })
   }
 
   get mode() {
-    return this._mode;
+    return this._mode
   }
   set mode(value) {
     this.whenConnected(() => {
-      this._d("mode", value);
+      this._d("mode", value)
       if (value in _modes) {
-        this._mode = value;
-        this.freq = this._freq[this._band][this._mode][this._rxVfo]; // call setter
+        this._mode = value
+        this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
         // this._port.send("MD" + (this._mode + 1) + ";");
-        this.fire(new TcvrEvent(EventType.mode, this._mode));
+        this.fire(new TcvrEvent(EventType.mode, this._mode))
       }
     });
   }
 
   get freq() {
-    return this._freq[this._band][this._mode][this._rxVfo];
+    return this._freq[this._band][this._mode][this._rxVfo]
   }
   set freq(freq) {
     this.whenConnected(() => {
-      this._freq[this._band][this._mode][this._rxVfo] = freq;
-      this._d("freq", freq);
-      this.fire(new TcvrEvent(EventType.freq, freq));
+      this._freq[this._band][this._mode][this._rxVfo] = freq
+      this._d("freq", freq)
+      this.fire(new TcvrEvent(EventType.freq, freq))
     });
   }
 
   get wpm() {
-    return this._wpm;
+    return this._wpm
   }
   set wpm(wpm) {
     this.whenConnected(() => {
-      this._wpm = wpm;
-      this._d("wpm", wpm);
-      this.fire(new TcvrEvent(EventType.wpm, wpm));
-    });
+      this._wpm = wpm
+      this._d("wpm", wpm)
+      this.fire(new TcvrEvent(EventType.wpm, wpm))
+    })
   }
 
   get narrow() {
-    return this._narrow;
+    return this._narrow
   }
   set narrow(narrow) {
     this.whenConnected(() => {
-      this._narrow = narrow;
-      this._d("narrow", narrow);
+      this._narrow = narrow
+      this._d("narrow", narrow)
       let bandwidth = narrow ? _narrowFilters[this._mode] : _wideFilters[this._mode]
-      this.fire(new TcvrEvent(EventType.filter, bandwidth));
-    });
+      this.fire(new TcvrEvent(EventType.filter, bandwidth))
+    })
   }
 
   get preamp() {
-    return this._preamp;
+    return this._preamp
   }
   set preamp(state) {
     this.whenConnected(() => {
-      this._preamp = state;
-      this._d("preamp", this._preamp);
-      this.fire(new TcvrEvent(EventType.preamp, this._preamp));
-    });
+      this._preamp = state
+      this._d("preamp", this._preamp)
+      this.fire(new TcvrEvent(EventType.preamp, this._preamp))
+    })
   }
 
   get attn() {
-    return this._attn;
+    return this._attn
   }
   set attn(state) {
     this.whenConnected(() => {
-      this._attn = state;
-      this._d("attn", this._attn);
-      this.fire(new TcvrEvent(EventType.attn, this._attn));
+      this._attn = state
+      this._d("attn", this._attn)
+      this.fire(new TcvrEvent(EventType.attn, this._attn))
     });
   }
 
-  get txEnabled() {
-    return this._txEnabled;
+  get ptt() {
+    return this._ptt
   }
-  set txEnabled(txEnabled) {
+  set ptt(state) {
     this.whenConnected(() => {
-      this._txEnabled = txEnabled;
-      this._d("txEnabled", txEnabled);
-      // let data = "KE" + (txEnabled ? "1" : "0");
-      // this._port.send(data + ";");
+      this._ptt = state
+      this._d("ptt", this._ptt)
+      this.fire(new TcvrEvent(EventType.ptt, this._ptt))
     });
   }
 
-  get autoSpace() {
-    return this._autoSpace;
-  }
-  set autoSpace(autoSpace) {
-    this.whenConnected(() => {
-      this._autoSpace = autoSpace;
-      this._d("autoSpace", autoSpace);
-      // let data = "KA" + (autoSpace ? "1" : "0");
-      // this._port.send(data + ";");
-    });
-  }
+  // get txEnabled() {
+  //   return this._txEnabled;
+  // }
+  // set txEnabled(txEnabled) {
+  //   this.whenConnected(() => {
+  //     this._txEnabled = txEnabled;
+  //     this._d("txEnabled", txEnabled);
+  //     // let data = "KE" + (txEnabled ? "1" : "0");
+  //     // this._port.send(data + ";");
+  //   });
+  // }
 
-  get txKeyed() {
-    return this._txKeyed;
-  }
-  set txKeyed(txKeyed) {
-    this.whenConnected(() => {
-      this._txKeyed = txKeyed;
-      this._d("txKeyed", txKeyed);
-      // let data = "KT" + (txKeyed ? "1" : "0");
-      // this._port.send(data + ";");
-    });
-  }
+  // get autoSpace() {
+  //   return this._autoSpace;
+  // }
+  // set autoSpace(autoSpace) {
+  //   this.whenConnected(() => {
+  //     this._autoSpace = autoSpace;
+  //     this._d("autoSpace", autoSpace);
+  //     // let data = "KA" + (autoSpace ? "1" : "0");
+  //     // this._port.send(data + ";");
+  //   });
+  // }
+
+  // get txKeyed() {
+  //   return this._txKeyed;
+  // }
+  // set txKeyed(txKeyed) {
+  //   this.whenConnected(() => {
+  //     this._txKeyed = txKeyed;
+  //     this._d("txKeyed", txKeyed);
+  //     // let data = "KT" + (txKeyed ? "1" : "0");
+  //     // this._port.send(data + ";");
+  //   });
+  // }
 
   // get sidetone() {
   //   return this._bfoAmp !== undefined;
@@ -279,19 +291,19 @@ class Transceiver {
 
   bind(type, owner, callback) {
     if (!(type in this._listeners)) {
-      this._listeners[type] = [];
+      this._listeners[type] = []
     }
-    this._listeners[type].push(new EventListener(owner, callback));
-    this._d("bind: " + type + ", for " + owner + ", callbacks:", this._listeners[type].length);
+    this._listeners[type].push(new EventListener(owner, callback))
+    this._d(`bind: ${type} for ${owner}, callbacks`, this._listeners[type].length)
   }
 
   unbind(owner) {
     for (let type in this._listeners) {
-      let stack = this._listeners[type];
+      let stack = this._listeners[type]
       for (let i = 0, l = stack.length; i < l; i++) {
         if (stack[i].owner == owner) {
-          this._d("removeEventListener for " + owner + " type", type);
-          stack.splice(i, 1);
+          this._d(`unbind ${type} for ${owner}`)
+          stack.splice(i, 1)
         }
       }
     }
@@ -326,7 +338,9 @@ class EventListener {
   get callback() { return this._callback }
 }
 
-const EventType = Object.freeze({freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9})
+const EventType = Object.freeze({
+  freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, ptt: 10,
+})
 
 class ConnectorRegister {
   constructor() { this._reg = {} }
