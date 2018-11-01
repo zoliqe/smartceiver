@@ -7,27 +7,45 @@ class RemotigConnector {
   constructor() {
   }
 
-  connect(tcvr, successCallback, token) {
+  connect(tcvr, token, successCallback, discCallback) {
+    this.tcvr = tcvr
+    this.onconnect = successCallback
+    this.ondisconnect = discCallback
     let url = "ws://" + window.location.hostname + ":8088/control/" + token
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
-    ws.onopen = (evt) => {
-      new RemotigPort(ws).onconnect = (port) => {
-        console.log('ok, powering on')
-        port.send('poweron')
-        port.send('keyeron')
-        port._playStream('/stream/' + token)
-      
-        setTimeout(() => {
-          port._startPowerOnTimer(10000)
-          this._bindCommands(tcvr, port)
-          successCallback(port);
-        }, 5000) // delay for tcvr-init after poweron 
-      }  
+    ws.onopen = (evt) => new RemotigPort(ws)
+  }
+
+  onportopen(port) {
+    console.log('ok, powering on')
+    port.send('poweron')
+    port.send('keyeron')
+    port._playStream('/stream/' + token)
+
+    setTimeout(() => {
+      this._startPowerOnTimer(port, 10000)
+      this._bindCommands(this.tcvr, port)
+      this.onconnect && this.onconnect(port)
+    }, 5000) // delay for tcvr-init after poweron 
+  }
+
+  _startPowerOnTimer(port, interval) {
+    this._timer = setInterval(() => port.send('poweron'), interval);
+  }
+
+  onportclose() {
+    clearInterval(this._timer)
+    if (this._player) {
+      this._player.stop()
     }
+    window.alert('Transceiver control disconnected!')
+    this.ondisconnect && this.ondisconnect()
   }
 
   _bindCommands(tcvr, port) {
+    if (!tcvr || !port) return
+
     tcvr.bind(EventType.keyDit, this.constructor.id, () => port.send("."))
     tcvr.bind(EventType.keyDah, this.constructor.id, () => port.send("-"))
     tcvr.bind(EventType.mode, this.constructor.id, event => port.send("mode=" + event.value.toLowerCase()))
@@ -42,24 +60,11 @@ class RemotigConnector {
       port.send(`f=${event.value}`)
     })
     tcvr.bind(EventType.wpm, this.constructor.id, event => port.send("wpm=" + event.value))
-    tcvr.bind(EventType.filter, this.constructor.id, event => port.filter(event.value, tcvr.sidetoneFreq))
+    tcvr.bind(EventType.filter, this.constructor.id, event => this.filter(event.value, tcvr.sidetoneFreq))
     tcvr.bind(EventType.preamp, this.constructor.id, event => port.send("preamp" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.attn, this.constructor.id, event => port.send("attn" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.ptt, this.constructor.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
     tcvr.bind(EventType.agc, this.constructor.id, event => port.send('agc' + (event.value ? 'on' : 'off')))
-  }
-}
-
-class RemotigPort {
-  constructor(ws) {
-    this._connected = false
-    this._ws = ws
-    ws.onmessage = (event) => this.received(event.data)
-    ws.onclose = () => {
-      this._ws = null
-      this.disconnect()
-    }
-    ws.onerror = (err) => console.log(`control error: ${err}`)
   }
 
   _playStream(url) {
@@ -69,10 +74,6 @@ class RemotigPort {
     // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)
   }
 
-  _startPowerOnTimer(interval) {
-    this._timer = setInterval(() => this.send('poweron'), interval);
-  }
-
   filter(bandWidth, centerFreq) {
     if (this._player) {
       this._player.setFilter(centerFreq, bandWidth)
@@ -80,32 +81,36 @@ class RemotigPort {
     // port.send((bandWidth < 1000 ? "FW0" : "FW") + bandWidth + ";")
   }
 
+}
+
+class RemotigPort {
+  constructor(ws, onopenCallback, oncloseCallback) {
+    this._connected = false
+    this._ws = ws
+    this.onopen = onopenCallback
+    this.onclose = oncloseCallback
+    ws.onmessage = (event) => this.received(event.data)
+    ws.onclose = () => {
+      this._ws = null
+      this.disconnect()
+    }
+    ws.onerror = (err) => console.log(`control error: ${err}`)
+  }
+
   get connected() {
     return this._connected
   }
 
-  _connectionAck() {
-    this._connected = true
-    this.onconnect(this)
-  }
-
-  onconnect(port) {
-  }
-
   disconnect(args = {}) {
-    console.log('control disconnect')
-    clearInterval(this._timer)
+    // console.log('control disconnect')
     args.silent || this.send('poweroff')
     
     if (this._ws) {
       this._ws.onclose = undefined
       this._ws.close()
     }
-    if (this._player) {
-      this._player.stop()
-    }
     this._connected = false
-    window.alert('Transceiver control disconnected!')
+    this.onclose && this.onclose()
   }
 
   send(data) {
@@ -118,8 +123,12 @@ class RemotigPort {
 
   received(msg) {
     console.log(`control msg: ${msg}`)
-    if (msg === 'conack') this._connectionAck()
-    else if (msg === 'disc' && this._connected) this.disconnect({silent: true})
+    if (msg === 'conack') {
+      this._connected = true
+      this.onopen && this.onopen(this)
+    } else if (msg === 'disc' && this._connected) {
+      this.disconnect({ silent: true })
+    }
   }
 }
 

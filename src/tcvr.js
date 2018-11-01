@@ -32,14 +32,14 @@ class Transceiver {
     })
     console.log(`freqs=${this._freq}`)
     this._wpm = 28
-    this._txEnabled = true
-    this._txKeyed = false
-    this._autoSpace = true
     this._narrow = false
     this._preamp = false
     this._attn = false
     this._ptt = false
     this._agc = true
+    // this._txEnabled = true
+    // this._txKeyed = false
+    // this._autoSpace = true
     // this._buildBFO();
 
     this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
@@ -57,34 +57,41 @@ class Transceiver {
       this._port.disconnect()
       this.unbind(this._connectorId)
       this._port = null
-      this._disconnectRemoddle()
+      this.disconnectRemoddle()
     } else /*if (state)*/ {
       this._d('connect')
       let connector = tcvrConnectors.get(this._connectorId)
-      // this._connectRemoddle(connector) TODO fix on unsupported platforms
-      connector.connect(this, (port) => {
+      if (token && token.startsWith('om4aa')) {
+        this.connectRemoddle(connector) //TODO fix on unsupported platforms
+      }
+      connector.connect(this, token, (port) => {
         this._port = port
         // reset tcvr configuration
         this.freq = this._freq[this._band][this._mode][this._rxVfo]
         this.mode = this._mode
+        this.ptt = this._ptt
         this.wpm = this._wpm
-        this.txEnabled = this._txEnabled
-        this.autoSpace = this._autoSpace
-        this.txKeyed = this._txKeyed
         this.narrow = this._narrow
+        // this.txEnabled = this._txEnabled
+        // this.autoSpace = this._autoSpace
+        // this.txKeyed = this._txKeyed
         this.preamp = this._preamp
         this.attn = this._attn
-        this.ptt = this._ptt
         this.agc = this._agc
-      }, token)
+      })
     }
+    this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
   }
 
-  _connectRemoddle(connector) {
-    if ( ! connector.constructor.capabilities.includes(Remoddle.id)) {
-      return
-    }
-    this._disconnectRemoddle() // remove previous instance
+  get powerSwState() {
+    return this._port != null
+  }
+
+  connectRemoddle(connector) {
+    // if ( ! connector.constructor.capabilities.includes(Remoddle.id)) {
+    //   return
+    // }
+    this.disconnectRemoddle() // remove previous instance
 
     new Remoddle(this).connect(remoddle => {
       this._remoddle = remoddle;
@@ -92,7 +99,7 @@ class Transceiver {
     });
   }
 
-  _disconnectRemoddle() {
+  disconnectRemoddle() {
     if (this._remoddle) {
       this.unbind(this._remoddle.constructor.id)
       this._remoddle.disconnect();
@@ -152,7 +159,11 @@ class Transceiver {
       this._d("band", band)
       if (band in _bands) {
         this._band = band
-        this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter  
+        this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
+        // reset state - some tcvrs may store state on per band basis
+        this.preamp = this._preamp
+        this.attn = this._attn
+        this.agc = this._agc
       }
     })
   }
@@ -325,9 +336,9 @@ class Transceiver {
   }
 
   fire(event) {
-    let stack = this._listeners[event.type];
-    stack.forEach(listenner => listenner.callback.call(this, event));
-    return true;//!event.defaultPrevented;
+    let stack = this._listeners[event.type]
+    stack && stack.forEach(listenner => listenner.callback.call(this, event))
+    return true //!event.defaultPrevented;
   }
 
   _d(what, value) {
@@ -355,7 +366,7 @@ class EventListener {
 
 const EventType = Object.freeze({
   freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, ptt: 10,
-  agc: 11,
+  agc: 11, pwrsw: 12,
 })
 
 class ConnectorRegister {

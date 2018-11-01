@@ -142,10 +142,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <paper-button toggles active="{{narrow}}" raised class="toggles">NAR</paper-button>
       </paper-item>
       <paper-item class="controls">
-        <paper-button toggles active="{{preamp}}" raised class="toggles">PREAMP</paper-button>
-        <paper-button toggles active="{{attn}}" raised class="toggles">ATTN</paper-button>
+        <paper-button toggles active="{{preamp}}" raised class="toggles" disabled="[[!power]]">PREAMP</paper-button>
+        <paper-button toggles active="{{attn}}" raised class="toggles" disabled="[[!power]]">ATTN</paper-button>
         <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
-        <paper-button toggles active="{{agc}}" raised class="toggles">AGC</paper-button>
+        <paper-button toggles active="{{agc}}" raised class="toggles" disabled="[[!power]]">AGC</paper-button>
       </paper-item>
       <paper-item class="wpm">
         <paper-button raised on-tap="decreaseWpm" class="wpm" disabled="[[decWpmDisabled(wpm)]]">WPM --</paper-button>
@@ -177,7 +177,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           mode: {type: Number, notify: true},
           ptt: {type: Boolean, notify: true, value: false},
           agc: {type: Boolean, notify: true, value: true},
-        };
+          power: {type: Boolean, notify: false},
+        }
       }
 
       constructor() {

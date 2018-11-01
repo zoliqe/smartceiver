@@ -11,6 +11,9 @@ ln -fs index-smartceiver.html index.html
 polymer build
 
 echo "Deploying to $DPROJ"
+rm -rf ${DPROJ}/*
+cp -r ${BROOT}/* ${DPROJ}/
+exit 0
 [ -d "$DPROJ" ] || mkdir "$DPROJ"
 [ -d "$DPROJ/src" ] || mkdir "$DPROJ/src"
 [ -d "$DPROJ/bower_components" ] || mkdir "$DPROJ/bower_components"

@@ -65,6 +65,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         text-align: left;
       }
 
+      app-header div.freq-display div.tx {
+        color: #dd6b88;
+      }
+
       .drawer-list {
         margin: 0 20px;
       }
@@ -119,10 +123,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
         <app-header slot="header" fixed effects="waterfall">
           <app-toolbar>
-            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
-            <div main-title class="freq-display">[[freqDisplay]]</div>
-            <div>v10</div>
-            <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button>
+            <!-- <paper-icon-button icon="menu" drawer-toggle></paper-icon-button> -->
+            <div main-title id="freq" name="freq" class="freq-display">
+              [[freqDisplay]]
+            </div>
+            <div>v12</div>
+            <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
             <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
           </app-toolbar>
         </app-header>
@@ -134,7 +140,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             role="main">
           <main-view id="tune" name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
             freq="{{tcvr.freq}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}" 
-            ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}">
+            ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}" power="[[tcvr.powerSwState]]">
           </main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
           <!-- <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view> -->
@@ -191,6 +197,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         document.token = this.token = ''
         document.tcvr = this.tcvr = new Transceiver();
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
+        this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed());
+        this.tcvr.bind(EventType.keyDah, 'ui', event => this.onKeyed());
       }
 
       // _queryParams(p) {
@@ -207,6 +215,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       formatFreq(freq) {
         this._freq = freq; // store value for change detect
+        if (freq === null || !this.tcvr.powerSwState) {
+          return ''
+        }
+
         let mhz = Math.floor(freq / 1000000);
         let res = '' + mhz + '.';
         let khz = (freq - mhz * 1000000) / 1000;
@@ -224,6 +236,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
 
         return res;
+      }
+
+      onKeyed() {
+        this.$.freq.style = "color: #dd6b88;"
+        if (this.keyedTimer) {
+          clearTimeout(this.keyedTimer)
+          this.keyedTimer = null
+        }
+        this.keyedTimer = setTimeout(() => {
+          this.keyedTimer = null
+          this.$.freq.style = ""
+        }, 400)
       }
 
       switchPower() {

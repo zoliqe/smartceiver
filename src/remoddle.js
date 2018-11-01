@@ -10,17 +10,12 @@ class Remoddle {
     this.requestPort().then(selectedPort => {
       console.log('Connecting to ' + selectedPort._device.productName);
       selectedPort.connect().then(() => {
-        console.log('Connected ' + selectedPort);
-        selectedPort.onReceive = data => {
-          // console.log('Received: ' + data);
-          this._evaluate(data);
-        };
-        selectedPort.onReceiveError = error => {
-          console.log('Receive error: ' + error);
-        };
+        console.log('Connected ' + JSON.stringify(selectedPort))
+        selectedPort.onReceive = data => this._evaluate(data)
+        selectedPort.onReceiveError = error => console.log('Receive error: ' + error)
         this._port = selectedPort;
         if (this._port && this._tcvr) {
-          this._tcvr.bind(EventType.wpm, this.constructor.id, event => this._port.send("KS0" + event.value + ";"))
+          this._tcvr.bind(EventType.wpm, this.constructor.id, event => this._port.send("S" + event.value + "\r\n"))
           successCallback(this);
         }
       }, error => {
@@ -43,17 +38,18 @@ class Remoddle {
       { 'vendorId': 0x2341, 'productId': 0x8036 },
       { 'vendorId': 0x2341, 'productId': 0x8037 },
     ];
-    if (navigator.usb == null) return Promise.error('WebUSB not supported!')
-    return navigator.usb.requestDevice({ 'filters': filters }).then(
-      device => new RemoddlePort(device)
-    );
+    if (navigator.usb == null) return Promise.reject(new Error('WebUSB not supported!'))
+
+    return navigator.usb
+      .requestDevice({ 'filters': filters })
+      .then(device => new RemoddlePort(device));
   }
 
-  get ports() {
-    return navigator.usb.getDevices().then(devices => {
-      return devices.map(device => new RemoddlePort(device));
-    });
-  }
+  // get ports() {
+  //   return navigator.usb
+  //     .getDevices()
+  //     .then(devices => { return devices.map(device => new RemoddlePort(device)) })
+  // }
 
   // set wpm(value) {
   //   if (this._port) {
