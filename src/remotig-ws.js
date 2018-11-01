@@ -14,14 +14,16 @@ class RemotigConnector {
     let url = "ws://" + window.location.hostname + ":8088/control/" + token
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
-    ws.onopen = (evt) => new RemotigPort(ws)
+    ws.onopen = (evt) => new RemotigPort(ws,
+      port => this.onportopen(port, token),
+      () => this.onportclose())
   }
 
-  onportopen(port) {
+  onportopen(port, token) {
     console.log('ok, powering on')
     port.send('poweron')
     port.send('keyeron')
-    port._playStream('/stream/' + token)
+    this._playStream('/stream/' + token)
 
     setTimeout(() => {
       this._startPowerOnTimer(port, 10000)

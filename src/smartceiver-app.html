@@ -127,7 +127,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
-            <div>v12</div>
+            <div>v15</div>
             <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
             <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
           </app-toolbar>
@@ -199,6 +199,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
         this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed());
         this.tcvr.bind(EventType.keyDah, 'ui', event => this.onKeyed());
+        this.tcvr.bind(EventType.pwrsw, 'ui', event => {
+          this.notifyPath('tcvr.freq')
+          this.notifyPath('tcvr.powerSwState')
+          this.$.tune.notifyPath('freq')
+          this.$.tune.notifyPath('power')
+        })
       }
 
       // _queryParams(p) {

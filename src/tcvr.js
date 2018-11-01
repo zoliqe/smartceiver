@@ -58,6 +58,7 @@ class Transceiver {
       this.unbind(this._connectorId)
       this._port = null
       this.disconnectRemoddle()
+      this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
     } else /*if (state)*/ {
       this._d('connect')
       let connector = tcvrConnectors.get(this._connectorId)
@@ -78,9 +79,9 @@ class Transceiver {
         this.preamp = this._preamp
         this.attn = this._attn
         this.agc = this._agc
+        this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
       })
     }
-    this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
   }
 
   get powerSwState() {
