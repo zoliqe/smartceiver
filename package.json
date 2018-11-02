@@ -1,13 +1,38 @@
 {
-  "name": "SmartCeiver",
+  "name": "smartceiver",
   "license": "BSD-3-Clause",
   "devDependencies": {
     "eslint": "^3.12.0",
     "eslint-config-google": "^0.7.1",
-    "eslint-plugin-html": "^1.7.0"
+    "eslint-plugin-html": "^1.7.0",
+    "wct-browser-legacy": "^1.0.1",
+    "@polymer/iron-icons": "^3.0.0-pre.18"
   },
   "scripts": {
     "lint": "eslint . --ext js,html --ignore-path .gitignore,Arduino",
     "test": "npm run lint && polymer test"
+  },
+  "version": "2.0",
+  "resolutions": {
+    "inherits": "2.0.3",
+    "samsam": "1.1.3",
+    "supports-color": "3.1.2",
+    "type-detect": "1.0.0"
+  },
+  "author": "Mike Karas <mike.om4aa@gmail.com>",
+  "dependencies": {
+    "@polymer/app-layout": "^3.0.0-pre.18",
+    "@polymer/app-route": "^3.0.0-pre.18",
+    "@polymer/iron-icon": "^3.0.0-pre.18",
+    "@polymer/iron-pages": "^3.0.0-pre.18",
+    "@polymer/iron-selector": "^3.0.0-pre.18",
+    "@polymer/paper-icon-button": "^3.0.0-pre.18",
+    "@polymer/polymer": "^3.0.0",
+    "@polymer/paper-button": "^3.0.0-pre.18",
+    "@polymer/paper-dropdown-menu": "^3.0.0-pre.18",
+    "@polymer/paper-toggle-button": "^3.0.0-pre.18",
+    "@polymer/paper-item": "^3.0.0-pre.18",
+    "@polymer/paper-listbox": "^3.0.0-pre.18",
+    "web-animations-js": "^2.3.1"
   }
 }

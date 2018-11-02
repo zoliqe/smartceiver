@@ -48,19 +48,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <meta name="msapplication-tap-highlight" content="no">
 
     <!-- Load and register pre-caching Service Worker -->
-    <script>
-      if ('serviceWorker' in navigator) {
-       window.addEventListener('load', function() {
-         navigator.serviceWorker.register('/smartceiver/service-worker.js');
-       });
-      }
-    </script>
+    <script type="module">
+import './src/smartceiver-app.js';
+if ('serviceWorker' in navigator) {
+ window.addEventListener('load', function() {
+   navigator.serviceWorker.register('/smartceiver/service-worker.js');
+ });
+}
+</script>
 
     <!-- Load webcomponents-loader.js to check and load any polyfills your browser needs -->
-    <script src="bower_components/webcomponentsjs/webcomponents-loader.js"></script>
+    <script src="../@webcomponents/webcomponentsjs/webcomponents-loader.js"></script>
 
     <!-- Load your application shell -->
-    <link rel="import" href="src/smartceiver-app.html">
+    <script type="module" src="./src/smartceiver-app.js"></script>
 
     <!-- Add any global styles for body, document, etc. -->
     <style>

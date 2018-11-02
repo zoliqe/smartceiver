@@ -1,6 +1,6 @@
   {
   "entrypoint": "index.html",
-  "shell": "src/smartceiver-app.html",
+  "shell": "src/smartceiver-app.js",
   "fragments": [],
   "sources": [
     "src/**/*",
