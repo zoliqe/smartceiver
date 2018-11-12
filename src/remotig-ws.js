@@ -9,21 +9,23 @@ class RemotigConnector {
 
   connect(tcvr, token, successCallback, discCallback) {
     this.tcvr = tcvr
+    this.token_ = token
     this.onconnect = successCallback
     this.ondisconnect = discCallback
     let url = "ws://" + window.location.hostname + ":8088/control/" + token
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => new RemotigPort(ws,
-      port => this.onportopen(port, token),
+      port => this.onportopen(port),
       () => this.onportclose())
   }
 
-  onportopen(port, token) {
+  onportopen(port) {
     console.log('ok, powering on')
     port.send('poweron')
     port.send('keyeron')
-    this._playStream('/stream/' + token)
+    this.audioUrl_ = '/stream/' + this.token_
+    this._playStream()
 
     setTimeout(() => {
       this._startPowerOnTimer(port, 10000)
@@ -38,8 +40,8 @@ class RemotigConnector {
 
   onportclose() {
     clearInterval(this._timer)
-    if (this._player) {
-      this._player.stop()
+    if (this.player_) {
+      this.player_.stop()
     }
     window.alert('Transceiver control disconnected!')
     this.ondisconnect && this.ondisconnect()
@@ -67,18 +69,27 @@ class RemotigConnector {
     tcvr.bind(EventType.attn, this.constructor.id, event => port.send("attn" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.ptt, this.constructor.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
     tcvr.bind(EventType.agc, this.constructor.id, event => port.send('agc' + (event.value ? 'on' : 'off')))
+    tcvr.bind(EventType.resetAudio, this.constructor.id, _ => this.restartAudio())
   }
 
-  _playStream(url) {
-    console.log(`playing RX stream ${url}`)
-    this._player = new WavPlayer()
-    this._player.play(url)
+  _playStream() {
+    console.log(`playing RX stream ${this.audioUrl_}`)
+    this.player_ = new WavPlayer()
+    this.player_.play(this.audioUrl_)
     // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)
   }
 
+  restartAudio() {
+    if (this.player_ && this.audioUrl_) {
+      console.log('restarting RX stream')
+      this.player_.stop()
+      this.player_.play(this.audioUrl_)
+    }
+  }
+
   filter(bandWidth, centerFreq) {
-    if (this._player) {
-      this._player.setFilter(centerFreq, bandWidth)
+    if (this.player_) {
+      this.player_.setFilter(centerFreq, bandWidth)
     }
     // port.send((bandWidth < 1000 ? "FW0" : "FW") + bandWidth + ";")
   }

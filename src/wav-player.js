@@ -135,7 +135,7 @@ var WavPlayer = function WavPlayer() {
 
             var isFirstBuffer = true;
             var numberOfChannels = 1,
-                sampleRate = 8000;
+                sampleRate = 4000;
 
             var read = function read() {
                 return reader.read().then(function (_ref) {

@@ -127,7 +127,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
-            <div>v15</div>
+            <div>v16</div>
+            <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button>
             <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
             <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
           </app-toolbar>
@@ -262,6 +263,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       connectRemoddle() {
         this.tcvr.connectRemoddle();
+      }
+
+      restartAudio() {
+        this.tcvr.fire(new TcvrEvent(EventType.resetAudio, true))
       }
 
       _tokenChanged(params) {
