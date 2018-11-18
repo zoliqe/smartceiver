@@ -366,8 +366,8 @@ class EventListener {
 }
 
 const EventType = Object.freeze({
-  freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, ptt: 10,
-  agc: 11, pwrsw: 12, resetAudio: 13,
+  freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, keySpace: 10, 
+  ptt: 11, agc: 12, pwrsw: 13, resetAudio: 14,
 })
 
 class ConnectorRegister {

@@ -52,6 +52,7 @@ class RemotigConnector {
 
     tcvr.bind(EventType.keyDit, this.constructor.id, () => port.send("."))
     tcvr.bind(EventType.keyDah, this.constructor.id, () => port.send("-"))
+    tcvr.bind(EventType.keySpace, this.constructor.id, () => port.send("_"))
     tcvr.bind(EventType.mode, this.constructor.id, event => port.send("mode=" + event.value.toLowerCase()))
     tcvr.bind(EventType.freq, this.constructor.id, event => {
       //let freq = event.value
@@ -128,6 +129,7 @@ class RemotigPort {
 
   send(data) {
     // console.log('ws send:', data)
+    '-._'.includes(data) && console.log(`K${data}`)
     if (this._ws) {
       // console.log('ok')
       this._ws.send(data)
