@@ -3,7 +3,7 @@
 BROOT="build/bundled"
 BPROJ="${BROOT}"
 
-DPROJ="../remotig/public"
+DPROJ="../remotig/smartceiver"
 
 echo "const selectedConnector = 'remotig'" > src/select-connector.js
 ln -fs sw-precache-config-smartceiver.js sw-precache-config.js
