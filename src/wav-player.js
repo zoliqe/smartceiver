@@ -103,7 +103,7 @@ var WavPlayer = function WavPlayer() {
                 bpf.connect(context.destination);
 
                 if (nextTime == 0) {
-                    nextTime = currentTime + 0.5; /// add 700ms latency to work well across systems - tune this if you like
+                    nextTime = currentTime + 0.7; /// add 700ms latency to work well across systems - tune this if you like
                 }
 
                 var duration = source.buffer.duration;

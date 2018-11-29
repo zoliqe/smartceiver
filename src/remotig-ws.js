@@ -11,7 +11,7 @@ class RemotigConnector {
     this.tcvr = tcvr
     this.onconnect = successCallback
     this.ondisconnect = discCallback
-    let url = "ws://" + window.location.hostname + ":8088/control/" + token
+    let url = "ws://" + window.location.origin + "/control/" + token
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => new RemotigPort(ws,
