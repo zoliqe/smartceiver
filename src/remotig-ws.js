@@ -12,7 +12,8 @@ class RemotigConnector {
     this.token_ = token
     this.onconnect = successCallback
     this.ondisconnect = discCallback
-    let url = "ws://" + window.location.origin + "/control/" + token
+    // const url = location.origin.replace(location.protocol, 'ws:') + "/control/" + token
+    const url = `ws://${location.host}/control/${token}`
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => new RemotigPort(ws,
