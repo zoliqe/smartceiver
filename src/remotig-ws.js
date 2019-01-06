@@ -7,25 +7,22 @@ class RemotigConnector {
   constructor() {
   }
 
-  connect(tcvr, token, successCallback, discCallback) {
+  connect(tcvr, token, rig, successCallback, discCallback) {
     this.tcvr = tcvr
-    this.token_ = token
     this.onconnect = successCallback
     this.ondisconnect = discCallback
-    // const url = location.origin.replace(location.protocol, 'ws:') + "/control/" + token
-    const url = `ws://${location.host}/control/${token}`
+    const url = `wss://${location.host}/remotig-${rig}/control/${token}`
     console.log('connecting ' + url)
     let ws = new WebSocket(url)
     ws.onopen = (evt) => new RemotigPort(ws,
-      port => this.onportopen(port),
+      port => this.onportopen(port, rig),
       () => this.onportclose())
   }
 
-  onportopen(port) {
+  onportopen(port, rig) {
     console.log('ok, powering on')
     port.send('poweron')
-    port.send('keyeron')
-    this.audioUrl_ = '/stream/' + this.token_
+    this.audioUrl_ = `wss://${location.hostname}:${audioStreamPort}/remotig-${rig}/audio`
     this._playStream()
 
     setTimeout(() => {
@@ -51,32 +48,23 @@ class RemotigConnector {
   _bindCommands(tcvr, port) {
     if (!tcvr || !port) return
 
-    tcvr.bind(EventType.keyDit, this.constructor.id, () => port.send("."))
-    tcvr.bind(EventType.keyDah, this.constructor.id, () => port.send("-"))
-    tcvr.bind(EventType.keySpace, this.constructor.id, () => port.send("_"))
-    tcvr.bind(EventType.mode, this.constructor.id, event => port.send("mode=" + event.value.toLowerCase()))
-    tcvr.bind(EventType.freq, this.constructor.id, event => {
-      //let freq = event.value
-      //let data = "FA" // + _vfos[this._rxVfo]; // TODO split
-      //data += "000"
-      //if (freq < 10000000) { // <10MHz
-        //  data += "0"
-      //}
-      //data += freq
-      port.send(`f=${event.value}`)
-    })
-    tcvr.bind(EventType.wpm, this.constructor.id, event => port.send("wpm=" + event.value))
-    tcvr.bind(EventType.filter, this.constructor.id, event => this.filter(event.value, tcvr.sidetoneFreq))
-    tcvr.bind(EventType.preamp, this.constructor.id, event => port.send("preamp" + (event.value ? "on" : "off")))
-    tcvr.bind(EventType.attn, this.constructor.id, event => port.send("attn" + (event.value ? "on" : "off")))
-    tcvr.bind(EventType.ptt, this.constructor.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
-    tcvr.bind(EventType.agc, this.constructor.id, event => port.send('agc' + (event.value ? 'on' : 'off')))
-    tcvr.bind(EventType.resetAudio, this.constructor.id, _ => this.restartAudio())
+    tcvr.bind(EventType.keyDit, RemotigConnector.id, () => port.send("."))
+    tcvr.bind(EventType.keyDah, RemotigConnector.id, () => port.send("-"))
+    tcvr.bind(EventType.keySpace, RemotigConnector.id, () => port.send("_"))
+    tcvr.bind(EventType.mode, RemotigConnector.id, event => port.send("mode=" + event.value.toLowerCase()))
+    tcvr.bind(EventType.freq, RemotigConnector.id, event => port.send(`f=${event.value}`))
+    tcvr.bind(EventType.wpm, RemotigConnector.id, event => port.send("wpm=" + event.value))
+    tcvr.bind(EventType.filter, RemotigConnector.id, event => this.filter(event.value, tcvr.sidetoneFreq))
+    tcvr.bind(EventType.preamp, RemotigConnector.id, event => port.send("preamp" + (event.value ? "on" : "off")))
+    tcvr.bind(EventType.attn, RemotigConnector.id, event => port.send("attn" + (event.value ? "on" : "off")))
+    tcvr.bind(EventType.ptt, RemotigConnector.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
+    tcvr.bind(EventType.agc, RemotigConnector.id, event => port.send('agc' + (event.value ? 'on' : 'off')))
+    tcvr.bind(EventType.resetAudio, RemotigConnector.id, _ => this.restartAudio())
   }
 
   _playStream() {
     console.log(`playing RX stream ${this.audioUrl_}`)
-    this.player_ = new WavPlayer()
+    this.player_ = new LllasPlayer() //new WavPlayer()
     this.player_.play(this.audioUrl_)
     // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)
   }

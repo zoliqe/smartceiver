@@ -127,7 +127,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
-            <div>v16</div>
+            <div>1a</div>
             <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button>
             <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
             <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
@@ -161,45 +161,51 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script defer src="remoddle.js"></script>
   <!-- <script defer src="https://simplewebrtc.com/latest-v2.js"></script> -->
   <!-- <script defer src="k2-webrtc.js"></script> -->
-  <script defer src="remotig-ws.js"></script>
-  <script defer src="wav-player.js"></script>
+  <!-- <script defer src="wav-player.js"></script> -->
   <script defer src="smartceiver-webusb.js"></script>
+  <script defer src="3las/audio_player.js"></script>
+  <script defer src="3las/socket_client.js"></script>
+  <script defer src="3las/format_reader.js"></script>
+  <script defer src="3las/mpeg.js"></script>
+  <!-- <script defer src="3las/wav.js"></script> -->
+  <script defer src="3las-player.js"></script>
+  <script defer src="remotig-ws.js"></script>
 
   <script>
     class SmartceiverApp extends Polymer.Element {
 
-      static get is() { return 'smartceiver-app'; }
+      static get is() { return 'smartceiver-app' }
 
       static get properties() {
         return {
           page: {
             type: String,
-            reflectToAttribute: true//,
+            reflectToAttribute: true,
             // observer: '_pageChanged',
           },
          freqDisplay: {
             type: String,
             computed: 'formatFreq(tcvr.freq)'
           }
-        };
+        }
       }
 
       static get observers() {
         return [
           // '_routePageChanged(routeData.page)',
           '_tokenChanged(route.__queryParams)',
-          // '_queryParams(route)',
-        ];
+        ]
       }
 
       constructor() {
-        super();
+        super()
         this.page = 'tune'
-        document.token = this.token = ''
-        document.tcvr = this.tcvr = new Transceiver();
-        this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)); // listen for freq changes on mode/band change
-        this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed());
-        this.tcvr.bind(EventType.keyDah, 'ui', event => this.onKeyed());
+        this.token = ''
+        this.rig = ''
+        document.tcvr = this.tcvr = new Transceiver()
+        this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
+        this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed())
+        this.tcvr.bind(EventType.keyDah, 'ui', event => this.onKeyed())
         this.tcvr.bind(EventType.pwrsw, 'ui', event => {
           this.notifyPath('tcvr.freq')
           this.notifyPath('tcvr.powerSwState')
@@ -208,41 +214,37 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         })
       }
 
-      // _queryParams(p) {
-        // console.log(`queryParams=${JSON.stringify(p)}`)
-      // }
-
       _freqChanged(freq) {
         if (freq == this._freq) {
-          return; // stop propagate freq change when changed by tuning knob (already propagated)
+          return // stop propagate freq change when changed by tuning knob (already propagated)
         }
-        this.notifyPath('tcvr.freq');
-        this.$.tune.notifyPath('freq');
+        this.notifyPath('tcvr.freq')
+        this.$.tune.notifyPath('freq')
       }
 
       formatFreq(freq) {
-        this._freq = freq; // store value for change detect
+        this._freq = freq // store value for change detect
         if (freq === null || !this.tcvr.powerSwState) {
           return ''
         }
 
-        let mhz = Math.floor(freq / 1000000);
-        let res = '' + mhz + '.';
-        let khz = (freq - mhz * 1000000) / 1000;
+        let mhz = Math.floor(freq / 1000000)
+        let res = '' + mhz + '.'
+        let khz = (freq - mhz * 1000000) / 1000
         if (khz < 10) {
-         res += '0';
+         res += '0'
         }
         if (khz < 100) {
-         res += '0';
+         res += '0'
         }
-       res += khz;
+       res += khz
         if (khz % 1 === 0) {
-         res += '.00';
+         res += '.00'
         } else if (freq % 100 === 0) {
-         res += '0';
+         res += '0'
         }
 
-        return res;
+        return res
       }
 
       onKeyed() {
@@ -258,11 +260,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       switchPower() {
-        this.tcvr.switchPower(this.token);
+        this.tcvr.switchPower(this.token, this.rig)
       }
 
       connectRemoddle() {
-        this.tcvr.connectRemoddle();
+        this.tcvr.connectRemoddle()
       }
 
       restartAudio() {
@@ -270,10 +272,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       _tokenChanged(params) {
-        const token = params['token']
-        console.log(`token=${token}`)
-        if ( ! token) return;
-        document.token = this.token = token;
+        // const token = params['token']
+        if (params.token) {
+          this.token = params.token.trim()
+        }
+        if (params.rig) {
+          this.rig = params.rig.trim()
+        }
       }
 
       // _routePageChanged(page) {
@@ -309,6 +314,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       // }
     }
 
-    window.customElements.define(SmartceiverApp.is, SmartceiverApp);
+    window.customElements.define(SmartceiverApp.is, SmartceiverApp)
   </script>
 </dom-module>

@@ -1,5 +1,10 @@
 class Remoddle {
   constructor(tcvr) {
+    this._filters = [
+      { 'vendorId': 0x2341, 'productId': 0x8036 },
+      { 'vendorId': 0x2341, 'productId': 0x8037 },
+    ]
+
     this._port = undefined
     this._tcvr = tcvr
   }
@@ -7,23 +12,26 @@ class Remoddle {
   static get id() { return 'remoddle' }
 
   connect(successCallback) {
-    this.requestPort().then(selectedPort => {
-      console.log('Connecting to ' + selectedPort._device.productName)
-      selectedPort.connect().then(() => {
-        console.log('Connected ' + JSON.stringify(selectedPort))
-        selectedPort.onReceive = data => this._evaluate(data)
-        selectedPort.onReceiveError = error => console.log('Receive error: ' + error)
-        this._port = selectedPort
-        if (this._port && this._tcvr) {
-          this._tcvr.bind(EventType.wpm, this.constructor.id, event => this._port.send("S" + event.value + "\r\n"))
-          successCallback(this)
-        }
-      }, error => {
-         console.log('Connection error (2): ' + error)
+    // this.requestPort()
+    navigator.usb && navigator.usb.requestDevice({ 'filters': this._filters })
+      .then(device => new RemoddlePort(device))
+      .then(selectedPort => {
+        console.log('Connecting to ' + selectedPort._device.productName)
+        selectedPort.connect().then(() => {
+          console.log('Connected ' + JSON.stringify(selectedPort))
+          selectedPort.onReceive = data => this._evaluate(data)
+          selectedPort.onReceiveError = error => console.log('Receive error: ' + error)
+          this._port = selectedPort
+          if (this._port && this._tcvr) {
+            this._tcvr.bind(EventType.wpm, this.constructor.id, event => this._port.send("S" + event.value + "\r\n"))
+            successCallback(this)
+          }
+        }, error => {
+          console.log('Connection error (2): ' + error)
+        })
+      }).catch(error => {
+        console.error('Connection error (1): ' + error)
       })
-    }).catch(error => {
-      console.error('Connection error (1): ' + error)
-    })
   }
 
   disconnect() {
@@ -33,17 +41,13 @@ class Remoddle {
     this._port = undefined;
   }
 
-  requestPort() {
-    const filters = [
-      { 'vendorId': 0x2341, 'productId': 0x8036 },
-      { 'vendorId': 0x2341, 'productId': 0x8037 },
-    ]
-    if (navigator.usb == null) return Promise.reject(new Error('WebUSB not supported!'))
+  // requestPort() {
+  //   if (navigator.usb == null) return Promise.reject(new Error('WebUSB not supported!'))
 
-    return navigator.usb
-      .requestDevice({ 'filters': filters })
-      .then(device => new RemoddlePort(device))
-  }
+  //   return navigator.usb
+  //     .requestDevice({ 'filters': this._filters })
+  //     .then(device => new RemoddlePort(device))
+  // }
 
   // get ports() {
   //   return navigator.usb
@@ -73,6 +77,13 @@ class Remoddle {
         this._tcvr.fire(new TcvrEvent(EventType.keySpace, 1))
       }
     }
+  }
+  requestPort() {
+    if (navigator.usb == null) return Promise.reject(new Error('WebUSB not supported!'))
+
+    return navigator.usb
+      .requestDevice({ 'filters': this._filters })
+      .then(device => new RemoddlePort(device))
   }
 
 }
