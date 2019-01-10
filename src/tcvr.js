@@ -86,23 +86,26 @@ class Transceiver {
 		return this._port != null
 	}
 
-	connectRemoddle(connector) {
+	async connectRemoddle(connector) {
 		// if ( ! connector.constructor.capabilities.includes(Remoddle.id)) {
 		//   return
 		// }
 		this.disconnectRemoddle() // remove previous instance
 
-		new Remoddle(this).connect(remoddle => {
-			this._remoddle = remoddle;
-			remoddle.wpm = this.wpm; // sync with current wpm state
-		});
+		try {
+			const remoddle = await new Remoddle(this).connect()
+			this._remoddle = remoddle
+			remoddle.wpm = this.wpm // sync with current wpm state
+		} catch (error) {
+			console.error(error)
+		}
 	}
 
 	disconnectRemoddle() {
 		if (this._remoddle) {
 			this.unbind(this._remoddle.constructor.id)
-			this._remoddle.disconnect();
-			this._remoddle = undefined;
+			this._remoddle.disconnect()
+			this._remoddle = null
 		}
 	}
 
