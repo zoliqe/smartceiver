@@ -97,7 +97,7 @@ class Transceiver {
 			this._remoddle = remoddle
 			remoddle.wpm = this.wpm // sync with current wpm state
 		} catch (error) {
-			console.error(error)
+			console.error(`Remoddle: ${error}`)
 		}
 	}
 
