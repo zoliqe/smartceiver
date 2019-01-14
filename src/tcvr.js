@@ -37,6 +37,7 @@ class Transceiver {
 		this._attn = false
 		this._ptt = false
 		this._agc = true
+		this._step = 20
 		// this._txEnabled = true
 		// this._txKeyed = false
 		// this._autoSpace = true
@@ -48,6 +49,8 @@ class Transceiver {
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
+		this.bind(EventType.up, 'tcvr', event => this.freq += this._step)
+		this.bind(EventType.down, 'tcvr', event => this.freq -= this._step)
 		this._d("tcvr-init", "done")
 	}
 
@@ -194,6 +197,13 @@ class Transceiver {
 			this._d("freq", freq)
 			this.fire(new TcvrEvent(EventType.freq, freq))
 		});
+	}
+
+	get step() {
+		return this._step
+	}
+	set step(value) {
+		this._step = value
 	}
 
 	get wpm() {
@@ -367,8 +377,9 @@ class EventListener {
 }
 
 const EventType = Object.freeze({
-	freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, keySpace: 10, 
-	ptt: 11, agc: 12, pwrsw: 13, resetAudio: 14,
+	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
+	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
+	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', up: 'up', down: 'down',
 })
 
 class ConnectorRegister {

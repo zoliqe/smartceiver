@@ -139,7 +139,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       <paper-item class="controls">
         <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button>
         <paper-button toggles active="{{fast}}" raised class="toggles">FAST</paper-button>
-        <paper-button toggles active="{{narrow}}" raised class="toggles">NAR</paper-button>
+        <paper-button toggles active="{{narrow}}" on-tap="fastChanged" raised class="toggles">NAR</paper-button>
       </paper-item>
       <paper-item class="controls">
         <paper-button toggles active="{{preamp}}" raised class="toggles" disabled="[[!power]]">PREAMP</paper-button>
@@ -167,6 +167,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           freq: {type: Number, notify: true},
           locked: {type: Boolean, value: false},
           fast: {type: Boolean, value: false},
+          step: {type: Number, notify: true, value: true},
           narrow: {type: Boolean, notify: true},
           wpm: {type: Number, notify: true},
           preamp: {type: Boolean, notify: true},
@@ -247,8 +248,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         if (this.locked) {
           return;
         }
-        var step = this.fast ? 200 : 20;
-        this.freq = delta > 0 ? (this.freq + step) : (this.freq - step);
+        // var step = this.fast ? 200 : 20;
+        this.freq = delta > 0 ? (this.freq + this.step) : (this.freq - this.step);
       }
 
       decreaseWpm() {
@@ -263,6 +264,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       incWpmDisabled(wpm) {
         return wpm >= 40;
+      }
+
+      fastChanged() {
+        this.step = this.fast ? 200 : 20
       }
 
     }

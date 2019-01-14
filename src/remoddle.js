@@ -81,6 +81,10 @@ class Remoddle {
         this._tcvr.fire(new TcvrEvent(EventType.keyDit, 1))   
       } else if (element === '_') {
         this._tcvr.fire(new TcvrEvent(EventType.keySpace, 1))
+      } else if (element === '>') {
+        this._tcvr.fire(new TcvrEvent(EventType.up, 1))
+      } else if (element === '<') {
+        this._tcvr.fire(new TcvrEvent(EventType.down, 1))
       } else {
         console.debug(`Remoddle rcvd: ${cmd}`)
       }
