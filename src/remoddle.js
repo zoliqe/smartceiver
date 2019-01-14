@@ -15,21 +15,23 @@ class Remoddle {
 
     const ports = await serial.getPorts()
     console.debug(`Remoddle getPorts(): ${JSON.stringify(ports)}`)
-    if (ports.length > 0) {
+    if (ports.length == 1) {
       this._port = ports[0]
-    } else {
+    } else if (ports.length > 1) {
       this._port = await serial.requestPort();
+    } else {
+      this._port = await serial.requestPort(); // TODO stop connection process, use button to connect
     }
 
     return new Promise((resolve, reject) => this._connectPort(resolve, reject))
   }
 
   async _connectPort(resolve, reject) {
-    console.debug(`Remoddle port: ${JSON.stringify(this._port)}`)
     if (!this._port) {
       reject('Remoddle: port is null')
       return
     }
+    console.debug(`Remoddle device: ${this._port.device_.productName} (${this._port.device_.manufacturerName})`)
 
     try {
       await this._port.connect()
