@@ -51,6 +51,9 @@ class Transceiver {
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
 		this.bind(EventType.up, 'tcvr', event => this.freq += this._step)
 		this.bind(EventType.down, 'tcvr', event => this.freq -= this._step)
+		this.bind(EventType.button, 'tcvr', event => {
+			this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0
+		})
 		this._d("tcvr-init", "done")
 	}
 
@@ -380,6 +383,7 @@ const EventType = Object.freeze({
 	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
 	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', up: 'up', down: 'down',
+	button: 'button',
 })
 
 class ConnectorRegister {

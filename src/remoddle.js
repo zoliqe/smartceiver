@@ -28,7 +28,7 @@ class Remoddle {
 
   async _connectPort(resolve, reject) {
     if (!this._port) {
-      reject('Remoddle: port is null')
+      reject('port is null')
       return
     }
     console.debug(`Remoddle device: ${this._port.device_.productName} (${this._port.device_.manufacturerName})`)
@@ -38,7 +38,7 @@ class Remoddle {
       console.info('Remoddle connected :-)')
       this._tcvr.bind(EventType.wpm, Remoddle.id, event => this.wpm = event.value)
     } catch (error) {
-      reject(`Remoddle: ${error}`)
+      reject(error)
       return
     }
     this._port.onReceive = data => this._evaluate(data)
@@ -85,6 +85,8 @@ class Remoddle {
         this._tcvr.fire(new TcvrEvent(EventType.up, 1))
       } else if (element === '<') {
         this._tcvr.fire(new TcvrEvent(EventType.down, 1))
+      } else if (element === '!') {
+        this._tcvr.fire(new TcvrEvent(EventType.button, 0))
       } else {
         console.debug(`Remoddle rcvd: ${cmd}`)
       }
