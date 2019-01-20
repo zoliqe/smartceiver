@@ -27,8 +27,21 @@ function PCMAudioPlayer ()
 	// Set volume to max
 	this._GainNode.gain.value = 1.0;
 	
-	// Connect gain node to context
-	this._GainNode.connect(this._SoundContext.destination);
+    // Connect gain node to filters and to context
+    this._lpf = this._SoundContext.createBiquadFilter()
+    this._lpf.type = 'lowpass'
+    this._lpf.frequency.value = 800
+    this._hpf = this._SoundContext.createBiquadFilter()
+    this._hpf.type = 'highpass'
+    this._hpf.frequency.value = 400
+    this._bpf = this._SoundContext.createBiquadFilter()
+    this._bpf.type = 'bandpass'
+    this._bpf.frequency.value = 600
+
+	this._GainNode.connect(this._lpf);
+    this._lpf.connect(this._hpf)
+    this._hpf.connect(this._bpf)
+    this._bpf.connect(this._SoundContext.destination);
 }
 
 
@@ -101,6 +114,13 @@ PCMAudioPlayer.prototype.MobileUnmute = function () {
     // Play source		
     SourceNode.start(0);
 };
+
+PCMAudioPlayer.prototype.filter = function (centerFreq, bandWidth) {
+    // bpf.type = filterType
+    this._lpf.frequency.value = centerFreq + (bandWidth / 2)
+    this._bpf.frequency.value = centerFreq
+    this._bpf.Q.value = (centerFreq / bandWidth) * 2
+}
 
 // Decodes audio data
 PCMAudioPlayer.prototype.DecodeAudioData = function (audioData, successCallback, errorCallback) {

@@ -61,7 +61,9 @@ class LllasPlayer {
 		this.ws_ && this.ws_.close()
 	}
 
-	setFilter(centerFreq, bandWidth) {}
+	setFilter(centerFreq, bandWidth) {
+		this.player_.filter(centerFreq, bandWidth)
+	}
 }
 
 // function OnSocketConnect() {
