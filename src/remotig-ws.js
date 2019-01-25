@@ -54,7 +54,7 @@ class RemotigConnector {
     tcvr.bind(EventType.mode, RemotigConnector.id, event => port.send("mode=" + event.value.toLowerCase()))
     tcvr.bind(EventType.freq, RemotigConnector.id, event => port.send(`f=${event.value}`))
     tcvr.bind(EventType.wpm, RemotigConnector.id, event => port.send("wpm=" + event.value))
-    tcvr.bind(EventType.filter, RemotigConnector.id, event => this.filter(event.value, tcvr.sidetoneFreq))
+    tcvr.bind(EventType.filter, RemotigConnector.id, event => this.filter(event.value, tcvr.sidetoneFreq, port))
     tcvr.bind(EventType.preamp, RemotigConnector.id, event => port.send("preamp" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.attn, RemotigConnector.id, event => port.send("attn" + (event.value ? "on" : "off")))
     tcvr.bind(EventType.ptt, RemotigConnector.id, event => port.send('ptt' + (event.value ? 'on' : 'off')))
@@ -77,11 +77,11 @@ class RemotigConnector {
     }
   }
 
-  filter(bandWidth, centerFreq) {
+  filter(bandWidth, centerFreq, port) {
     if (this.player_) {
       this.player_.setFilter(centerFreq, bandWidth)
     }
-    // port.send((bandWidth < 1000 ? "FW0" : "FW") + bandWidth + ";")
+    port.send('filter=' + bandWidth)
   }
 
 }

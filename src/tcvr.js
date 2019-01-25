@@ -2,8 +2,8 @@ const _vfos = ['A', 'B']
 const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
 const _bandLowEdges = [1800000, 3500000, 7000000, 10100000, 14000000, 18068000, 21000000, 24890000, 28000000]
 const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
-const _narrowFilters = [1800, 1800, 100, 100] // in _modes order
-const _wideFilters =   [2700, 2700, 1000, 1000] // in _modes order
+const _narrowFilters = [2000, 2000, 250, 250] // in _modes order
+const _wideFilters =   [2400, 2400, 2000, 2000] // in _modes order
 // const _narrowFilters = ['1800', '1800', '0200', '0200']; // in _modes order
 // const _wideFilters =   ['2700', '2700', '0600', '0600']; // in _modes order
 const _sidetoneFreq = 650
@@ -37,6 +37,7 @@ class Transceiver {
 		this._attn = false
 		this._ptt = false
 		this._agc = true
+		this._step = 20
 		// this._txEnabled = true
 		// this._txKeyed = false
 		// this._autoSpace = true
@@ -48,6 +49,11 @@ class Transceiver {
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
+		this.bind(EventType.up, 'tcvr', event => this.freq += this._step)
+		this.bind(EventType.down, 'tcvr', event => this.freq -= this._step)
+		this.bind(EventType.button, 'tcvr', event => {
+			this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0
+		})
 		this._d("tcvr-init", "done")
 	}
 
@@ -198,6 +204,13 @@ class Transceiver {
 			this._d("freq", freq)
 			this.fire(new TcvrEvent(EventType.freq, freq))
 		});
+	}
+
+	get step() {
+		return this._step
+	}
+	set step(value) {
+		this._step = value
 	}
 
 	get wpm() {
@@ -371,8 +384,10 @@ class EventListener {
 }
 
 const EventType = Object.freeze({
-	freq: 1, wpm: 2, mode: 3, vfo: 4, filter: 5, preamp: 6, attn: 7, keyDit: 8, keyDah: 9, keySpace: 10, 
-	ptt: 11, agc: 12, pwrsw: 13, resetAudio: 14,
+	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
+	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
+	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', up: 'up', down: 'down',
+	button: 'button',
 })
 
 class ConnectorRegister {
