@@ -99,7 +99,7 @@ class Transceiver {
 		this.disconnectRemoddle() // remove previous instance
 
 		try {
-			const remoddle
+			const remoddle = null
 			if (type === 'usb') remoddle = await new RemoddleUsb(this).connect()
 			else if (type === 'bt') remoddle = await new RemoddleBluetooth(this).connect()
 			else return
