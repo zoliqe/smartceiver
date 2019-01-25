@@ -51,7 +51,7 @@ class Transceiver {
 		this._d("tcvr-init", "done")
 	}
 
-	switchPower(token, rig) {
+	switchPower(token, rig, remoddle) {
 		if ( /*! state &&*/ this._port) {
 			this._d(`disconnect ${this._port}`, true)
 			this._port.disconnect()
@@ -62,7 +62,7 @@ class Transceiver {
 		} else /*if (state)*/ {
 			this._d('connect')
 			let connector = tcvrConnectors.get(this._connectorId)
-			this.connectRemoddle(connector)
+			this.connectRemoddle(connector, remoddle)
 			connector.connect(this, token, rig, (port) => {
 				this._port = port
 				// reset tcvr configuration
@@ -86,14 +86,18 @@ class Transceiver {
 		return this._port != null
 	}
 
-	async connectRemoddle(connector) {
+	async connectRemoddle(connector, type) {
 		// if ( ! connector.constructor.capabilities.includes(Remoddle.id)) {
 		//   return
 		// }
 		this.disconnectRemoddle() // remove previous instance
 
 		try {
-			const remoddle = await new Remoddle(this).connect()
+			const remoddle
+			if (type === 'usb') remoddle = await new RemoddleUsb(this).connect()
+			else if (type === 'bt') remoddle = await new RemoddleBluetooth(this).connect()
+			else return
+			
 			this._remoddle = remoddle
 			remoddle.wpm = this.wpm // sync with current wpm state
 		} catch (error) {

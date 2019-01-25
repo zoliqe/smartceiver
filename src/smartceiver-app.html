@@ -159,7 +159,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script src="select-connector.js"></script>
   <script src="tcvr.js"></script>
   <script defer src="serial.js"></script>
-  <script defer src="remoddle.js"></script>
+  <script defer src="remoddle-usb.js"></script>
+  <script defer src="BluetoothTerminal.js"></script>
+  <script defer src="remoddle-bt.js"></script>
   <!-- <script defer src="https://simplewebrtc.com/latest-v2.js"></script> -->
   <!-- <script defer src="k2-webrtc.js"></script> -->
   <!-- <script defer src="wav-player.js"></script> -->
@@ -194,7 +196,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       static get observers() {
         return [
           // '_routePageChanged(routeData.page)',
-          '_tokenChanged(route.__queryParams)',
+          '_urlParamsChanged(route.__queryParams)',
         ]
       }
 
@@ -203,6 +205,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.page = 'tune'
         this.token = ''
         this.rig = ''
+        this.remoddle
         document.tcvr = this.tcvr = new Transceiver()
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
         this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed())
@@ -261,7 +264,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       switchPower() {
-        this.tcvr.switchPower(this.token, this.rig)
+        this.tcvr.switchPower(this.token, this.rig, this.remoddle)
       }
 
       connectRemoddle() {
@@ -272,13 +275,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.tcvr.fire(new TcvrEvent(EventType.resetAudio, true))
       }
 
-      _tokenChanged(params) {
-        // const token = params['token']
+      _urlParamsChanged(params) {
         if (params.token) {
           this.token = params.token.trim()
         }
         if (params.rig) {
           this.rig = params.rig.trim()
+        }
+        if (params.remoddle) {
+          this.remoddle = params.remoddle.trim()
         }
       }
 
