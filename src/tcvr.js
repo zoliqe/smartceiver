@@ -93,22 +93,17 @@ class Transceiver {
 	}
 
 	async connectRemoddle(connector, type) {
-		// if ( ! connector.constructor.capabilities.includes(Remoddle.id)) {
-		//   return
-		// }
 		this.disconnectRemoddle() // remove previous instance
 
 		try {
-			const remoddle = null
-			if (type === 'usb') remoddle = await new RemoddleUsb(this).connect()
-			else if (type === 'bt') remoddle = await new RemoddleBluetooth(this).connect()
-			else return
-			
-			this._remoddle = remoddle
-			remoddle.wpm = this.wpm // sync with current wpm state
+			this._remoddle = null
+			if (type === 'usb') this._remoddle = await new RemoddleUsb(this).connect()
+			else if (type === 'bt') this._remoddle = await new RemoddleBluetooth(this).connect()
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
 		}
+			
+		if (this._remoddle) this._remoddle.wpm = this.wpm // sync with current wpm state
 	}
 
 	disconnectRemoddle() {
