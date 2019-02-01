@@ -60,10 +60,10 @@ class Transceiver {
 	switchPower(token, rig, remoddle) {
 		if ( /*! state &&*/ this._port) {
 			this._d(`disconnect ${this._port}`, true)
+			this.disconnectRemoddle()
 			this._port.disconnect()
 			this.unbind(this._connectorId)
 			this._port = null
-			this.disconnectRemoddle()
 			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
 		} else /*if (state)*/ {
 			this._d('connect')
@@ -84,6 +84,11 @@ class Transceiver {
 				this.attn = this._attn
 				this.agc = this._agc
 				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
+
+				window.onbeforeunload = _ => {
+					this.disconnectRemoddle()
+					this._port && this._port.disconnect()
+				}
 			})
 		}
 	}

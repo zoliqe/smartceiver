@@ -150,10 +150,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         </iron-pages>
       </app-header-layout>
     </app-drawer-layout>
-    <div class="remotig">
-      <video id="localStream"></video>
-      <div id="remoteStream"></div>
-    </div>
   </template>
 
   <script src="select-connector.js"></script>
@@ -172,6 +168,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script defer src="3las/mpeg.js"></script>
   <!-- <script defer src="3las/wav.js"></script> -->
   <script defer src="3las-player.js"></script>
+  <script defer src="/socket.io/socket.io.js"></script>
+  <script defer src="rtc-player.js"></script>
   <script defer src="remotig-ws.js"></script>
 
   <script>

@@ -22,7 +22,8 @@ class RemotigConnector {
   onportopen(port, rig) {
     console.log('ok, powering on')
     port.send('poweron')
-    this.audioUrl_ = `wss://${location.hostname}:${audioStreamPort}/remotig-${rig}/audio`
+    // this.audioUrl_ = `wss://${location.hostname}:${audioStreamPort}/remotig-${rig}/audio`
+    this.audioUrl_ = rig
     this._playStream()
 
     setTimeout(() => {
@@ -64,16 +65,19 @@ class RemotigConnector {
 
   _playStream() {
     console.log(`playing RX stream ${this.audioUrl_}`)
-    this.player_ = new LllasPlayer() //new WavPlayer()
+    // this.player_ = new LllasPlayer() //new WavPlayer()
+    // this.player_.play(this.audioUrl_)
+    // // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)
+    this.player_ = new PlayerWebRTC()
     this.player_.play(this.audioUrl_)
-    // this._player.setFilter('lowpass', _wideFilters[this._mode], 1)
   }
 
   restartAudio() {
     if (this.player_ && this.audioUrl_) {
       console.log('restarting RX stream')
-      this.player_.stop()
-      this.player_.play(this.audioUrl_)
+      // this.player_.stop()
+      // this.player_.play(this.audioUrl_)
+      this.player_.reset(this.audioUrl_)
     }
   }
 
