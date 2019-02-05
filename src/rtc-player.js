@@ -2,7 +2,10 @@
 
 const pcConfig = {
   'iceServers': [{
-    'urls': 'stun:stun.l.google.com:19302'
+    //    'urls': 'stun:stun.l.google.com:19302'
+    "urls": ["turn:om4aa.ddns.net:5349"],
+    "username": "om4aa",
+    "credential": "report559"
   }]
 }
 
@@ -132,7 +135,7 @@ class PlayerWebRTC {
 
   _createPeerConnection() {
     try {
-      this._pc = new RTCPeerConnection(null);
+      this._pc = new RTCPeerConnection(pcConfig);
       this._pc.onicecandidate = event => this._handleIceCandidate(event);
       this._pc.onaddstream = event => this._handleRemoteStreamAdded(event);
       this._pc.onremovestream = event => this._handleRemoteStreamRemoved(event);
