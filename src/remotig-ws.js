@@ -71,7 +71,7 @@ class RemotigConnector {
     this.player_ = new PlayerWebRTC()
     this.player_.play(this.audioUrl_)
   }
-
+ 
   restartAudio() {
     if (this.player_ && this.audioUrl_) {
       console.log('restarting RX stream')

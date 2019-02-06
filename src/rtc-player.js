@@ -1,5 +1,4 @@
 
-
 const pcConfig = {
   'iceServers': [{
     //    'urls': 'stun:stun.l.google.com:19302'
@@ -10,8 +9,6 @@ const pcConfig = {
 }
 
 const userMediaConstraints = {audio: true, video: false}
-// Set up audio and video regardless of what devices are present.
-const sdpConstraints = {offerToReceiveAudio: true, offerToReceiveVideo: false}
 
 class PlayerWebRTC {
   constructor() {
