@@ -43,7 +43,8 @@ class Transceiver {
 		// this._autoSpace = true
 		// this._buildBFO();
 
-		this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
+		this._connectorId = selectedConnector || SmartceiverWebUSBConnector.id
+		// this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
 		console.log('used connector: ' + this._connectorId)
 		
 		this._listeners = {}

@@ -1,6 +1,6 @@
 
 class RemotigConnector {
-  static get id() { return 'remotig'; }
+  static get id() { return 'remotig-ws'; }
   static get name() { return 'Remotig remote via WebSockets'; }
   static get capabilities() { return [Remoddle.id]; }
 
