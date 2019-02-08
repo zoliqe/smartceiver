@@ -21,15 +21,8 @@ class RemotigRTCConnector {
 		this.signalingUrl = 'wss://om4aa.ddns.net'
 		this.userMediaConstraints = {audio: true, video: false}
 		
-				this._isReady = false;
+		this._isReady = false;
 		this._isStarted = false;
-		// this._socket;
-		// this._localStream;
-		// this._pc;
-		// this._remoteStream;
-
-		// this._localAudio = document.querySelector('#localAudio');
-		this._remoteAudio = document.querySelector('#remoteAudio');
 	}
 	/////////////////////////////////////////////
 
@@ -37,12 +30,12 @@ class RemotigRTCConnector {
 		if (this._isReady || this._isStarted) return;
 
 		this.tcvr = tcvr
+		this._rig = rig
 		this.onconnect = successCallback
 		this.ondisconnect = discCallback
-		//const url = `wss://${location.host}/remotig-${rig}/control/${token}`
 		console.info('connecting ' + this.signalingUrl)
 
-		this._connectSignaling(rig)
+		this._connectSignaling()
 		
 		window.onbeforeunload = _ => {
 			console.info('Hanging up.')
@@ -51,18 +44,17 @@ class RemotigRTCConnector {
 		}
 	}
 
-	reconnect(rig) {
+	reconnect() {
 		this.sendSignal('restart')
 		this.disconnect(true)
 		// this._socket && this._socket.disconnect()
-		setTimeout(_ => this._connectSignaling(rig), 1000)
+		setTimeout(_ => this._connectSignaling(), 1000)
 	}
 
 	disconnect(resetOrError = false) {
 		this.sendSignal('bye')
 		this._isStarted = false
 		this._isReady = false
-		this._rig = null
 		this._cmdChannel && this._cmdChannel.close()
 		this._cmdChannel = null
 		this._pc && this._pc.close()
@@ -75,7 +67,7 @@ class RemotigRTCConnector {
 	}
 	
 	get connected() {
-		return this._isStarted && this._pc && this._cmdChannel && this._rig
+		return this._isStarted && this._pc && this._cmdChannel
 	}
 
 	filter(bandWidth, centerFreq) {
@@ -88,8 +80,9 @@ class RemotigRTCConnector {
 
 	////////////////////////////////////////////////////
 
-	_connectSignaling(rig) {
-		this._rig = rig
+	_connectSignaling() {
+		if (!this._rig) return;
+
 		this._signaling = io.connect(this.signalingUrl, this.signalingConfig)
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
@@ -109,7 +102,7 @@ class RemotigRTCConnector {
 
 		// This client receives a message
 		this._signaling.on('message', (message) => {
-			console.debug('message:', message)
+			console.info('signal message:', message)
 			if (message === 'got user media') {
 				this._maybeStart()
 			} else if (message.type === 'offer') {
@@ -130,8 +123,8 @@ class RemotigRTCConnector {
 			}
 		})
 
-		this._signaling.emit('join', rig)
-		console.debug('Attempted to operate signaling', rig)
+		this._signaling.emit('join', this._rig)
+		console.debug('Attempted to operate signaling', this._rig)
 	}
 
 	sendSignal(message) {
@@ -194,8 +187,8 @@ class RemotigRTCConnector {
 
 	_handleRemoteStreamAdded(event) {
 		console.debug('Remote stream added.')
-		// this._remoteStream = event.stream;
-		this._remoteAudio.srcObject = event.stream
+		const remoteAudio = document.querySelector('#remoteAudio');
+		remoteAudio && (remoteAudio.srcObject = event.stream)
 	}
 
 	_handleRemoteStreamRemoved(event) {

@@ -362,7 +362,7 @@ class Transceiver {
 	}
 
 	_d(what, value) {
-		console.log(what + "=" + value);
+		console.debug(what + "=" + value);
 	}
 }
 
