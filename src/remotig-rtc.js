@@ -31,6 +31,7 @@ class RemotigRTCConnector {
 
 		this.tcvr = tcvr
 		this._rig = rig
+		this._token = token
 		this.onconnect = successCallback
 		this.ondisconnect = discCallback
 		console.info('connecting ' + this.signalingUrl)
@@ -81,12 +82,17 @@ class RemotigRTCConnector {
 	////////////////////////////////////////////////////
 
 	_connectSignaling() {
-		if (!this._rig) return;
+		if (!this._rig || !this._token) return;
 
 		this._signaling = io.connect(this.signalingUrl, this.signalingConfig)
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
 			window.alert('Transceiver is busy.')
+			this.disconnect(true)
+		})
+		this._signaling.on('empty', rig => {
+			console.error(`Rig ${rig} empty`)
+			window.alert('Transceiver is not connected.')
 			this.disconnect(true)
 		})
 
@@ -123,7 +129,7 @@ class RemotigRTCConnector {
 			}
 		})
 
-		this._signaling.emit('join', this._rig)
+		this._signaling.emit('join', {rig: this._rig, token: this._token})
 		console.debug('Attempted to operate signaling', this._rig)
 	}
 
