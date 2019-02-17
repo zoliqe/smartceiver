@@ -347,7 +347,7 @@ class Transceiver {
 		for (let type in this._listeners) {
 			let stack = this._listeners[type]
 			for (let i = 0, l = stack.length; i < l; i++) {
-				if (stack[i].owner == owner) {
+				if (stack[i] && stack[i].owner == owner) {
 					this._d(`unbind ${type} for ${owner}`)
 					stack.splice(i, 1)
 				}

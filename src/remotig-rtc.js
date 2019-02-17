@@ -38,21 +38,16 @@ class RemotigRTCConnector {
 
 		this._connectSignaling()
 		
-		window.onbeforeunload = _ => {
-			console.info('Hanging up.')
-			this.sendSignal('bye')
-			this.disconnect(true)
-		}
 	}
 
 	reconnect() {
 		this.sendSignal('restart')
-		this.disconnect(true)
+		this.disconnect()
 		// this._socket && this._socket.disconnect()
 		setTimeout(_ => this._connectSignaling(), 1000)
 	}
 
-	disconnect(resetOrError = false) {
+	disconnect(options = {alertUser: false}) {
 		this.sendSignal('bye')
 		this._isStarted = false
 		this._isReady = false
@@ -61,7 +56,7 @@ class RemotigRTCConnector {
 		this._pc && this._pc.close()
 		this._pc = null
 		this._signaling && this._signaling.disconnect()
-		if (!resetOrError) {
+		if (options.alertUser) {
 			window.alert('Transceiver control disconnected!')
 			this.ondisconnect && this.ondisconnect()
 		}
@@ -88,12 +83,12 @@ class RemotigRTCConnector {
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
 			window.alert('Transceiver is busy.')
-			this.disconnect(true)
+			this.disconnect()
 		})
 		this._signaling.on('empty', rig => {
 			console.error(`Rig ${rig} empty`)
 			window.alert('Transceiver is not connected.')
-			this.disconnect(true)
+			this.disconnect()
 		})
 
 		this._signaling.on('joined', rig => {
@@ -125,7 +120,7 @@ class RemotigRTCConnector {
 				this._pc.addIceCandidate(candidate)
 			} else if (message === 'bye' && this._isStarted) {
 				console.info('Session terminated.')
-				this.disconnect()
+				this.disconnect({alertUser: true})
 			}
 		})
 
@@ -187,7 +182,7 @@ class RemotigRTCConnector {
 		} catch (e) {
 			console.error('Failed to create PeerConnection, exception: ' + e.message)
 			alert('Cannot communicate with transceiver.')
-			this.disconnect(true)
+			this.disconnect()
 		}
 	}
 
