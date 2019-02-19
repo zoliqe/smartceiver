@@ -8,9 +8,9 @@ class RemotigRTCConnector {
 		this.pcConfig = {
 			'iceServers': [{
 				//    'urls': 'stun:stun.l.google.com:19302'
-				"urls": ["turn:om4aa.ddns.net:5349"],
-				"username": "om4aa",
-				"credential": "report559"
+				"urls": ['turns:om4aa.ddns.net:25349'],
+				"username": 'remotig',
+				"credential": 'om4aa' 
 			}]
 		}
 		this.signalingConfig = {
@@ -19,7 +19,18 @@ class RemotigRTCConnector {
 			reconnectionDelayMax: 60000,
 		}
 		this.signalingUrl = 'wss://om4aa.ddns.net'
-		this.userMediaConstraints = {audio: true, video: false}
+		this.userMediaConstraints = {
+			video: false,
+			audio: {
+				sampleRate: 8000,
+				// sampleSize: 16,
+				channelCount: 1,
+				volume: 1.0,
+				autoGainControl: false,
+				echoCancellation: false,
+				noiseSuppression: false
+			}
+		}
 		
 		this._isReady = false;
 		this._isStarted = false;
@@ -49,13 +60,34 @@ class RemotigRTCConnector {
 
 	disconnect(options = {alertUser: false}) {
 		this.sendSignal('bye')
+
+		const remoteAudio = document.querySelector('#remoteAudio')
+		if (remoteAudio) {
+			remoteAudio.removeAttribute("src")
+			remoteAudio.removeAttribute("srcObject")
+		}
+
 		this._isStarted = false
 		this._isReady = false
-		this._cmdChannel && this._cmdChannel.close()
-		this._cmdChannel = null
-		this._pc && this._pc.close()
-		this._pc = null
+		if (this._cmdChannel) {
+			this._cmdChannel.close()
+			this._cmdChannel.onopen = null
+			this._cmdChannel.onclose = null
+			this._cmdChannel.onerror = null
+			this._cmdChannel.onmessage = null
+			this._cmdChannel = null
+		}
+	
+		if (this._pc) {
+			this._pc.close()
+			this._pc.onicecandidate = null
+			this._pc.ontrack = null
+			this._pc.onremovetrack = null
+			this._pc = null
+		}
 		this._signaling && this._signaling.disconnect()
+		this._signaling = null
+
 		if (options.alertUser) {
 			window.alert('Transceiver control disconnected!')
 			this.ondisconnect && this.ondisconnect()
@@ -104,7 +136,7 @@ class RemotigRTCConnector {
 		// This client receives a message
 		this._signaling.on('message', (message) => {
 			console.info('signal message:', message)
-			if (message === 'got user media') {
+			if (message === 'ready') {
 				this._maybeStart()
 			} else if (message.type === 'offer') {
 				!this._isStarted && this._maybeStart()
@@ -148,9 +180,10 @@ class RemotigRTCConnector {
 
 	_gotStream(stream) {
 		console.debug('Adding local stream', stream)
-		this._localStream = stream;
+		this._localStream = stream
+		this._localStream.getTracks().forEach(track => console.log(track.getSettings()))		
 		// this._localAudio.srcObject = stream;
-		this.sendSignal('got user media')
+		this.sendSignal('ready')
 	}
 
 	_maybeStart() {
@@ -158,7 +191,8 @@ class RemotigRTCConnector {
 		if (!this._isStarted && typeof this._localStream !== 'undefined' && this._isReady) {
 			console.debug('>>>>>> creating peer connection')
 			this._createPeerConnection()
-			this._pc.addStream(this._localStream) // TODO deprecated?
+			// this._pc.addStream(this._localStream) // deprecated
+			this._localStream.getTracks().forEach(track => this._pc.addTrack(track, this._localStream))
 			this._isStarted = true
 		}
 	}
@@ -169,8 +203,10 @@ class RemotigRTCConnector {
 		try {
 			this._pc = new RTCPeerConnection(this.pcConfig)
 			this._pc.onicecandidate = event => this._handleIceCandidate(event)
-			this._pc.onaddstream = event => this._handleRemoteStreamAdded(event)
-			this._pc.onremovestream = event => this._handleRemoteStreamRemoved(event)
+			this._pc.ontrack = event => this._handleRemoteTrackAdded(event)
+			this._pc.onremovetrack = event => this._handleRemoteTrackRemoved(event)
+			// this._pc.onaddstream = event => this._handleRemoteStreamAdded(event)
+			// this._pc.onremovestream = event => this._handleRemoteStreamRemoved(event)
 			this._pc.ondatachannel = event => {
 				this._cmdChannel = event.channel
 				this._cmdChannel.onopen = evt => this._onCmdChannelOpen(evt)
@@ -186,15 +222,25 @@ class RemotigRTCConnector {
 		}
 	}
 
-	_handleRemoteStreamAdded(event) {
-		console.debug('Remote stream added.')
-		const remoteAudio = document.querySelector('#remoteAudio');
-		remoteAudio && (remoteAudio.srcObject = event.stream)
+	_handleRemoteTrackAdded(event) {
+		console.debug('Remote stream added:', event)
+		const remoteAudio = document.querySelector('#remoteAudio')
+		remoteAudio && (remoteAudio.srcObject = event.streams[0])
 	}
 
-	_handleRemoteStreamRemoved(event) {
-		console.debug('Remote stream removed. Event: ', event)
+	_handleRemoteTrackRemoved(event) {
+		console.debug('Remote track removed: ', event)
 	}
+
+	// _handleRemoteStreamAdded(event) {
+	// 	console.debug('Remote stream added.')
+	// 	const remoteAudio = document.querySelector('#remoteAudio');
+	// 	remoteAudio && (remoteAudio.srcObject = event.stream)
+	// }
+
+	// _handleRemoteStreamRemoved(event) {
+	// 	console.debug('Remote stream removed. Event: ', event)
+	// }
 
 	_handleIceCandidate(event) {
 		console.debug('icecandidate event: ', event)
