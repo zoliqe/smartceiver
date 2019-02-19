@@ -50,6 +50,8 @@ class Transceiver {
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
+		this.bind(EventType.keyDit, 'tcvr', _ => this._keyPtt())
+		this.bind(EventType.keyDah, 'tcvr', _ => this._keyPtt())
 		this.bind(EventType.up, 'tcvr', event => this.freq += this._step)
 		this.bind(EventType.down, 'tcvr', event => this.freq -= this._step)
 		this.bind(EventType.button, 'tcvr', event => {
@@ -144,6 +146,28 @@ class Transceiver {
 
 	//   this._bfo.start();
 	// }
+
+	_keyPtt() {
+		if (!this.ptt) this.ptt = true
+		if (this._pttTimer) {
+			clearTimeout(this._pttTimer)
+			this._pttTimer = null
+		}
+		this._pttTimer = setTimeout(() => {
+			this._pttTimer = null
+			if (this.ptt) this.ptt = false
+		}, 400)
+// this._port && this._port.audio.mute()
+
+// 		this._rxMuteTimer && clearTimeout(this._rxMuteTimer)
+// 		this._rxMuteTimer = setTimeout(() => {
+// 			this._port && this._port.audio.unmute()
+// 		}, 100);
+	}
+
+	get connectorId() {
+		return this._connectorId
+	}
 
 	whenConnected(proceed) {
 		if (this._port && this._port.connected !== false) { // connected may be also undefined

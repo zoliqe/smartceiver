@@ -170,6 +170,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <script defer src="3las-player.js"></script>
   <script defer src="https://om4aa.ddns.net/socket.io/socket.io.js"></script>
   <script defer src="rtc-player.js"></script>
+  <script defer src="audio.js"></script>
+  <script defer src="mic.js"></script>
   <script defer src="remotig-ws.js"></script>
   <script defer src="remotig-rtc.js"></script>
 
@@ -207,8 +209,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.remoddle
         document.tcvr = this.tcvr = new Transceiver()
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
-        this.tcvr.bind(EventType.keyDit, 'ui', event => this.onKeyed())
-        this.tcvr.bind(EventType.keyDah, 'ui', event => this.onKeyed())
+        this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #dd6b88;" : '')
         this.tcvr.bind(EventType.pwrsw, 'ui', event => {
           this.notifyPath('tcvr.freq')
           this.notifyPath('tcvr.powerSwState')
@@ -248,18 +249,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
 
         return res
-      }
-
-      onKeyed() {
-        this.$.freq.style = "color: #dd6b88;"
-        if (this.keyedTimer) {
-          clearTimeout(this.keyedTimer)
-          this.keyedTimer = null
-        }
-        this.keyedTimer = setTimeout(() => {
-          this.keyedTimer = null
-          this.$.freq.style = ""
-        }, 400)
       }
 
       switchPower() {
