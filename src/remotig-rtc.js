@@ -191,7 +191,7 @@ class RemotigRTCConnector {
 			this._pc = new RTCPeerConnection(this.pcConfig)
 			this._pc.onicecandidate = event => this._handleIceCandidate(event)
 			this._pc.ontrack = event => this._audio = new AudioProcessor(event, this.tcvr)
-			this._pc.onremovetrack = event => this.audio.trackRemoved(event)
+			this._pc.onremovetrack = event => this._audio && this._audio.trackRemoved(event)
 			this._pc.ondatachannel = event => {
 				this._cmdChannel = event.channel
 				this._cmdChannel.onopen = evt => this._onCmdChannelOpen(evt)
@@ -207,9 +207,9 @@ class RemotigRTCConnector {
 		}
 	}
 
-	get audio() {
-		return this._audio || {}
-	}
+	// get audio() {
+	// 	return this._audio || {}
+	// }
 
 	_handleIceCandidate(event) {
 		console.debug('icecandidate event: ', event)

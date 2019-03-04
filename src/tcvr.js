@@ -52,11 +52,15 @@ class Transceiver {
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
 		this.bind(EventType.keyDit, 'tcvr', _ => this._keyPtt())
 		this.bind(EventType.keyDah, 'tcvr', _ => this._keyPtt())
-		this.bind(EventType.up, 'tcvr', event => this.freq += this._step)
-		this.bind(EventType.down, 'tcvr', event => this.freq -= this._step)
-		this.bind(EventType.button, 'tcvr', event => {
+		this.bind(EventType.mainUp, 'tcvr', event => this.freq += this._step)
+		this.bind(EventType.mainDown, 'tcvr', event => this.freq -= this._step)
+		this.bind(EventType.mainButton, 'tcvr', event => {
 			this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0
 		})
+		this.bind(EventType.subUp, 'tcvr', event => this.freq += this._step)
+		this.bind(EventType.subDown, 'tcvr', event => this.freq -= this._step)
+		// this.bind(EventType.subUp, 'tcvr', event => this.wpm += 2)
+		// this.bind(EventType.subDown, 'tcvr', event => this.wpm -= 2)
 		this._d("tcvr-init", "done")
 	}
 
@@ -122,31 +126,6 @@ class Transceiver {
 		}
 	}
 
-	// functionality disabled due long delays between paddle hit and hearing tone 
-	//
-	// _tone(len) {
-	//   if (this._bfoAmp) {
-	//     this._bfoAmp.gain.setValueAtTime(_sidetoneLevel, 0); // TODO configurable
-	//     setTimeout(() => {
-	//       this._bfoAmp.gain.setValueAtTime(0, 0);
-	//     }, len * (1200 / this._wpm + 5));
-	//   }
-	// }
-
-	// _buildBFO() {
-	//   let audioCtx = new AudioContext();
-	//   this._bfo = audioCtx.createOscillator();
-	//   this._bfoAmp = audioCtx.createGain();
-
-	//   this._bfo.frequency.setValueAtTime(_sidetoneFreq, 0); // TODO configurable
-	//   this._bfoAmp.gain.setValueAtTime(0, 0);
-
-	//   this._bfo.connect(this._bfoAmp);
-	//   this._bfoAmp.connect(audioCtx.destination);
-
-	//   this._bfo.start();
-	// }
-
 	_keyPtt() {
 		if (!this.ptt) this.ptt = true
 		if (this._pttTimer) {
@@ -157,12 +136,6 @@ class Transceiver {
 			this._pttTimer = null
 			if (this.ptt) this.ptt = false
 		}, 400)
-// this._port && this._port.audio.mute()
-
-// 		this._rxMuteTimer && clearTimeout(this._rxMuteTimer)
-// 		this._rxMuteTimer = setTimeout(() => {
-// 			this._port && this._port.audio.unmute()
-// 		}, 100);
 	}
 
 	get connectorId() {
@@ -214,7 +187,6 @@ class Transceiver {
 			if (value in _modes) {
 				this._mode = value
 				this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
-				// this._port.send("MD" + (this._mode + 1) + ";");
 				this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
 			}
 		});
@@ -411,8 +383,9 @@ class EventListener {
 const EventType = Object.freeze({
 	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
 	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
-	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', up: 'up', down: 'down',
-	button: 'button',
+	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', 
+	mainUp: 'mainUp', mainDown: 'mainDown', mainButton: 'mainButton',
+	subUp: 'subUp', subDown: 'subDown', subButton: 'subButton',
 })
 
 class ConnectorRegister {
