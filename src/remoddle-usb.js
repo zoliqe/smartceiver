@@ -72,30 +72,7 @@ class RemoddleUsb {
 		
 		const cmd = this._decoder.decode(data)
 		for (let i = 0; i < cmd.length; i++) {
-			let element = cmd[i]
-			if (element === '-') {
-				// console.log('remoddle: -')
-				this._tcvr.fire(new TcvrEvent(EventType.keyDah, 1))    
-			} else if (element === '.') {
-				// console.log('remoddle: .')
-				this._tcvr.fire(new TcvrEvent(EventType.keyDit, 1))   
-			} else if (element === '_') {
-				this._tcvr.fire(new TcvrEvent(EventType.keySpace, 1))
-			} else if (element === '>') {
-				this._tcvr.fire(new TcvrEvent(EventType.mainUp, 1))
-			} else if (element === '<') {
-				this._tcvr.fire(new TcvrEvent(EventType.mainDown, 1))
-			} else if (element === '!') {
-				this._tcvr.fire(new TcvrEvent(EventType.mainButton, 1))
-			} else if (element === ']') {
-				this._tcvr.fire(new TcvrEvent(EventType.subUp, 1))
-			} else if (element === '[') {
-				this._tcvr.fire(new TcvrEvent(EventType.subDown, 1))
-			} else if (element === '~') {
-				this._tcvr.fire(new TcvrEvent(EventType.subButton, 1))
-			} else {
-				console.debug(`Remoddle rcvd: ${cmd}`)
-			}
+			this._tcvr.remoddleCommand(cmd[i])
 		}
 	}
 

@@ -49,7 +49,7 @@ class RemotigRTCConnector {
 		this.sendSignal('bye')
 		this._audio && this._audio.close()
 		this._audio = null
-		this._mic.close()
+		this._mic && this._mic.close()
 		this._mic = null
 
 		this._isStarted = false

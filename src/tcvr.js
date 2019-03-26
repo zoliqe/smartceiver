@@ -38,6 +38,7 @@ class Transceiver {
 		this._ptt = false
 		this._agc = true
 		this._step = 20
+		this._reversePaddle = false
 		// this._txEnabled = true
 		// this._txKeyed = false
 		// this._autoSpace = true
@@ -52,32 +53,24 @@ class Transceiver {
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
 		this.bind(EventType.keyDit, 'tcvr', _ => this._keyPtt())
 		this.bind(EventType.keyDah, 'tcvr', _ => this._keyPtt())
-		this.bind(EventType.mainUp, 'tcvr', event => this.freq += this._step)
-		this.bind(EventType.mainDown, 'tcvr', event => this.freq -= this._step)
-		this.bind(EventType.mainButton, 'tcvr', event => {
-			this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0
-		})
-		this.bind(EventType.subUp, 'tcvr', event => this.freq += this._step)
-		this.bind(EventType.subDown, 'tcvr', event => this.freq -= this._step)
-		// this.bind(EventType.subUp, 'tcvr', event => this.wpm += 2)
-		// this.bind(EventType.subDown, 'tcvr', event => this.wpm -= 2)
 		this._d("tcvr-init", "done")
 	}
 
-	switchPower(token, rig, remoddle) {
+	switchPower(token, rig, remoddle, reversePaddle) {
 		if ( /*! state &&*/ this._port) {
-			this._d(`disconnect ${this._port}`, true)
+			this._d('disconnect', this._port && this._port.constructor.id)
 			this.disconnectRemoddle()
 			this._port.disconnect()
 			this.unbind(this._connectorId)
 			this._port = null
-			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
+			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 		} else /*if (state)*/ {
-			this._d('connect')
+			this._d('connect', this._connectorId)
 			let connector = tcvrConnectors.get(this._connectorId)
 			this.connectRemoddle(connector, remoddle)
 			connector.connect(this, token, rig, (port) => {
 				this._port = port
+				this._reversePaddle = reversePaddle
 				// reset tcvr configuration
 				this.freq = this._freq[this._band][this._mode][this._rxVfo]
 				this.mode = this._mode
@@ -90,7 +83,7 @@ class Transceiver {
 				this.preamp = this._preamp
 				this.attn = this._attn
 				this.agc = this._agc
-				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState))
+				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 
 				window.onbeforeunload = _ => {
 					this.disconnectRemoddle()
@@ -143,9 +136,13 @@ class Transceiver {
 	}
 
 	whenConnected(proceed) {
-		if (this._port && this._port.connected !== false) { // connected may be also undefined
+		if (this.online) { // connected may be also undefined
 			proceed()
 		}
+	}
+
+	get online() {
+		return this._port && this._port.connected !== false
 	}
 
 	get allBands() {
@@ -214,6 +211,7 @@ class Transceiver {
 		return this._wpm
 	}
 	set wpm(wpm) {
+		if (wpm < 10 || wpm > 40) return
 		this.whenConnected(() => {
 			this._wpm = wpm
 			this._d("wpm", wpm)
@@ -331,6 +329,24 @@ class Transceiver {
 		return _sidetoneFreq
 	}
 
+	remoddleCommand(c) {
+		// console.log('remoddle:', c)
+		if      (c === '-') this.fire(new TcvrEvent(this._reversePaddle ? EventType.keyDit : EventType.keyDah, 1))
+		else if (c === '.') this.fire(new TcvrEvent(this._reversePaddle ? EventType.keyDah : EventType.keyDit, 1))
+		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
+		else if (c === '>') this.freq += this._step
+		else if (c === '<') this.freq -= this._step
+		else if (c === '!') this.step = this.step == 20 ? 200 : 20 // enc1 button release
+		else if (c === ']') this.wpm++ // enc2 dn
+		else if (c === '[') this.wpm-- // enc2 up
+		else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // enc2 button release
+		else console.error('Remoddle send unknown command:', c)
+	}
+
+	toggleFast() {
+		this.step = this.step == 20 ? 200 : 20
+	}
+
 	bind(type, owner, callback) {
 		if (!(type in this._listeners)) {
 			this._listeners[type] = []
@@ -351,7 +367,8 @@ class Transceiver {
 		}
 	}
 
-	fire(event) {
+	fire(event, force) {
+		if (!force && !this.online) return false
 		let stack = this._listeners[event.type]
 		stack && stack.forEach(listenner => listenner.callback.call(this, event))
 		return true //!event.defaultPrevented;
@@ -384,8 +401,6 @@ const EventType = Object.freeze({
 	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
 	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', 
-	mainUp: 'mainUp', mainDown: 'mainDown', mainButton: 'mainButton',
-	subUp: 'subUp', subDown: 'subDown', subButton: 'subButton',
 })
 
 class ConnectorRegister {
