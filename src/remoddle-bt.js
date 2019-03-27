@@ -30,6 +30,7 @@ class RemoddleBluetooth {
 		}
 		console.info(`Remoddle device ${this._port.getDeviceName()} connected :-)`)
 		this._tcvr.bind(EventType.wpm, RemoddleBluetooth.id, event => this.wpm = event.value)
+		this._tcvr.bind(EventType.reverse, RemoddleBluetooth.id, event => this.reverse = event.value)
 		this._port.receive = data => this._evaluate(data)
 		resolve(this)
 	}
@@ -45,6 +46,10 @@ class RemoddleBluetooth {
 
 	set sidetone(value) {
 		this._send('T' + value)
+	}
+
+	set reverse(value) {
+		this._send('R' + (value ? '1' : '0'))
 	}
 
 	_send(data) {

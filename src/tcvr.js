@@ -108,7 +108,10 @@ class Transceiver {
 			console.error(`Remoddle: ${error}`)
 		}
 			
-		if (this._remoddle) this._remoddle.wpm = this.wpm // sync with current wpm state
+		if (this._remoddle) {
+			this._remoddle.wpm = this.wpm // sync with current wpm state
+			this._remoddle.reverse = this._reversePaddle
+		}
 	}
 
 	disconnectRemoddle() {
@@ -217,6 +220,16 @@ class Transceiver {
 			this._d("wpm", wpm)
 			this.fire(new TcvrEvent(EventType.wpm, wpm))
 		})
+	}
+
+	get reverse() {
+		return this._reversePaddle
+	}
+	set reverse(value) {
+		if (!this.online) return
+		_reversePaddle = value
+		this._d('reverse', value)
+		this.fire(new TcvrEvent(EventType.reverse, value))
 	}
 
 	get narrow() {
@@ -331,15 +344,31 @@ class Transceiver {
 
 	remoddleCommand(c) {
 		// console.log('remoddle:', c)
-		if      (c === '-') this.fire(new TcvrEvent(this._reversePaddle ? EventType.keyDit : EventType.keyDah, 1))
-		else if (c === '.') this.fire(new TcvrEvent(this._reversePaddle ? EventType.keyDah : EventType.keyDit, 1))
+		if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
+		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
 		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
-		else if (c === '>') this.freq += this._step
-		else if (c === '<') this.freq -= this._step
-		else if (c === '!') this.step = this.step == 20 ? 200 : 20 // enc1 button release
-		else if (c === ']') this.wpm++ // enc2 dn
-		else if (c === '[') this.wpm-- // enc2 up
-		else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // enc2 button release
+		else if (c === '>') this.freq += this._step // enc1 up
+		else if (c === '<') this.freq -= this._step // enc1 dn
+		else if (c === ']') this.wpm++ // enc2 up
+		else if (c === '[') this.wpm-- // enc2 dn
+		else if (c === '}') this.freq += 10 // enc3 up
+		else if (c === '{') this.freq -= 10 // enc3 dn
+		else if (c === '!') this.step = this.step == 20 ? 200 : 20 // btn1 push
+		else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // btn2 push
+		else if (c === '$') {} // btn3 push
+		else if (c === '^') {} // btn4 push
+		else if (c === '*') {} // btn5 push
+		else if (c === ':') {} // btn6 push
+		else if (c === ';') {} // btn7 push
+		else if (c === '`') {} // btn8 push
+		else if (c === '@') {} // btn1 release
+		else if (c === '#') {} // btn2 release
+		else if (c === '%') {} // btn3 release
+		else if (c === '&') {} // btn4 release
+		else if (c === '?') {} // btn5 release
+		else if (c === '"') {} // btn6 release
+		else if (c === '|') {} // btn7 release
+		else if (c === '\'') {} // btn8 release
 		else console.error('Remoddle send unknown command:', c)
 	}
 
@@ -399,7 +428,8 @@ class EventListener {
 
 const EventType = Object.freeze({
 	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
-	preamp: 'preamp', attn: 'attn', keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', 
+	preamp: 'preamp', attn: 'attn', 
+	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', reverse: 'reverse',
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', 
 })
 

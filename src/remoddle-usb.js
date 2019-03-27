@@ -36,7 +36,8 @@ class RemoddleUsb {
 		try {
 			await this._port.connect()
 			console.info('Remoddle connected :-)')
-			this._tcvr.bind(EventType.wpm, RemoddleBluetooth.id, event => this.wpm = event.value)
+			this._tcvr.bind(EventType.wpm, RemoddleUsb.id, event => this.wpm = event.value)
+			this._tcvr.bind(EventType.reverse, RemoddleUsb.id, event => this.reverse = event.value)
 		} catch (error) {
 			reject(error)
 			return
@@ -61,6 +62,10 @@ class RemoddleUsb {
 
 	set sidetone(value) {
 		this._send('T' + value)
+	}
+
+	set reverse(value) {
+		this._send('R' + (value ? '1' : '0'))
 	}
 
 	_send(data) {
