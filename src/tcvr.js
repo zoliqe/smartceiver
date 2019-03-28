@@ -66,11 +66,11 @@ class Transceiver {
 			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 		} else /*if (state)*/ {
 			this._d('connect', this._connectorId)
+			this._reversePaddle = reversePaddle
 			let connector = tcvrConnectors.get(this._connectorId)
 			this.connectRemoddle(connector, remoddle)
 			connector.connect(this, token, rig, (port) => {
 				this._port = port
-				this._reversePaddle = reversePaddle
 				// reset tcvr configuration
 				this.freq = this._freq[this._band][this._mode][this._rxVfo]
 				this.mode = this._mode
@@ -150,15 +150,19 @@ class Transceiver {
 
 	get allBands() {
 		// return this._freq.keys();
-		return _bands
+		return this.bands
 	}
 
 	get allModes() {
-		return _modes
+		return this.modes
 	}
 
 	get allVfos() {
 		return _vfos
+	}
+
+	get bands() {
+		return _bands
 	}
 
 	get band() {
@@ -167,7 +171,7 @@ class Transceiver {
 	set band(band) {
 		this.whenConnected(() => {
 			this._d("band", band)
-			if (band in _bands) {
+			if (band in this.bands) {
 				this._band = band
 				this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
 				// reset state - some tcvrs may store state on per band basis
@@ -178,13 +182,16 @@ class Transceiver {
 		})
 	}
 
+	get modes() {
+		return _modes
+	}
 	get mode() {
 		return this._mode
 	}
 	set mode(value) {
 		this.whenConnected(() => {
 			this._d("mode", value)
-			if (value in _modes) {
+			if (value in this.modes) {
 				this._mode = value
 				this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
 				this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
@@ -203,11 +210,15 @@ class Transceiver {
 		});
 	}
 
+	get steps() {
+		return [20, 200]
+	}
 	get step() {
 		return this._step
 	}
 	set step(value) {
-		this._step = value
+		this._d('step', value)
+		if (this.steps.includes(value)) this._step = value
 	}
 
 	get wpm() {
@@ -227,9 +238,26 @@ class Transceiver {
 	}
 	set reverse(value) {
 		if (!this.online) return
-		_reversePaddle = value
+		this._reversePaddle = value
 		this._d('reverse', value)
 		this.fire(new TcvrEvent(EventType.reverse, value))
+	}
+
+	get filters() {
+		const filters = {
+			'CW': [250, 2000], 'CWR': [250, 2000],
+			'LSB': [2000, 2400], 'USB': [2000, 2400]
+		}
+		return filters[this.modes[this.mode]]
+	}
+	get filter() {
+		return this._filter
+	}
+	set filter(bw) {
+		if (!this.online) return
+		this._filter = bw
+		this._d('filter', bw)
+		this.fire(new TcvrEvent(EventType.filter, bw))
 	}
 
 	get narrow() {
@@ -242,6 +270,25 @@ class Transceiver {
 			let bandwidth = narrow ? _narrowFilters[this._mode] : _wideFilters[this._mode]
 			this.fire(new TcvrEvent(EventType.filter, bandwidth))
 		})
+	}
+
+	get gains() {
+		return [-10, 0, 10]
+	}
+
+	get gain() {
+		if (this.preamp) return 10
+		if (this.attn) return -10
+		return 0
+	}
+	set gain(value) {
+		let attn = false
+		let preamp = false
+		if (value > 0) this.preamp = true
+		else if (value < 0) this.attn = true
+
+		this.preamp = preamp
+		this.attn = attn
 	}
 
 	get preamp() {
@@ -343,6 +390,7 @@ class Transceiver {
 	}
 
 	remoddleCommand(c) {
+		if (c.charCodeAt(0) <= 32) return // whitespace
 		// console.log('remoddle:', c)
 		if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
 		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
