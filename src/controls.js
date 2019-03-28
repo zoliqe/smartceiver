@@ -4,6 +4,92 @@ class TcvrControls {
 	up = '+'
 	dn = '-'
 
+	encoderAvailableFunctions = {
+		1: [this.changeFreq],
+		2: [this.changeWpm, this.changeFilter],
+		3: [this.changeRit]
+	}
+	encoderFunction = { 1: 0, 2: 0, 3: 0 }
+	
+	buttonFunctions = {
+		1: { tap: _ => this.switchStep() },
+		2: { tap: _ => this.switchEncoderFunction(2) },
+		3: { tap: _ => this.switchEncoderFunction(3), hold: null, push: null, release: null }, // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
+		4: { tap: _ => this.switchGain() },
+		5: { tap: _ => this.switchBand() },
+		6: { tap: _ => this.switchMode() },
+		7: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
+		8: { tap: null, hold: null, push: null, release: null }, // TODO tap: play cwmem; hold: play cwmem nonrepeat
+	}
+
+	buttonTimeout = 2000
+
+	constructor(tcvr) {
+		this._tcvr = tcvr
+	}
+
+	remoddleCommand(c) {
+		if (c.charCodeAt(0) <= 32) return // whitespace
+		// console.log('remoddle:', c)
+		if (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
+		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
+		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
+		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
+		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
+		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up
+		else if (c === '[') this.rotateEncoder(2, '-') // enc2 dn
+		else if (c === '}') this.rotateEncoder(3, '+') // enc3 up
+		else if (c === '{') this.rotateEncoder(3, '-') // enc3 dn
+		else if (c === '!') this.pushButton(1) // btn1 push
+		else if (c === '~') this.pushButton(2) // btn2 push
+		else if (c === '$') this.pushButton(3) // btn3 push
+		else if (c === '^') this.pushButton(4) // btn4 push
+		else if (c === '*') this.pushButton(5) // btn5 push
+		else if (c === ':') this.pushButton(6) // btn6 push
+		else if (c === ';') this.pushButton(7) // btn7 push
+		else if (c === '`') this.pushButton(8) // btn8 push
+		else if (c === '@') this.releaseButton(1) // btn1 release
+		else if (c === '#') this.releaseButton(2) // btn2 release
+		else if (c === '%') this.releaseButton(3) // btn3 release
+		else if (c === '&') this.releaseButton(4) // btn4 release
+		else if (c === '?') this.releaseButton(5) // btn5 release
+		else if (c === '"') this.releaseButton(6) // btn6 release
+		else if (c === '|') this.releaseButton(7) // btn7 release
+		else if (c === '\'') this.releaseButton(8) // btn8 release
+		else console.error('Remoddle send unknown command:', c)
+	}
+
+	switchEncoderFunction = enc => this.encoderFunction[enc] = this._shiftIndex(this.encoderAvailableFunctions[enc], this.encoderFunction[enc])
+
+	rotateEncoder = (enc, dir) => this.encoderAvailableFunctions[enc][this.encoderFunction[enc]](dir)
+
+	pushButton(btn) {
+		const fnc = this.buttonFunctions[btn]
+		fnc.push && fnc.push()
+		if (fnc.tap) fnc.time = Date.now()
+		if (fnc.hold) {
+			fnc.timeout = setTimeout(_ => {
+				fnc.timeout = null
+				fnc.hold()
+			}, this.buttonTimeout)
+		}
+	}
+
+	releaseButton(btn) {
+		const fnc = this.buttonFunctions[btn]
+		fnc.release && fnc.release()
+		if (fnc.timeout != null) {
+			clearTimeout(fnc.timeout)
+			fnc.timeout = null
+		}
+		if (fnc.time) {
+			if (fnc.tap && (Date.now() - fnc.time) < this.buttonTimeout) {
+				fnc.tap()
+			}
+			fnc.time = null
+		}
+	}
+
 	changeFreq = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
 	changeRit = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + 10) : (this._tcvr.freq - 10)
 	changeWpm = dir => this._tcvr.wpm += (dir === '+' ? 1 : -1)
@@ -25,54 +111,6 @@ class TcvrControls {
 
 	_unshiftIndex(list, index) {
 		return (index == 0 ? list.length : index) - 1
-	}
-
-	encoderAvailableFunctions = {
-		1: [this.changeFreq],
-		2: [this.changeWpm, this.changeFilter],
-		3: [this.changeRit]
-	}
-	encoderFunction = {1: 0, 2: 0, 3: 0}
-
-	switchEncoderFunction = enc => this.encoderFunction[enc] = this._shiftIndex(this.encoderAvailableFunctions[enc], this.encoderFunction[enc])
-
-	rotateEncoder = (enc, dir) => this.encoderAvailableFunctions[enc][this.encoderFunction[enc]](dir)
-
-	constructor(tcvr) {
-		this._tcvr = tcvr
-	}
-
-	remoddleCommand(c) {
-		if (c.charCodeAt(0) <= 32) return // whitespace
-		// console.log('remoddle:', c)
-		if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
-		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
-		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
-		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
-		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
-		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up
-		else if (c === '[') this.rotateEncoder(2, '-') // enc2 dn
-		else if (c === '}') this.rotateEncoder(3, '+') // enc3 up
-		else if (c === '{') this.rotateEncoder(3, '-') // enc3 dn
-		else if (c === '!') {} // btn1 push
-		else if (c === '~') {} // btn2 push
-		else if (c === '$') {} // btn3 push // TODO init HOLD timeout which zeroes current fnc (RIT/SPLIT)
-		else if (c === '^') {} // btn4 push
-		else if (c === '*') {} // btn5 push
-		else if (c === ':') {} // btn6 push
-		else if (c === ';') this.setPtt(true) // btn7 push
-		else if (c === '`') {} // btn8 push // TODO init HOLD Timeout after which play cwmem repeated
-		else if (c === '@') this.switchStep() // btn1 release
-		else if (c === '#') this.switchEncoderFunction(2) // btn2 release
-		else if (c === '%') { // btn3 release
-			this.switchEncoderFunction(3) // TODO enc3 clear HOLD timeout
-		}
-		else if (c === '&') this.switchGain() // btn4 release
-		else if (c === '?') this.switchBand() // btn5 release
-		else if (c === '"') this.switchMode() // btn6 release
-		else if (c === '|') this.setPtt(false) // btn7 release
-		else if (c === '\'') {} // btn8 release // TODO clear HOLD timeout, play cwmem nonrepeat
-		else console.error('Remoddle send unknown command:', c)
 	}
 
 }
