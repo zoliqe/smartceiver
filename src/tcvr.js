@@ -7,37 +7,51 @@ const _wideFilters =   [2400, 2400, 2000, 2000] // in _modes order
 // const _narrowFilters = ['1800', '1800', '0200', '0200']; // in _modes order
 // const _wideFilters =   ['2700', '2700', '0600', '0600']; // in _modes order
 const _sidetoneFreq = 650
-const _sidetoneLevel = 0.2
+// const _sidetoneLevel = 0.2
 
 class Transceiver {
 	constructor() {
-		this._rxVfo = 0
-		this._txVfo = 0 // TODO split operation
+		// this._rxVfo = 0
+		// this._txVfo = 0
 		this._band = 2
 		this._mode = 2
 		this._freq = []
-		_bandLowEdges.forEach(freq => {
-			let band = _bandLowEdges.indexOf(freq)
-			if (!(band in this._freq)) {
-				this._freq[band] = []
+		this._split = []
+		this._gain = []
+		for (let band in _bands) {
+			this._freq[band] = []
+			this._split[band] = []
+			for (let mode in _modes) {
+				this._freq[band][mode] = _bandLowEdges[band]
+				this._split[band][mode] = 0
 			}
-			for (const mode in _modes) {
-				if (!(mode in this._freq[band])) {
-					this._freq[band][mode] = []
-				}
-				for (const vfo in _vfos) {
-					this._freq[band][mode][vfo] = freq
-				}
-			}
-		})
+			this._gain[band] = 0
+		}
+		// _bandLowEdges.forEach(freq => {
+		// 	let band = _bandLowEdges.indexOf(freq)
+		// 	if (!(band in this._freq)) {
+		// 		this._freq[band] = []
+		// 	}
+		// 	for (const mode in _modes) {
+		// 		if (!(mode in this._freq[band])) {
+		// 			this._freq[band][mode] = []
+		// 		}
+		// 		for (const vfo in _vfos) {
+		// 			this._freq[band][mode][vfo] = freq
+		// 		}
+		// 	}
+			// this._gain[band] = 0
+		// })
 		console.log(`freqs=${this._freq}`)
 		this._wpm = 28
-		this._narrow = false
-		this._preamp = false
-		this._attn = false
+		// this._narrow = false
+		// this._preamp = false
+		// this._attn = false
 		this._ptt = false
 		this._agc = true
 		this._step = 20
+		this._rit = 0
+		this._xit = 0
 		this._reversePaddle = false
 		// this._txEnabled = true
 		// this._txKeyed = false
@@ -72,7 +86,7 @@ class Transceiver {
 			connector.connect(this, token, rig, (port) => {
 				this._port = port
 				// reset tcvr configuration
-				this.freq = this._freq[this._band][this._mode][this._rxVfo]
+				this.freq = this._freq[this._band][this._mode]
 				this.mode = this._mode
 				this.ptt = this._ptt
 				this.wpm = this._wpm
@@ -80,8 +94,9 @@ class Transceiver {
 				// this.txEnabled = this._txEnabled
 				// this.autoSpace = this._autoSpace
 				// this.txKeyed = this._txKeyed
-				this.preamp = this._preamp
-				this.attn = this._attn
+				// this.preamp = this._preamp
+				// this.attn = this._attn
+				this.gain = this._gain[this._band]
 				this.agc = this._agc
 				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 
@@ -173,11 +188,12 @@ class Transceiver {
 			this._d("band", band)
 			if (band in this.bands) {
 				this._band = band
-				this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
+				this.freq = this._freq[this._band][this._mode] // call setter
 				// reset state - some tcvrs may store state on per band basis
-				this.preamp = this._preamp
-				this.attn = this._attn
 				this.agc = this._agc
+				this.gain = this._gain[this._band]
+				// this.preamp = this._preamp
+				// this.attn = this._attn
 			}
 		})
 	}
@@ -193,21 +209,67 @@ class Transceiver {
 			this._d("mode", value)
 			if (value in this.modes) {
 				this._mode = value
-				this.freq = this._freq[this._band][this._mode][this._rxVfo] // call setter
+				this.freq = this._freq[this._band][this._mode] // call setter
 				this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
 			}
 		});
 	}
 
 	get freq() {
-		return this._freq[this._band][this._mode][this._rxVfo]
+		return this._freq[this._band][this._mode]
 	}
 	set freq(freq) {
 		this.whenConnected(() => {
-			this._freq[this._band][this._mode][this._rxVfo] = freq
+			this._freq[this._band][this._mode] = freq
 			this._d("freq", freq)
 			this.fire(new TcvrEvent(EventType.freq, freq))
 		});
+	}
+
+	get split() {
+		return this._split[this._band][this._mode]
+	}
+	set split(freq) {
+		if (this.online) {
+			this._split[this._band][this._mode] = freq
+			this._d('split', freq)
+			this.fire(new TcvrEvent(EventType.split, freq))
+		}
+	}
+	clearSplit() {
+		this.split = 0
+	}
+
+	get rit() {
+		return this._rit
+	}
+	set rit(value) {
+		if (this.online) {
+			this._d('rit', value)
+			if (Math.abs(value) < 10000) {
+				this._rit = value
+				this.fire(new TcvrEvent(EventType.rit, value))
+			}
+		}
+	}
+	clearRit() {
+		this.rit = 0
+	}
+
+	get xit() {
+		return this._xit
+	}
+	set xit(value) {
+		if (this.online) {
+			this._d('xit', value)
+			if (Math.abs(value) < 10000) {
+				this._xit = value
+				this.fire(new TcvrEvent(EventType.xit, value))
+			}
+		}
+	}
+	clearXit() {
+		this.xit = 0
 	}
 
 	get steps() {
@@ -225,10 +287,10 @@ class Transceiver {
 		return this._wpm
 	}
 	set wpm(wpm) {
-		if (wpm < 10 || wpm > 40) return
 		this.whenConnected(() => {
-			this._wpm = wpm
 			this._d("wpm", wpm)
+			if (wpm < 10 || wpm > 40) return
+			this._wpm = wpm
 			this.fire(new TcvrEvent(EventType.wpm, wpm))
 		})
 	}
@@ -255,62 +317,72 @@ class Transceiver {
 	}
 	set filter(bw) {
 		if (!this.online) return
-		this._filter = bw
 		this._d('filter', bw)
-		this.fire(new TcvrEvent(EventType.filter, bw))
+		if (this.filters.includes(bw)) {
+			this._filter = bw
+			this.fire(new TcvrEvent(EventType.filter, bw))
+		}
 	}
 
 	get narrow() {
-		return this._narrow
+		return this.filter < this.filters[this.filters.length - 1]
 	}
 	set narrow(narrow) {
-		this.whenConnected(() => {
-			this._narrow = narrow
-			this._d("narrow", narrow)
-			let bandwidth = narrow ? _narrowFilters[this._mode] : _wideFilters[this._mode]
-			this.fire(new TcvrEvent(EventType.filter, bandwidth))
-		})
+		this.filter = narrow ? this.filters[0] : this.filters[this.filters.length - 1]
+		// this.whenConnected(() => {
+		// 	this._narrow = narrow
+		// 	this._d("narrow", narrow)
+		// 	let bandwidth = narrow ? _narrowFilters[this._mode] : _wideFilters[this._mode]
+		// 	this.fire(new TcvrEvent(EventType.filter, bandwidth))
+		// })
 	}
 
 	get gains() {
-		return [-10, 0, 10]
+		return [-10, 0, 20]
 	}
 
 	get gain() {
-		if (this.preamp) return 10
-		if (this.attn) return -10
-		return 0
+		// if (this.preamp) return 10
+		// if (this.attn) return -10
+		// return 0
+		return this._gain[this._band]
 	}
 	set gain(value) {
-		let attn = false
-		let preamp = false
-		if (value > 0) this.preamp = true
-		else if (value < 0) this.attn = true
+		if (this.online) {
+			this._gain[this._band] = value
+			this.fire(new TcvrEvent(EventType.gain, value))
+		}
+		// let attn = false
+		// let preamp = false
+		// if (value > 0) this.preamp = true
+		// else if (value < 0) this.attn = true
 
-		this.preamp = preamp
-		this.attn = attn
+		// this.preamp = preamp
+		// this.attn = attn
 	}
 
 	get preamp() {
-		return this._preamp
+		return this.gain > 0
 	}
 	set preamp(state) {
-		this.whenConnected(() => {
-			this._preamp = state
-			this._d("preamp", this._preamp)
-			this.fire(new TcvrEvent(EventType.preamp, this._preamp))
-		})
+		this.gain = state ? 10 : 0
+		// this.whenConnected(() => {
+		// 	this._preamp = state
+		// 	this._d("preamp", this._preamp)
+		// 	this.fire(new TcvrEvent(EventType.preamp, this._preamp))
+		// })
 	}
 
 	get attn() {
-		return this._attn
+		return this.gain < 0
 	}
 	set attn(state) {
-		this.whenConnected(() => {
-			this._attn = state
-			this._d("attn", this._attn)
-			this.fire(new TcvrEvent(EventType.attn, this._attn))
-		});
+		this.gain = state ? -10 : 0
+		// this.whenConnected(() => {
+		// 	this._attn = state
+		// 	this._d("attn", this._attn)
+		// 	this.fire(new TcvrEvent(EventType.attn, this._attn))
+		// });
 	}
 
 	get ptt() {
@@ -475,8 +547,8 @@ class EventListener {
 }
 
 const EventType = Object.freeze({
-	freq: 'freq', wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', 
-	preamp: 'preamp', attn: 'attn', 
+	freq: 'freq', rit: 'rit', xit: 'xit', split: 'split',
+	wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', gain: 'gain',
 	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', reverse: 'reverse',
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', 
 })
