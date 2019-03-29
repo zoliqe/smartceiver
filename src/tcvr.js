@@ -1,9 +1,9 @@
-const _vfos = ['A', 'B']
+// const _vfos = ['A', 'B']
 const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
 const _bandLowEdges = [1800000, 3500000, 7000000, 10100000, 14000000, 18068000, 21000000, 24890000, 28000000]
 const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
-const _narrowFilters = [2000, 2000, 250, 250] // in _modes order
-const _wideFilters =   [2400, 2400, 2000, 2000] // in _modes order
+// const _narrowFilters = [2000, 2000, 250, 250] // in _modes order
+// const _wideFilters =   [2400, 2400, 2000, 2000] // in _modes order
 // const _narrowFilters = ['1800', '1800', '0200', '0200']; // in _modes order
 // const _wideFilters =   ['2700', '2700', '0600', '0600']; // in _modes order
 const _sidetoneFreq = 650
@@ -172,9 +172,9 @@ class Transceiver {
 		return this.modes
 	}
 
-	get allVfos() {
-		return _vfos
-	}
+	// get allVfos() {
+	// 	return _vfos
+	// }
 
 	get bands() {
 		return _bands
