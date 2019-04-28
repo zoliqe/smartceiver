@@ -62,6 +62,7 @@ class Transceiver {
 		// this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
 		console.log('used connector: ' + this._connectorId)
 		
+		this._controls = new TcvrControls(this)
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
@@ -462,34 +463,35 @@ class Transceiver {
 	}
 
 	remoddleCommand(c) {
-		if (c.charCodeAt(0) <= 32) return // whitespace
 		// console.log('remoddle:', c)
-		if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
-		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
-		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
-		else if (c === '>') this.freq += this._step // enc1 up
-		else if (c === '<') this.freq -= this._step // enc1 dn
-		else if (c === ']') this.wpm++ // enc2 up
-		else if (c === '[') this.wpm-- // enc2 dn
-		else if (c === '}') this.freq += 10 // enc3 up
-		else if (c === '{') this.freq -= 10 // enc3 dn
-		else if (c === '!') this.step = this.step == 20 ? 200 : 20 // btn1 push
-		else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // btn2 push
-		else if (c === '$') {} // btn3 push
-		else if (c === '^') {} // btn4 push
-		else if (c === '*') {} // btn5 push
-		else if (c === ':') {} // btn6 push
-		else if (c === ';') {} // btn7 push
-		else if (c === '`') {} // btn8 push
-		else if (c === '@') {} // btn1 release
-		else if (c === '#') {} // btn2 release
-		else if (c === '%') {} // btn3 release
-		else if (c === '&') {} // btn4 release
-		else if (c === '?') {} // btn5 release
-		else if (c === '"') {} // btn6 release
-		else if (c === '|') {} // btn7 release
-		else if (c === '\'') {} // btn8 release
-		else console.error('Remoddle send unknown command:', c)
+		this._controls.remoddleCommand(c)
+		// if (c.charCodeAt(0) <= 32) return // whitespace
+		// if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
+		// else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
+		// else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
+		// else if (c === '>') this.freq += this._step // enc1 up
+		// else if (c === '<') this.freq -= this._step // enc1 dn
+		// else if (c === ']') this.wpm++ // enc2 up
+		// else if (c === '[') this.wpm-- // enc2 dn
+		// else if (c === '}') this.freq += 10 // enc3 up
+		// else if (c === '{') this.freq -= 10 // enc3 dn
+		// else if (c === '!') this.step = this.step == 20 ? 200 : 20 // btn1 push
+		// else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // btn2 push
+		// else if (c === '$') {} // btn3 push
+		// else if (c === '^') {} // btn4 push
+		// else if (c === '*') {} // btn5 push
+		// else if (c === ':') {} // btn6 push
+		// else if (c === ';') {} // btn7 push
+		// else if (c === '`') {} // btn8 push
+		// else if (c === '@') {} // btn1 release
+		// else if (c === '#') {} // btn2 release
+		// else if (c === '%') {} // btn3 release
+		// else if (c === '&') {} // btn4 release
+		// else if (c === '?') {} // btn5 release
+		// else if (c === '"') {} // btn6 release
+		// else if (c === '|') {} // btn7 release
+		// else if (c === '\'') {} // btn8 release
+		// else console.error('Remoddle send unknown command:', c)
 	}
 
 	toggleFast() {

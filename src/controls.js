@@ -21,17 +21,17 @@ class TcvrControls {
 	_buttonMainFunctions = {
 		1: { tap: _ => this.switchStep() },
 		2: { tap: _ => this.switchEncoderFunction(2) },
-		3: { tap: _ => this.switchEncoderFunction(3), hold: null, push: null, release: null }, // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
+		3: { tap: _ => this.switchEncoderFunction(3), hold: null }, // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
 		4: { tap: _ => this.switchGain() },
-		5: { tap: _ => this.switchBand() },
+		5: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() },
 		6: { tap: _ => this.switchMode() },
-		7: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
-		8: { tap: _ => this.buttonCwSelectFunctions(), hold: null, push: null, release: null },
+		7: { tap: _ => this.buttonCwSelectFunctions(), hold: null },
+		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
 	}
 	_buttonCwSelectFunctions = {
 		1: this.buttonCwCancelFunction(1), 2: this.buttonCwCancelFunction(2), 3: this.buttonCwCancelFunction(3),
 		4: this.buttonCwFunction(4), 5: this.buttonCwFunction(5), 6: this.buttonCwFunction(6),
-		7: this.buttonCwCancelFunction(7), 8: this.buttonCwCancelFunction(8)
+		7: this.buttonCwCancelFunction(7), //8: this.buttonCwCancelFunction(8)
 	}
 
 	buttonCwFunction = btn => {
@@ -41,7 +41,7 @@ class TcvrControls {
 		return { release: _ => this.buttonMainFunctions() }
 	}
 
-	buttonTimeout = 2000
+	// buttonTimeout = 2000
 
 	constructor(tcvr) {
 		this._tcvr = tcvr
@@ -52,19 +52,19 @@ class TcvrControls {
 		const code = c.charCodeAt(0);
 		if (code <= 32) return // whitespace
 		// console.log('remoddle:', c)
-		if (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
-		else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
-		else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
+		if (c === '-') this._tcvr.fire(new TcvrEvent(EventType.keyDah, 1))
+		else if (c === '.') this._tcvr.fire(new TcvrEvent(EventType.keyDit, 1))
+		else if (c === '_') this._tcvr.fire(new TcvrEvent(EventType.keySpace, 1))
 		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
 		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
 		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up
 		else if (c === '[') this.rotateEncoder(2, '-') // enc2 dn
 		else if (c === '}') this.rotateEncoder(3, '+') // enc3 up
 		else if (c === '{') this.rotateEncoder(3, '-') // enc3 dn
-		else if (code >= 65 && code <= 90) this.pushButton(code - 64) // A - Z
-		else if (code >= 97 && code <= 122) this.releaseButton(code - 96) // a - z
-		// else if (c === '!') this.pushButton(1) // btn1 push
-		// else if (c === '~') this.pushButton(2) // btn2 push
+		else if (code >= 97 && code <= 122) this.tapButton(code - 96) // a - z
+		else if (code >= 65 && code <= 90) this.holdButton(code - 64) // A - Z
+		else if (c === '!') this.setPtt(true)
+		else if (c === '~') this.setPtt(false)
 		// else if (c === '$') this.pushButton(3) // btn3 push
 		// else if (c === '^') this.pushButton(4) // btn4 push
 		// else if (c === '*') this.pushButton(5) // btn5 push
@@ -86,31 +86,33 @@ class TcvrControls {
 
 	rotateEncoder = (enc, dir) => this._encoderAvailableFunctions[enc][this._encoderFunction[enc]](dir)
 
-	pushButton(btn) {
+	holdButton(btn) {
 		const fnc = this._buttonFunctions[btn] || {}
-		fnc.push && fnc.push()
-		if (fnc.tap) fnc.time = Date.now()
-		if (fnc.hold) {
-			fnc.timeout = setTimeout(_ => {
-				fnc.timeout = null
-				fnc.hold()
-			}, this.buttonTimeout)
-		}
+		fnc.hold && fnc.hold()
+		// fnc.push && fnc.push()
+		// if (fnc.tap) fnc.time = Date.now()
+		// if (fnc.hold) {
+		// 	fnc.timeout = setTimeout(_ => {
+		// 		fnc.timeout = null
+		// 		fnc.hold()
+		// 	}, this.buttonTimeout)
+		// }
 	}
 
-	releaseButton(btn) {
+	tapButton(btn) {
 		const fnc = this._buttonFunctions[btn] || {}
-		fnc.release && fnc.release()
-		if (fnc.timeout != null) {
-			clearTimeout(fnc.timeout)
-			fnc.timeout = null
-		}
-		if (fnc.time) {
-			if (fnc.tap && (Date.now() - fnc.time) < this.buttonTimeout) {
-				fnc.tap()
-			}
-			fnc.time = null
-		}
+		fnc.tap && fnc.tap()
+		// fnc.release && fnc.release()
+		// if (fnc.timeout != null) {
+		// 	clearTimeout(fnc.timeout)
+		// 	fnc.timeout = null
+		// }
+		// if (fnc.time) {
+		// 	if (fnc.tap && (Date.now() - fnc.time) < this.buttonTimeout) {
+		// 		fnc.tap()
+		// 	}
+		// 	fnc.time = null
+		// }
 	}
 
 	buttonCwSelectFunctions() {
@@ -127,7 +129,8 @@ class TcvrControls {
 	changeFilter = dir => this._tcvr.filter = this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
 	setPtt = state => this._tcvr.ptt = state
 	switchStep = _ => this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
-	switchBand = _ => this._tcvr.band = this._shiftIndex(this._tcvr.bands, this._tcvr.band)
+	switchBandUp = _ => this._tcvr.band = this._shiftIndex(this._tcvr.bands, this._tcvr.band)
+	switchBandDown = _ => this._tcvr.band = this._unshiftIndex(this._tcvr.bands, this._tcvr.band)
 	switchGain = _ => this._tcvr.gain = this._tcvr.gains[this._unshiftIndex(this._tcvr.gains, this._tcvr.gains.indexOf(this._tcvr.gain))]
 	switchMode = _ => this._tcvr.mode = this._shiftIndex(this._tcvr.modes, this._tcvr.mode)
 	switchFilter = _ => this._tcvr.filter = this._tcvr.filters[this._shiftIndex(this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
