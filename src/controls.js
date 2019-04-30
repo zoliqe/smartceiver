@@ -5,9 +5,9 @@ class TcvrControls {
 	dn = '-'
 
 	_encoderAvailableFunctions = {
-		1: [this.changeFreq],
-		2: [this.changeWpm, this.changeFilter],
-		3: [this.changeRit]
+		1: [dir => this.changeFreq(dir)],
+		2: [dir => this.changeWpm(dir), dir => this.changeFilter(dir)],
+		3: [dir => this.changeRit(dir)]
 	}
 	_encoderFunction = { 1: 0, 2: 0, 3: 0 }
 	
@@ -19,19 +19,24 @@ class TcvrControls {
 	 * - release: immediately on release
 	 */
 	_buttonMainFunctions = {
-		1: { tap: _ => this.switchStep() },
-		2: { tap: _ => this.switchEncoderFunction(2) },
-		3: { tap: _ => this.switchEncoderFunction(3), hold: null }, // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
-		4: { tap: _ => this.switchGain() },
-		5: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() },
-		6: { tap: _ => this.switchMode() },
-		7: { tap: _ => this.buttonCwSelectFunctions(), hold: null },
+		1: { tap: _ => this.switchStep() }, // a
+		2: { tap: _ => this.switchEncoderFunction(2) }, // b
+		3: { tap: _ => this.switchEncoderFunction(3), hold: null }, // c // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
+		10: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // j
+		9: { tap: _ => this.switchMode() }, // i
+		4: { tap: _ => this.switchGain() }, // d
+		5: { tap: _ => this.buttonCwSelectFunctions(), hold: null }, // e
 		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
 	}
 	_buttonCwSelectFunctions = {
-		1: this.buttonCwCancelFunction(1), 2: this.buttonCwCancelFunction(2), 3: this.buttonCwCancelFunction(3),
-		4: this.buttonCwFunction(4), 5: this.buttonCwFunction(5), 6: this.buttonCwFunction(6),
-		7: this.buttonCwCancelFunction(7), //8: this.buttonCwCancelFunction(8)
+		1: _ => this.buttonCwCancelFunction(1), 
+		2: _ => this.buttonCwCancelFunction(2), 
+		3: _ => this.buttonCwCancelFunction(3),
+		10: _ => this.buttonCwFunction(4), 
+		9: _ => this.buttonCwFunction(5), 
+		4: _ => this.buttonCwFunction(6),
+		5: _ => this.buttonCwCancelFunction(7), 
+		//8: _ => this.buttonCwCancelFunction(8)
 	}
 
 	buttonCwFunction = btn => {
@@ -84,7 +89,10 @@ class TcvrControls {
 
 	switchEncoderFunction = enc => this._encoderFunction[enc] = this._shiftIndex(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
 
-	rotateEncoder = (enc, dir) => this._encoderAvailableFunctions[enc][this._encoderFunction[enc]](dir)
+	rotateEncoder = (enc, dir) => {
+		const fnc = this._encoderAvailableFunctions[enc][this._encoderFunction[enc]]
+		fnc && fnc(dir)
+	}
 
 	holdButton(btn) {
 		const fnc = this._buttonFunctions[btn] || {}

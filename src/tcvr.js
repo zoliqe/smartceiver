@@ -62,7 +62,6 @@ class Transceiver {
 		// this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
 		console.log('used connector: ' + this._connectorId)
 		
-		this._controls = new TcvrControls(this)
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
@@ -77,6 +76,7 @@ class Transceiver {
 			this.disconnectRemoddle()
 			this._port.disconnect()
 			this.unbind(this._connectorId)
+			this._controls = null
 			this._port = null
 			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 		} else /*if (state)*/ {
@@ -86,20 +86,23 @@ class Transceiver {
 			this.connectRemoddle(connector, remoddle)
 			connector.connect(this, token, rig, (port) => {
 				this._port = port
+				this._controls = new TcvrControls(this)
 				// reset tcvr configuration
 				this.freq = this._freq[this._band][this._mode]
-				this.mode = this._mode
-				this.ptt = this._ptt
-				this.wpm = this._wpm
-				this.narrow = this._narrow
-				// this.txEnabled = this._txEnabled
-				// this.autoSpace = this._autoSpace
-				// this.txKeyed = this._txKeyed
-				// this.preamp = this._preamp
-				// this.attn = this._attn
-				this.gain = this._gain[this._band]
-				this.agc = this._agc
-				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
+				setTimeout(_ => {
+					this.mode = this._mode
+					this.ptt = this._ptt
+					this.wpm = this._wpm
+					this.narrow = this._narrow
+					// this.txEnabled = this._txEnabled
+					// this.autoSpace = this._autoSpace
+					// this.txKeyed = this._txKeyed
+					// this.preamp = this._preamp
+					// this.attn = this._attn
+					this.gain = this._gain[this._band]
+					this.agc = this._agc
+					this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
+				}, 2000) // wait for band change on tcvr
 
 				window.onbeforeunload = _ => {
 					this.disconnectRemoddle()
@@ -136,6 +139,10 @@ class Transceiver {
 			this._remoddle.disconnect()
 			this._remoddle = null
 		}
+	}
+
+	remoddleCommand(c) {
+		this._controls && this._controls.remoddleCommand(c)
 	}
 
 	_keyPtt() {
@@ -191,10 +198,12 @@ class Transceiver {
 				this._band = band
 				this.freq = this._freq[this._band][this._mode] // call setter
 				// reset state - some tcvrs may store state on per band basis
-				this.agc = this._agc
-				this.gain = this._gain[this._band]
-				// this.preamp = this._preamp
-				// this.attn = this._attn
+				setTimeout(_ => {
+					this.agc = this._agc
+					this.gain = this._gain[this._band]
+					// this.preamp = this._preamp
+					// this.attn = this._attn
+				}, 2000) // wait for band change on tcvr
 			}
 		})
 	}
@@ -281,7 +290,10 @@ class Transceiver {
 	}
 	set step(value) {
 		this._d('step', value)
-		if (this.steps.includes(value)) this._step = value
+		if (this.steps.includes(value)) {
+			this._step = value
+			this.fire(new TcvrEvent(EventType.step, value))
+		}
 	}
 
 	get wpm() {
@@ -462,38 +474,6 @@ class Transceiver {
 		return _sidetoneFreq
 	}
 
-	remoddleCommand(c) {
-		// console.log('remoddle:', c)
-		this._controls.remoddleCommand(c)
-		// if (c.charCodeAt(0) <= 32) return // whitespace
-		// if      (c === '-') this.fire(new TcvrEvent(EventType.keyDah, 1))
-		// else if (c === '.') this.fire(new TcvrEvent(EventType.keyDit, 1))
-		// else if (c === '_') this.fire(new TcvrEvent(EventType.keySpace, 1))
-		// else if (c === '>') this.freq += this._step // enc1 up
-		// else if (c === '<') this.freq -= this._step // enc1 dn
-		// else if (c === ']') this.wpm++ // enc2 up
-		// else if (c === '[') this.wpm-- // enc2 dn
-		// else if (c === '}') this.freq += 10 // enc3 up
-		// else if (c === '{') this.freq -= 10 // enc3 dn
-		// else if (c === '!') this.step = this.step == 20 ? 200 : 20 // btn1 push
-		// else if (c === '~') this.band = (this.band + 1) < _bands.length ? (this.band + 1) : 0 // btn2 push
-		// else if (c === '$') {} // btn3 push
-		// else if (c === '^') {} // btn4 push
-		// else if (c === '*') {} // btn5 push
-		// else if (c === ':') {} // btn6 push
-		// else if (c === ';') {} // btn7 push
-		// else if (c === '`') {} // btn8 push
-		// else if (c === '@') {} // btn1 release
-		// else if (c === '#') {} // btn2 release
-		// else if (c === '%') {} // btn3 release
-		// else if (c === '&') {} // btn4 release
-		// else if (c === '?') {} // btn5 release
-		// else if (c === '"') {} // btn6 release
-		// else if (c === '|') {} // btn7 release
-		// else if (c === '\'') {} // btn8 release
-		// else console.error('Remoddle send unknown command:', c)
-	}
-
 	toggleFast() {
 		this.step = this.step == 20 ? 200 : 20
 	}
@@ -552,7 +532,7 @@ const EventType = Object.freeze({
 	freq: 'freq', rit: 'rit', xit: 'xit', split: 'split',
 	wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', gain: 'gain',
 	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', reverse: 'reverse',
-	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', 
+	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', resetAudio: 'resetAudio', step: 'step',
 })
 
 class ConnectorRegister {
