@@ -383,7 +383,7 @@ class Transceiver {
 		return this.gain > 0
 	}
 	set preamp(state) {
-		this.gain = state ? 10 : 0
+		this.gain = state ? 20 : 0
 		// this.whenConnected(() => {
 		// 	this._preamp = state
 		// 	this._d("preamp", this._preamp)
