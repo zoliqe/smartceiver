@@ -51,6 +51,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-header paper-icon-button {
         --paper-icon-button-ink-color: #95c029;
+        font-weight: bold;
       }
 
       app-header div.freq-display {
@@ -127,6 +128,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
+            <span class="operated" id="who" on-tap="switchPower">[[operator]]</span>
             <!-- <div>2a</div> -->
             <!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
             <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
@@ -140,7 +142,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             fallback-selection="error404"
             role="main">
           <main-view id="tune" name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
-            freq="{{tcvr.freq}}" step="{{tcvr.step}}" narrow="{{tcvr.narrow}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}" 
+            freq="{{tcvr.freq}}" step="{{tcvr.step}}" 
+            filter="{{tcvr.filter}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}" 
             ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}" power="[[tcvr.powerSwState]]">
           </main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
@@ -218,7 +221,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.$.tune.notifyPath('freq')
           this.$.tune.notifyPath('power')
         })
-        this.tcvr.bind(EventType.filter, 'ui', event => this.notifyPath('tcvr.narrow'))
+        this.tcvr.bind(EventType.filter, 'ui', event => {
+          this.notifyPath('tcvr.filter')
+        })
         this.tcvr.bind(EventType.gain, 'ui', event => {
           this.notifyPath('tcvr.preamp')
           this.notifyPath('tcvr.attn')
@@ -226,6 +231,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.tcvr.bind(EventType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
         this.tcvr.bind(EventType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
         this.tcvr.bind(EventType.step, 'ui', event => this.notifyPath('tcvr.step'))
+
+        this.operator = ':::'
+        setInterval(_ => this._fetchStatus(), 5000)
+      }
+
+      async _fetchStatus() {
+        if (!this.rig) return
+
+        const response = await fetch(`/remotig/${this.rig}/status`)
+        let online = false
+        if (response.ok) {
+          const status = await response.json()
+          online = status && status.id
+          console.debug('rtt:', status.rtt)
+          if (online) this.operator = status.op || 'ON'
+        }
+        if (!online) this.operator = 'OFF'
+        this.notifyPath('operator')
       }
 
       _freqChanged(freq) {
@@ -283,6 +306,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         }
         if (params.rig) {
           this.rig = params.rig.trim()
+          this._fetchStatus()
         }
         if (params.remoddle) {
           this.remoddle = params.remoddle.trim()

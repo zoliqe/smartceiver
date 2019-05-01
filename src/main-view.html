@@ -72,13 +72,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       paper-item.wpm {
         padding: 0;
-        padding-left: 15px;
+        /* padding-left: 15px; */
       }
       paper-button {
         font-size: 14pt;
         font-weight: bold;
         color: white;
-        margin: 5px;
+        margin: 2px;
 
       }
       paper-button.toggles[active] {
@@ -95,10 +95,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
       paper-button.wpm {
         background-color: var(--paper-indigo-800);
-        --paper-button-raised-keyboard-focus: {
+        /* --paper-button-raised-keyboard-focus: {
           background-color: var(--paper-pink-a200) !important;
           color: white !important;
-        };
+        }; */
       }
       paper-button.wpm[disabled] {
         background-color: lightgray;
@@ -111,6 +111,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 10px;
         font-size: 28pt;
         font-weight: bold;
+        color: lightgreen;
       }
     </style>
 
@@ -137,20 +138,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <li><div class="card" role="listbox">
       <h1>Controls</h1>
       <paper-item class="controls">
-        <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button>
-        <paper-button toggles active="{{fast}}" on-tap="fastChanged" raised class="toggles">{{step}} Hz</paper-button>
-        <paper-button toggles active="{{narrow}}" raised class="toggles">NAR</paper-button>
-      </paper-item>
-      <paper-item class="controls">
+        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
+        <paper-button toggles on-tap="fastChanged" raised class="toggles">STEP<br/>{{step}} Hz</paper-button>
         <paper-button toggles active="{{preamp}}" raised class="toggles" disabled="[[!power]]">PREAMP</paper-button>
         <paper-button toggles active="{{attn}}" raised class="toggles" disabled="[[!power]]">ATTN</paper-button>
-        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
-        <paper-button toggles active="{{agc}}" raised class="toggles" disabled="[[!power]]">AGC</paper-button>
+        <!-- <paper-button toggles active="{{narrow}}" raised class="toggles">BW<br/>{{filter}} Hz</paper-button> -->
+        <!-- <paper-button toggles active="{{agc}}" raised class="toggles" disabled="[[!power]]">AGC</paper-button> -->
       </paper-item>
+      <!-- <paper-item class="controls"> -->
+        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
+      <!-- </paper-item> -->
       <paper-item class="wpm">
         <paper-button raised on-tap="decreaseWpm" class="wpm" disabled="[[decWpmDisabled(wpm)]]">WPM --</paper-button>
         <span class="wpm-control">[[wpm]]</span>
         <paper-button raised on-tap="increaseWpm" class="wpm" disabled="[[incWpmDisabled(wpm)]]">WPM ++</paper-button>
+      </paper-item>
+      <paper-item class="wpm">
+        <paper-button raised on-tap="decFilter" class="wpm">BW --</paper-button>
+        <span class="wpm-control">[[filter]]</span>
+        <paper-button raised on-tap="incFilter" class="wpm">BW ++</paper-button>
       </paper-item>
       <p></p>
     </div></li>
@@ -166,9 +172,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return {
           freq: {type: Number, notify: true},
           locked: {type: Boolean, value: false},
-          fast: {type: Boolean, value: false},
           step: {type: Number, notify: true, value: true},
-          narrow: {type: Boolean, notify: true},
+          filter: {type: Number, notify: true, value: true},
           wpm: {type: Number, notify: true},
           preamp: {type: Boolean, notify: true},
           attn: {type: Boolean, notify: true},
@@ -256,7 +261,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.wpm = this.wpm - 2;
       }
       decWpmDisabled(wpm) {
-        return wpm <= 10;
+        return wpm <= 16;
       }
 
       increaseWpm() {
@@ -266,8 +271,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         return wpm >= 40;
       }
 
+      decFilter() {
+        this.filter = this.filter - 200
+      }
+      incFilter() {
+        this.filter = this.filter + 200
+      }
+
       fastChanged() {
-        this.step = this.fast ? 200 : 20
+        this.step = this.step < 200 ? 200 : 20
       }
 
     }

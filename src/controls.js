@@ -134,7 +134,8 @@ class TcvrControls {
 	changeFreq = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
 	changeRit = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + 10) : (this._tcvr.freq - 10)
 	changeWpm = dir => this._tcvr.wpm += (dir === '+' ? 1 : -1)
-	changeFilter = dir => this._tcvr.filter = this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
+	changeFilter = dir => this._tcvr.filter = dir === '+' ? (this._tcvr.filter + 50) : (this._tcvr.filter - 50)
+	// this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
 	setPtt = state => this._tcvr.ptt = state
 	switchStep = _ => this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
 	switchBandUp = _ => this._tcvr.band = this._shiftIndex(this._tcvr.bands, this._tcvr.band)
