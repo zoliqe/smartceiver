@@ -1,18 +1,14 @@
-// const _vfos = ['A', 'B']
 const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
 const _bandLowEdges = [1800000, 3500000, 7000000, 10100000, 14000000, 18068000, 21000000, 24890000, 28000000]
 const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
-// const _narrowFilters = [2000, 2000, 250, 250] // in _modes order
-// const _wideFilters =   [2400, 2400, 2000, 2000] // in _modes order
-// const _narrowFilters = ['1800', '1800', '0200', '0200']; // in _modes order
-// const _wideFilters =   ['2700', '2700', '0600', '0600']; // in _modes order
+const _filters = {
+	'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
+	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
+}
 const _sidetoneFreq = 650
-// const _sidetoneLevel = 0.2
 
 class Transceiver {
 	constructor() {
-		// this._rxVfo = 0
-		// this._txVfo = 0
 		this._band = 2
 		this._mode = 2
 		this._freq = []
@@ -27,27 +23,14 @@ class Transceiver {
 			}
 			this._gain[band] = 0
 		}
-		// _bandLowEdges.forEach(freq => {
-		// 	let band = _bandLowEdges.indexOf(freq)
-		// 	if (!(band in this._freq)) {
-		// 		this._freq[band] = []
-		// 	}
-		// 	for (const mode in _modes) {
-		// 		if (!(mode in this._freq[band])) {
-		// 			this._freq[band][mode] = []
-		// 		}
-		// 		for (const vfo in _vfos) {
-		// 			this._freq[band][mode][vfo] = freq
-		// 		}
-		// 	}
-			// this._gain[band] = 0
-		// })
 		console.log(`freqs=${this._freq}`)
+
+		this._filter = []
+		for (let mode in _modes) {
+			this._filter[mode] = _filters[_modes[mode]].max
+		}
+
 		this._wpm = 28
-		this._filter = this.filterRange.max
-		// this._narrow = false
-		// this._preamp = false
-		// this._attn = false
 		this._ptt = false
 		this._agc = true
 		this._step = 20
@@ -94,7 +77,7 @@ class Transceiver {
 					this.mode = this._mode
 					this.ptt = this._ptt
 					this.wpm = this._wpm
-					this.filter = this._filter
+					this.filter = this._filter[this._mode]
 					// this.narrow = this._narrow
 					// this.txEnabled = this._txEnabled
 					// this.autoSpace = this._autoSpace
@@ -173,19 +156,6 @@ class Transceiver {
 		return this._port && this._port.connected !== false
 	}
 
-	get allBands() {
-		// return this._freq.keys();
-		return this.bands
-	}
-
-	get allModes() {
-		return this.modes
-	}
-
-	// get allVfos() {
-	// 	return _vfos
-	// }
-
 	get bands() {
 		return _bands
 	}
@@ -204,9 +174,7 @@ class Transceiver {
 					this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
 					this.fire(new TcvrEvent(EventType.gain, this._gain[this._band]))
 					this.fire(new TcvrEvent(EventType.agc, this._agc))
-					this.fire(new TcvrEvent(EventType.filter, this._filter))
-					// this.gain = this._gain[this._band]
-					// this.agc = this._agc
+					this.fire(new TcvrEvent(EventType.filter, this._filter[this._mode]))
 				}, 2000) // wait for band change on tcvr
 			}
 		})
@@ -223,9 +191,9 @@ class Transceiver {
 			this._d("mode", value)
 			if (value in this.modes) {
 				this._mode = value
-				this.fire(new TcvrEvent(EventType.mode, _modes[this._mode]))
+				this.fire(new TcvrEvent(EventType.mode, _modes[this.mode]))
 				this.fire(new TcvrEvent(EventType.freq, this._freq[this._band][this._mode]))
-				this.fire(new TcvrEvent(EventType.filter, this._filter))
+				this.fire(new TcvrEvent(EventType.filter, this._filter[this._mode]))
 			}
 		});
 	}
@@ -324,45 +292,25 @@ class Transceiver {
 	}
 
 	get filterRange() {
-		const filters = {
-			'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
-			'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
-		}
-		return filters[this.modes[this.mode]]
+		return _filters[this.modes[this._mode]]
 	}
 	get filter() {
-		return this._filter
+		return this._filter[this._mode]
 	}
 	set filter(bw) {
 		if (!this.online) return
 		this._d('filter', bw)
 		if (this.filterRange.min <= bw && this.filterRange.max >= bw) {
-			this._filter = bw
+			this._filter[this._mode] = bw
 			this.fire(new TcvrEvent(EventType.filter, bw))
 		}
 	}
-
-	// get narrow() {
-	// 	return this.filter < this.filters[this.filters.length - 1]
-	// }
-	// set narrow(narrow) {
-	// 	this.filter = narrow ? this.filters[0] : this.filters[this.filters.length - 1]
-	// 	// this.whenConnected(() => {
-	// 	// 	this._narrow = narrow
-	// 	// 	this._d("narrow", narrow)
-	// 	// 	let bandwidth = narrow ? _narrowFilters[this._mode] : _wideFilters[this._mode]
-	// 	// 	this.fire(new TcvrEvent(EventType.filter, bandwidth))
-	// 	// })
-	// }
 
 	get gains() {
 		return [-10, 0, 20]
 	}
 
 	get gain() {
-		// if (this.preamp) return 10
-		// if (this.attn) return -10
-		// return 0
 		return this._gain[this._band]
 	}
 	set gain(value) {
@@ -370,37 +318,6 @@ class Transceiver {
 			this._gain[this._band] = value
 			this.fire(new TcvrEvent(EventType.gain, value))
 		}
-		// let attn = false
-		// let preamp = false
-		// if (value > 0) this.preamp = true
-		// else if (value < 0) this.attn = true
-
-		// this.preamp = preamp
-		// this.attn = attn
-	}
-
-	get preamp() {
-		return this.gain > 0
-	}
-	set preamp(state) {
-		this.gain = state ? 20 : 0
-		// this.whenConnected(() => {
-		// 	this._preamp = state
-		// 	this._d("preamp", this._preamp)
-		// 	this.fire(new TcvrEvent(EventType.preamp, this._preamp))
-		// })
-	}
-
-	get attn() {
-		return this.gain < 0
-	}
-	set attn(state) {
-		this.gain = state ? -10 : 0
-		// this.whenConnected(() => {
-		// 	this._attn = state
-		// 	this._d("attn", this._attn)
-		// 	this.fire(new TcvrEvent(EventType.attn, this._attn))
-		// });
 	}
 
 	get ptt() {

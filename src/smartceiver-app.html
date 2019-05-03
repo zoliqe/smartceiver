@@ -44,25 +44,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       app-header {
         color: #95c029;
         background-color: #888888;
-        border-radius: 10px;
+        border-radius: 30px;
         /*var(--app-primary-color);*/
-        /*max-height: 20px;*/
+        min-height: 86px;
       }
 
       app-header paper-icon-button {
         --paper-icon-button-ink-color: #95c029;
-        font-weight: bold;
+        color: white;
+        padding: 5px;
+        margin-top: 25px;
+        border-radius: 64px;
+        width: 64px;
+        height: 64px;
+      }
+      app-header paper-icon-button.off {
+        background-color: darkred;
+      }
+      app-header paper-icon-button.on {
+        background-color: darkgreen;
       }
 
       app-header div.freq-display {
         /*text-align: right;*/
         display: block;
-        font-size: 40pt;
+        font-size: 5em;
         font-weight: bold;
         font-family: Courier New, Courier, monospace;
-        /*color: lightgreen;*/
         /*padding-right: 20px;*/
-        padding-left: 20px;
+        padding-left: 10px;
+        padding-top: 30px;
         text-align: left;
       }
 
@@ -128,11 +139,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
-            <span class="operated" id="who" on-tap="switchPower">[[operator]]</span>
+            <!-- <span class="operated" id="who" on-tap="switchPower">[[operator]]</span> -->
             <!-- <div>2a</div> -->
             <!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
             <!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
-            <paper-icon-button icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
+            <paper-icon-button id="pwrbtn" name="pwrbtn" class="off" icon="power-settings-new" on-tap="switchPower"></paper-icon-button>
           </app-toolbar>
         </app-header>
 
@@ -141,9 +152,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             attr-for-selected="name"
             fallback-selection="error404"
             role="main">
-          <main-view id="tune" name="tune" bands="[[tcvr.allBands]]" modes="[[tcvr.allModes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
+          <main-view id="tune" name="tune" bands="[[tcvr.bands]]" modes="[[tcvr.modes]]" band="{{tcvr.band}}" mode="{{tcvr.mode}}"
             freq="{{tcvr.freq}}" step="{{tcvr.step}}" 
-            filter="{{tcvr.filter}}" wpm="{{tcvr.wpm}}" preamp="{{tcvr.preamp}}" attn="{{tcvr.attn}}" 
+            filter="{{tcvr.filter}}" wpm="{{tcvr.wpm}}" gain="{{tcvr.gain}}" gains="[[tcvr.gains]]" 
             ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}" power="[[tcvr.powerSwState]]">
           </main-view>
           <!--<setuprx-view name="setup-rx"></setuprx-view>-->
@@ -193,7 +204,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           },
          freqDisplay: {
             type: String,
-            computed: 'formatFreq(tcvr.freq)'
+            computed: 'formatFreq(tcvr.freq, operator)'
           }
         }
       }
@@ -220,14 +231,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           this.notifyPath('tcvr.powerSwState')
           this.$.tune.notifyPath('freq')
           this.$.tune.notifyPath('power')
+          this.$.pwrbtn.className = event.value ? 'on' : 'off'
         })
-        this.tcvr.bind(EventType.filter, 'ui', event => {
-          this.notifyPath('tcvr.filter')
-        })
-        this.tcvr.bind(EventType.gain, 'ui', event => {
-          this.notifyPath('tcvr.preamp')
-          this.notifyPath('tcvr.attn')
-        })
+        this.tcvr.bind(EventType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
+        this.tcvr.bind(EventType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
         this.tcvr.bind(EventType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
         this.tcvr.bind(EventType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
         this.tcvr.bind(EventType.step, 'ui', event => this.notifyPath('tcvr.step'))
@@ -245,9 +252,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           const status = await response.json()
           online = status && status.id
           console.debug('rtt:', status.rtt)
-          if (online) this.operator = status.op || 'ON'
+          if (online) this.operator = status.op || 'READY'
         }
-        if (!online) this.operator = 'OFF'
+        if (!online) this.operator = 'OFFLINE'
         this.notifyPath('operator')
       }
 
@@ -266,7 +273,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       formatFreq(freq) {
         this._freq = freq // store value for change detect
         if (freq === null || !this.tcvr.powerSwState) {
-          return ''
+          return this.operator
         }
 
         let mhz = Math.floor(freq / 1000000)

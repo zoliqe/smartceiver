@@ -36,13 +36,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ul {
         list-style: none;
       }
+      .card { border-radius: 30px; }
 
       div.knob {
         position: relative;
         background-color: lightgray;/*#09f*/
         background: radial-gradient(circle, darkgray, black);
         /*margin: 20px auto;*/
-        margin-left: 55px;
+        margin-left: 75px;
         width: 200px;
         height: 200px;
         border-radius: 100px;
@@ -70,54 +71,66 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       paper-item.controls {
         padding: 0;
       }
-      paper-item.wpm {
-        padding: 0;
-        /* padding-left: 15px; */
+      paper-item.ctl {
+        /* padding: 0; */
+        width: fit-content;
+        margin: auto;
       }
       paper-button {
-        font-size: 14pt;
+        font-size: 1.5em;
         font-weight: bold;
         color: white;
-        margin: 2px;
-
+        text-align: center;
+        margin: 5px;
+        border-radius: 30px;
+        min-width: 2.0em;
       }
       paper-button.toggles[active] {
-        background-color: var(--paper-green-500);
+        background-color: var(--paper-green-800);
       }
       paper-button.toggles[active]:hover {
-        background-color: var(--paper-green-400);
+        background-color: var(--paper-green-600);
       }
       paper-button.toggles {
-        background-color: var(--paper-red-800);
+        background-color: var(--paper-green-800);
       }
       paper-button.toggles:hover {
-        background-color: var(--paper-red-700);
+        background-color: var(--paper-green-600);
       }
-      paper-button.wpm {
+      paper-button.ctl {
         background-color: var(--paper-indigo-800);
+        width: 58px;
         /* --paper-button-raised-keyboard-focus: {
           background-color: var(--paper-pink-a200) !important;
           color: white !important;
         }; */
       }
-      paper-button.wpm[disabled] {
+      /*paper-button.wpm[disabled] {
         background-color: lightgray;
-      }
-      paper-button.wpm:hover {
+      }*/
+      paper-button.ctl:hover {
         background-color: var(--paper-indigo-600);
       }
 
-      .wpm-control {
-        padding: 10px;
-        font-size: 28pt;
+      /* .ctl {
+      } */
+      .ctl-value {
+        padding: 5px;
+        font-size: 2.5em;
         font-weight: bold;
-        color: lightgreen;
+        color: #50dd50;
+        min-width: 105px;
+        text-align: center;
       }
+      .ctl-value:hover {
+        color: #a0fda0;
+      }
+      .ctl-name { font-size: 0.5em; }
     </style>
 
     <ul class="app-grid">
     <li><div class="card">
-      <paper-dropdown-menu label="BAND" class="band">
+      <!--<paper-dropdown-menu label="BAND" class="band">
         <paper-listbox slot="dropdown-content" selected="{{band}}">
           <template is="dom-repeat" items="[[bands]]">
             <paper-item>{{item}} MHz</paper-item>
@@ -130,33 +143,42 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
               <paper-item>{{item}}</paper-item>
             </template>
           </paper-listbox>
-        </paper-dropdown-menu>
+        </paper-dropdown-menu>-->
+      <paper-item class="controls">
+        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
+        <paper-button toggles raised on-tap="switchStep" class="toggles" disabled="[[!power]]">STEP<br/>[[step]]</paper-button>
+        <paper-button toggles raised on-tap="switchMode" class="toggles" disabled="[[!power]]">MODE<br/>[[modeName(mode)]]</paper-button>
+        <paper-button toggles raised on-tap="switchAgc" class="toggles" disabled="[[!power]]">AGC<br/>[[agcState(agc)]]</paper-button>
+        <paper-button toggles raised on-tap="switchVfo" class="toggles" disabled="[[!power]]">VFO<br/>[[vfoMode()]]</paper-button>
+      </paper-item>
         <div id="knob" class="knob" on-wheel="rotateByWheel">
         <div id="dimp" class="dimp"></div>
       </div>
     </div></li>
     <li><div class="card" role="listbox">
-      <h1>Controls</h1>
-      <paper-item class="controls">
-        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
-        <paper-button toggles on-tap="fastChanged" raised class="toggles">STEP<br/>{{step}} Hz</paper-button>
-        <paper-button toggles active="{{preamp}}" raised class="toggles" disabled="[[!power]]">PREAMP</paper-button>
-        <paper-button toggles active="{{attn}}" raised class="toggles" disabled="[[!power]]">ATTN</paper-button>
-        <!-- <paper-button toggles active="{{narrow}}" raised class="toggles">BW<br/>{{filter}} Hz</paper-button> -->
-        <!-- <paper-button toggles active="{{agc}}" raised class="toggles" disabled="[[!power]]">AGC</paper-button> -->
-      </paper-item>
+      <!-- <h1>Controls</h1> -->
       <!-- <paper-item class="controls"> -->
         <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
       <!-- </paper-item> -->
-      <paper-item class="wpm">
-        <paper-button raised on-tap="decreaseWpm" class="wpm" disabled="[[decWpmDisabled(wpm)]]">WPM --</paper-button>
-        <span class="wpm-control">[[wpm]]</span>
-        <paper-button raised on-tap="increaseWpm" class="wpm" disabled="[[incWpmDisabled(wpm)]]">WPM ++</paper-button>
+      <paper-item class="ctl">
+        <paper-button raised on-tap="decBand" disabled="[[!power]]" class="ctl">--</paper-button>
+        <span class="ctl-value">[[bandName(band)]] <span class="ctl-name">MHz</span></span>
+        <paper-button raised on-tap="incBand" disabled="[[!power]]" class="ctl">++</paper-button>
       </paper-item>
-      <paper-item class="wpm">
-        <paper-button raised on-tap="decFilter" class="wpm">BW --</paper-button>
-        <span class="wpm-control">[[filter]]</span>
-        <paper-button raised on-tap="incFilter" class="wpm">BW ++</paper-button>
+      <paper-item class="ctl">
+        <paper-button raised on-tap="decGain" disabled="[[!power]]" class="ctl">--</paper-button>
+        <span class="ctl-value">[[gain]] <span class="ctl-name">dB</span></span>
+        <paper-button raised on-tap="incGain" disabled="[[!power]]" class="ctl">++</paper-button>
+      </paper-item>
+      <paper-item class="ctl">
+        <paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!power]]">--</paper-button>
+        <span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
+        <paper-button raised on-tap="increaseWpm" class="ctl" disabled="[[!power]]">++</paper-button>
+      </paper-item>
+      <paper-item class="ctl">
+        <paper-button raised on-tap="decFilter" disabled="[[!power]]" class="ctl">--</paper-button>
+        <span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
+        <paper-button raised on-tap="incFilter" disabled="[[!power]]" class="ctl">++</paper-button>
       </paper-item>
       <p></p>
     </div></li>
@@ -175,12 +197,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           step: {type: Number, notify: true, value: true},
           filter: {type: Number, notify: true, value: true},
           wpm: {type: Number, notify: true},
-          preamp: {type: Boolean, notify: true},
-          attn: {type: Boolean, notify: true},
           bands: {type: Array, notify: false},
           band: {type: Number, notify: true},
           modes: {type: Array, notify: false},
           mode: {type: Number, notify: true},
+          gains: {type: Array, notify: false},
+          gain: {type: Number, notify: true, value: true},
           ptt: {type: Boolean, notify: true, value: false},
           agc: {type: Boolean, notify: true, value: true},
           power: {type: Boolean, notify: false},
@@ -260,15 +282,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       decreaseWpm() {
         this.wpm = this.wpm - 2;
       }
-      decWpmDisabled(wpm) {
-        return wpm <= 16;
-      }
-
       increaseWpm() {
         this.wpm = this.wpm + 2;
-      }
-      incWpmDisabled(wpm) {
-        return wpm >= 40;
       }
 
       decFilter() {
@@ -278,10 +293,54 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.filter = this.filter + 200
       }
 
-      fastChanged() {
+      decGain() {
+        const i = this.gains.indexOf(this.gain)
+        this.gain = this.gains[i > 0 ? i - 1 : 0]
+      }
+      incGain() {
+        const i = this.gains.indexOf(this.gain) + 1
+        this.gain = this.gains[i >= this.gains.length ? this.gains.length - 1 : i]
+      }
+
+      decBand() {
+        this.band = this.band > 0 ? this.band - 1 : 0
+      }
+      incBand() {
+        const max = this.bands.length - 1
+        this.band = this.band < max ? this.band + 1 : max
+      }
+
+      bandName() {
+        return this.bands[this.band]
+      }
+
+      switchStep() {
         this.step = this.step < 200 ? 200 : 20
       }
 
+      switchMode() {
+        this.mode = this.mode > 0 ? this.mode - 1 : this.modes.length - 1
+      }
+
+      switchAgc() {
+        this.agc = !this.agc
+      }
+
+      switchVfo() {
+        // TODO
+      }
+
+      modeName() {
+        return this.modes[this.mode]
+      }
+
+      agcState() {
+        return this.agc ? 'ON' : 'OFF'
+      }
+
+      vfoMode() {
+        return 'MAIN'
+      }
     }
 
     window.customElements.define(MainView.is, MainView);
