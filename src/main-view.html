@@ -36,16 +36,24 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       ul {
         list-style: none;
       }
-      .card { border-radius: 30px; }
+      .card {
+        border-radius: 30px; 
+        min-height: 220px;
+        display: grid;
+      }
+      .knob-card {
+        display: flex;
+      }
 
       div.knob {
         position: relative;
         background-color: lightgray;/*#09f*/
         background: radial-gradient(circle, darkgray, black);
-        /*margin: 20px auto;*/
-        margin-left: 75px;
-        width: 200px;
-        height: 200px;
+        margin: auto;
+        /* margin-left: 10px; */
+        /* margin-top: 10px; */
+        width: 200px !important;
+        height: 200px !important;
         border-radius: 100px;
       }
       div.dimp {
@@ -58,6 +66,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         height: 40px;
         border-radius: 20px;
       }
+      div.controls {
+        display: grid;
+        margin-left: auto;
+        /* width: fit-content; */
+      }
 
       paper-dropdown-menu.band {
         width: 110px;
@@ -68,11 +81,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding-left: 135px;
       }
 
-      paper-item.controls {
-        padding: 0;
-      }
       paper-item.ctl {
-        /* padding: 0; */
+        padding-top: 10px;
+        padding-bottom: 10px;
         width: fit-content;
         margin: auto;
       }
@@ -92,6 +103,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         background-color: var(--paper-green-600);
       }
       paper-button.toggles {
+        width: 90px;
+        /* margin-right: 30px; */
         background-color: var(--paper-green-800);
       }
       paper-button.toggles:hover {
@@ -129,7 +142,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     </style>
 
     <ul class="app-grid">
-    <li><div class="card">
+    <li><div class="card knob-card">
       <!--<paper-dropdown-menu label="BAND" class="band">
         <paper-listbox slot="dropdown-content" selected="{{band}}">
           <template is="dom-repeat" items="[[bands]]">
@@ -144,32 +157,44 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
             </template>
           </paper-listbox>
         </paper-dropdown-menu>-->
-      <paper-item class="controls">
-        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
-        <paper-button toggles raised on-tap="switchStep" class="toggles" disabled="[[!power]]">STEP<br/>[[step]]</paper-button>
-        <paper-button toggles raised on-tap="switchMode" class="toggles" disabled="[[!power]]">MODE<br/>[[modeName(mode)]]</paper-button>
-        <paper-button toggles raised on-tap="switchAgc" class="toggles" disabled="[[!power]]">AGC<br/>[[agcState(agc)]]</paper-button>
-        <paper-button toggles raised on-tap="switchVfo" class="toggles" disabled="[[!power]]">VFO<br/>[[vfoMode()]]</paper-button>
-      </paper-item>
-        <div id="knob" class="knob" on-wheel="rotateByWheel">
+      <div id="knob" class="knob" on-wheel="rotateByWheel">
         <div id="dimp" class="dimp"></div>
+      </div>
+        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
+        <!-- <paper-item class="controls">
+                        <paper-button toggles raised on-tap="switchStep" class="toggles" disabled="[[!power]]">STEP<br />[[step]]
+                        </paper-button>
+                      </paper-item> -->
+        <!-- <paper-button toggles raised on-tap="switchAgc" class="toggles" disabled="[[!power]]">AGC<br/>[[agcState(agc)]]</paper-button> -->
+        <!-- <paper-button toggles raised on-tap="switchVfo" class="toggles" disabled="[[!power]]">VFO<br/>[[vfoMode()]]</paper-button> -->
+        <!-- <paper-item class="controls"> -->
+        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
+        <!-- </paper-item> -->
+      <div class="controls">
+        <paper-item>
+          <paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!power]]">
+            MODE<br />[[modeName(mode)]]
+          </paper-button>
+        </paper-item>
+        <paper-item>
+          <paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" disabled="[[!power]]">
+            GAIN<br />[[gain]]
+          </paper-button>
+        </paper-item>
       </div>
     </div></li>
     <li><div class="card" role="listbox">
       <!-- <h1>Controls</h1> -->
-      <!-- <paper-item class="controls"> -->
-        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
-      <!-- </paper-item> -->
-      <paper-item class="ctl">
+      <!-- <paper-item class="ctl">
         <paper-button raised on-tap="decBand" disabled="[[!power]]" class="ctl">--</paper-button>
         <span class="ctl-value">[[bandName(band)]] <span class="ctl-name">MHz</span></span>
         <paper-button raised on-tap="incBand" disabled="[[!power]]" class="ctl">++</paper-button>
-      </paper-item>
-      <paper-item class="ctl">
+      </paper-item> -->
+      <!-- <paper-item class="ctl">
         <paper-button raised on-tap="decGain" disabled="[[!power]]" class="ctl">--</paper-button>
         <span class="ctl-value">[[gain]] <span class="ctl-name">dB</span></span>
         <paper-button raised on-tap="incGain" disabled="[[!power]]" class="ctl">++</paper-button>
-      </paper-item>
+      </paper-item> -->
       <paper-item class="ctl">
         <paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!power]]">--</paper-button>
         <span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
@@ -180,7 +205,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         <span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
         <paper-button raised on-tap="incFilter" disabled="[[!power]]" class="ctl">++</paper-button>
       </paper-item>
-      <p></p>
     </div></li>
     </ul>
   </template>
@@ -324,6 +348,11 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       switchAgc() {
         this.agc = !this.agc
+      }
+
+      switchGain() {
+        const i = this.gains.indexOf(this.gain)
+        this.gain = this.gains[i > 0 ? i - 1 : this.gains.length - 1]
       }
 
       switchVfo() {

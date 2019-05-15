@@ -81,6 +81,20 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         color: #dd6b88;
       }
 
+      app-drawer {
+        --app-drawer-content-container: {
+          background-color: #2a2a2a;
+        }
+      }
+
+      app-drawer app-toolbar {
+        color: darkgray;
+        height: 28px;
+        border-bottom-style: solid;
+        border-width: 1px;
+        border-color: black;
+      }
+
       .drawer-list {
         margin: 0 20px;
       }
@@ -90,11 +104,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         padding: 0 16px;
         text-decoration: none;
         color: var(--app-secondary-color);
-        line-height: 40px;
+        line-height: 48px;
+        font-size: 1.5em;
+        cursor: pointer;
       }
 
       .drawer-list a.iron-selected {
-        color: black;
+        color: darkgreen;
         font-weight: bold;
       }
 
@@ -102,7 +118,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         position: absolute;
         top: 350px;
       }
-      #remoteVideos video {
+      #remoteVideo {
         height: 0px;
       }
       #localVideo {
@@ -120,22 +136,33 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <app-drawer-layout fullbleed responsive-width="1024px">
       <!-- Drawer content -->
-      <!-- <app-drawer id="drawer" slot="drawer" swipe-open>
-        <app-toolbar>Menu</app-toolbar>
-        <iron-selector selected="[[page]]" attr-for-selected="name" class="drawer-list" role="navigation">
-          <a name="tune" href="/smartceiver/tune">Control</a>
-          <a name="setup-rx" href="/setup-rx">Setup RX</a>
-          <a name="settings" href="/smartceiver/settings">Settings</a>
-          <a name="cwmem" href="/smartceiver/cwmem">CW Memories</a>
+      <app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
+        <app-toolbar>Tune step</app-toolbar>
+        <iron-selector selected="{{tcvr.step}}" attr-for-selected="step" class="drawer-list">
+          <template is="dom-repeat" items="[[tcvr.steps]]">
+            <a step="{{item}}">{{item}} Hz</a>
+          </template>
         </iron-selector>
-      </app-drawer> -->
+
+        <app-toolbar>Band</app-toolbar>
+        <!--  role="navigation" -->
+        <iron-selector selected="{{tcvr.band}}" attr-for-selected="index" class="drawer-list">
+          <template is="dom-repeat" items="[[tcvr.bands]]">
+            <a index="[[index]]">{{item}} MHz</a>
+            <!-- <a index="[[index]]" drawer-toggle>{{item}} MHz</a> -->
+          </template>
+          <!-- <a name="setup-rx" href="/setup-rx">Setup RX</a>
+          <a name="settings" href="/smartceiver/settings">Settings</a>
+          <a name="cwmem" href="/smartceiver/cwmem">CW Memories</a> -->
+        </iron-selector>
+      </app-drawer>
 
       <!-- Main content -->
       <app-header-layout has-scrolling-region>
 
         <app-header slot="header" fixed effects="waterfall">
           <app-toolbar>
-            <!-- <paper-icon-button icon="menu" drawer-toggle></paper-icon-button> -->
+            <paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
             <div main-title id="freq" name="freq" class="freq-display">
               [[freqDisplay]]
             </div>
