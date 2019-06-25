@@ -89,8 +89,9 @@ class AudioProcessor {
 		// 	filterSelect.selectedIndex = tcvrFilter.filter
 		// 	// TODO stop propagate default event
 		// }
-		const lpfCutoff = tcvrFilter.bandwidth + this._hpfCutoff // add hpf cutoff to bandwidth
-		console.debug("bandwidth=" + tcvrFilter.bandwidth + ", lpfCutoff=" + lpfCutoff)
+		const bw = tcvrFilter.bandwidth > 300 ? tcvrFilter.bandwidth : 300
+		const lpfCutoff = bw + this._hpfCutoff // add hpf cutoff to bandwidth
+		console.debug("tcvr.bandwidth=" + tcvrFilter.bandwidth + ", lpfCutoff=" + lpfCutoff)
 		for (let i = 0; i < this._filterCount; i++) {
 			const filter = this._filterArray[i]
 			filter.frequency.setValueAtTime(lpfCutoff, 0)

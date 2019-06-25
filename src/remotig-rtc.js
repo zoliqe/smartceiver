@@ -1,48 +1,28 @@
-
 class RemotigRTCConnector {
 	static get id() { return 'remotig-rtc'; }
 	static get name() { return 'Remotig remote via WebRTC'; }
 	static get capabilities() { return [Remoddle.id]; }
 
 	constructor() {
-		this.pcConfig = {
-			'iceServers': [{
-				//    'urls': 'stun:stun.l.google.com:19302'
-				"urls": ['turns:om4aa.ddns.net:25349'],
-				"username": 'remotig',
-				"credential": 'om4aa' 
-			}]
-		}
-		this.signalingConfig = {
-			transports: ['websocket'],
-			reconnectionDelay: 10000,
-			reconnectionDelayMax: 60000,
-		}
-		this.signalingUrl = 'wss://om4aa.ddns.net'
 		this._isReady = false;
 		this._isStarted = false;
 	}
-	/////////////////////////////////////////////
 
-	connect(tcvr, token, rig, successCallback, discCallback) {
+ 	connect(tcvr, options, successCallback, discCallback) {
 		if (this._isReady || this._isStarted) return;
 
 		this.tcvr = tcvr
-		this._rig = rig
-		this._token = token
+		this.options = options || {}
 		this.onconnect = successCallback
 		this.ondisconnect = discCallback
-		console.info('connecting ' + this.signalingUrl)
-
 		this._connectSignaling()
-		
 	}
 
 	reconnect() {
 		this.sendSignal('restart')
 		this.disconnect()
 		// this._socket && this._socket.disconnect()
-		setTimeout(_ => this._connectSignaling(), 1000)
+		setTimeout(_ => this._connectSignaling(), this.options.reconnectDelay)
 	}
 
 	disconnect(options = {alertUser: false}) {
@@ -94,9 +74,16 @@ class RemotigRTCConnector {
 	////////////////////////////////////////////////////
 
 	_connectSignaling() {
-		if (!this._rig || !this._token) return;
+		if (!this.options.rig || !this.options.token) return;
 
-		this._signaling = io.connect(this.signalingUrl, this.signalingConfig)
+		// const config = {
+		// 	transports: ['websocket'],
+		// 	reconnectionDelay: __remotigSignalingReconnectionDelay,
+		// 	reconnectionDelayMax: __remotigSignalingReconnectionDelayMax,
+		// }
+		console.info('connectSignaling:', this.options.url)
+		this._signaling = io.connect(this.options.url, this.options.connectio)
+
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
 			window.alert('Transceiver is busy.')
@@ -143,8 +130,8 @@ class RemotigRTCConnector {
 			}
 		})
 
-		this._signaling.emit('join', {rig: this._rig, token: this._token})
-		console.debug('Attempted to operate signaling', this._rig)
+		this._signaling.emit('join', {rig: this.options.rig, token: this.options.token})
+		console.debug('Joining', this.options.rig)
 	}
 
 	sendSignal(message) {
@@ -188,7 +175,8 @@ class RemotigRTCConnector {
 
 	_createPeerConnection() {
 		try {
-			this._pc = new RTCPeerConnection(this.pcConfig)
+			const config = {'iceServers': this.options.iceServers}
+			this._pc = new RTCPeerConnection(config)
 			this._pc.onicecandidate = event => this._handleIceCandidate(event)
 			this._pc.ontrack = event => this._audio = new AudioProcessor(event, this.tcvr)
 			this._pc.onremovetrack = event => this._audio && this._audio.trackRemoved(event)
@@ -254,10 +242,10 @@ class RemotigRTCConnector {
 		this.sendCommand('poweron')
 
 		setTimeout(() => {
-			this._startPowerOnTimer(10000)
+			this._startPowerOnTimer(this.options.heartbeat)
 			this._bindCommands()
 			this.onconnect && this.onconnect(this)
-		}, 5000) // delay for tcvr-init after poweron 
+		}, this.options.connectDelay) // delay for tcvr-init after poweron 
 	}
 
 	_startPowerOnTimer(interval) {
@@ -284,6 +272,9 @@ class RemotigRTCConnector {
 		this.tcvr.bind(EventType.keySpace, RemotigRTCConnector.id, () => this.sendCommand("_"))
 		this.tcvr.bind(EventType.mode, RemotigRTCConnector.id, event => this.sendCommand("mode=" + event.value.toLowerCase()))
 		this.tcvr.bind(EventType.freq, RemotigRTCConnector.id, event => this.sendCommand(`f=${event.value}`))
+		this.tcvr.bind(EventType.rit, RemotigRTCConnector.id, event => this.sendCommand(`rit=${event.value}`))
+		this.tcvr.bind(EventType.xit, RemotigRTCConnector.id, event => this.sendCommand(`xit=${event.value}`))
+		this.tcvr.bind(EventType.split, RemotigRTCConnector.id, event => this.sendCommand(`split=${event.value}`))
 		this.tcvr.bind(EventType.wpm, RemotigRTCConnector.id, event => this.sendCommand("wpm=" + event.value))
 		this.tcvr.bind(EventType.filter, RemotigRTCConnector.id, event => this.filter(event.value, this.tcvr.sidetoneFreq))
 		this.tcvr.bind(EventType.gain, RemotigRTCConnector.id, event => this.sendCommand(`gain=${event.value}`))
@@ -291,7 +282,7 @@ class RemotigRTCConnector {
 		// this.tcvr.bind(EventType.attn, RemotigRTCConnector.id, event => this.sendCommand("attn" + (event.value ? "on" : "off")))
 		this.tcvr.bind(EventType.ptt, RemotigRTCConnector.id, event => this.sendCommand('ptt' + (event.value ? 'on' : 'off')))
 		this.tcvr.bind(EventType.agc, RemotigRTCConnector.id, event => this.sendCommand('agc' + (event.value ? 'on' : 'off')))
-		this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this._rig))
+		this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.options.rig))
 	}
 
 }

@@ -1,11 +1,31 @@
 const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
-const _bandLowEdges = [1800000, 3500000, 7000000, 10100000, 14000000, 18068000, 21000000, 24890000, 28000000]
+const _bandLowEdges = [1810, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000]
+const _startFreqFromLowEdge = 21
 const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
 const _filters = {
 	'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
 const _sidetoneFreq = 650
+
+const connectorConfig = {
+	'heartbeat': 5000,      // time interval in ms for sending 'poweron' command
+	'connectDelay': 5000,   // delay in ms after connection establishment
+	'reconnectDelay': 2000,   // delay in ms between disc and conn commands
+	'url': 'wss://om4aa.ddns.net',
+	'connectio': {
+		transports: ['websocket'],
+		reconnectionDelay: 10000,
+		reconnectionDelayMax: 60000,
+	},
+	'iceServers': [{
+		'urls': [
+			'turns:om4aa.ddns.net:25349' // 'stun:stun.l.google.com:19302'
+		],
+		'username': 'remotig',
+		'credential': 'om4aa'
+	}],
+}
 
 class Transceiver {
 	constructor() {
@@ -18,7 +38,7 @@ class Transceiver {
 			this._freq[band] = []
 			this._split[band] = []
 			for (let mode in _modes) {
-				this._freq[band][mode] = _bandLowEdges[band]
+				this._freq[band][mode] = (_bandLowEdges[band] + _startFreqFromLowEdge) * 1000
 				this._split[band][mode] = 0
 			}
 			this._gain[band] = 0
@@ -57,10 +77,10 @@ class Transceiver {
 	switchPower(token, rig, remoddle, reversePaddle) {
 		if ( /*! state &&*/ this._port) {
 			this._d('disconnect', this._port && this._port.constructor.id)
+			this._controls = null
 			this.disconnectRemoddle()
 			this._port.disconnect()
 			this.unbind(this._connectorId)
-			this._controls = null
 			this._port = null
 			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
 		} else /*if (state)*/ {
@@ -68,26 +88,26 @@ class Transceiver {
 			this._reversePaddle = reversePaddle
 			let connector = tcvrConnectors.get(this._connectorId)
 			this.connectRemoddle(connector, remoddle)
-			connector.connect(this, token, rig, (port) => {
+			connectorConfig.token = token
+			connectorConfig.rig = rig
+			connector.connect(this, connectorConfig, (port) => {
 				this._port = port
-				this._controls = new TcvrControls(this)
 				// reset tcvr configuration
-				this.freq = this._freq[this._band][this._mode]
-				setTimeout(_ => {
-					this.mode = this._mode
-					this.ptt = this._ptt
-					this.wpm = this._wpm
-					this.filter = this._filter[this._mode]
-					// this.narrow = this._narrow
-					// this.txEnabled = this._txEnabled
-					// this.autoSpace = this._autoSpace
-					// this.txKeyed = this._txKeyed
-					// this.preamp = this._preamp
-					// this.attn = this._attn
-					this.gain = this._gain[this._band]
-					this.agc = this._agc
-					this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
-				}, 2000) // wait for band change on tcvr
+				// this.freq = this._freq[this._band][this._mode]
+				this.band = this._band
+				this.wpm = this._wpm
+				// setTimeout(_ => {
+					// this.mode = this._mode
+					// this.ptt = this._ptt
+					// this.wpm = this._wpm
+					// this.filter = this._filter[this._mode]
+					// this.gain = this._gain[this._band]
+					// this.agc = this._agc
+					// this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
+					// this._controls = new TcvrControls(this)
+				// }, 2000) // wait for band change on tcvr
+				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
+				this._controls = new TcvrControls(this)
 
 				window.onbeforeunload = _ => {
 					this.disconnectRemoddle()
@@ -203,6 +223,8 @@ class Transceiver {
 	}
 	set freq(freq) {
 		this.whenConnected(() => {
+			if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
+				return
 			this._freq[this._band][this._mode] = freq
 			this._d("freq", freq)
 			this.fire(new TcvrEvent(EventType.freq, freq))
@@ -221,6 +243,7 @@ class Transceiver {
 	}
 	clearSplit() {
 		this.split = 0
+		this.online && this.fire(new TcvrEvent(EventType.split, 0))
 	}
 
 	get rit() {
@@ -237,6 +260,7 @@ class Transceiver {
 	}
 	clearRit() {
 		this.rit = 0
+		this.online && this.fire(new TcvrEvent(EventType.rit, 0))
 	}
 
 	get xit() {
@@ -253,6 +277,7 @@ class Transceiver {
 	}
 	clearXit() {
 		this.xit = 0
+		this.online && this.fire(new TcvrEvent(EventType.xit, 0))
 	}
 
 	get steps() {

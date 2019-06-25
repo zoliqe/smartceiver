@@ -31,7 +31,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
   <template>
     <style>
       :host {
-        --app-primary-color: #8f8f8f;
+        --app-primary-color: #333;
         --app-secondary-color: #95c029;
 
         display: block;
@@ -43,7 +43,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-header {
         color: #95c029;
-        background-color: #888888;
+        background-color: #535353;
         border-radius: 30px;
         /*var(--app-primary-color);*/
         min-height: 86px;
@@ -83,13 +83,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       app-drawer {
         --app-drawer-content-container: {
-          background-color: #2a2a2a;
+          background-color: #333;
           overflow-y: auto;
         }
       }
 
       app-drawer app-toolbar {
-        color: darkgray;
+        color: #333;
         height: 28px;
         border-bottom-style: solid;
         border-width: 1px;
@@ -253,7 +253,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.reverse = false
         document.tcvr = this.tcvr = new Transceiver()
         this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
-        this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #dd6b88;" : '')
+        this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
         this.tcvr.bind(EventType.pwrsw, 'ui', event => {
           this.notifyPath('tcvr.freq')
           this.notifyPath('tcvr.powerSwState')
@@ -280,9 +280,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
           const status = await response.json()
           online = status && status.id
           console.debug('rtt:', status.rtt)
-          if (online) this.operator = status.op || 'READY'
+          if (online) this.operator = status.op || 'ON'
         }
-        if (!online) this.operator = 'OFFLINE'
+        if (!online) this.operator = 'OFF'
         this.notifyPath('operator')
       }
 
