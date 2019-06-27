@@ -29,8 +29,8 @@ class RemotigRTCConnector {
 		this.sendSignal('bye')
 		this._audio && this._audio.close()
 		this._audio = null
-		this._mic && this._mic.close()
-		this._mic = null
+		// this._mic && this._mic.close()
+		// this._mic = null
 
 		this._isStarted = false
 		this._isReady = false
@@ -64,10 +64,6 @@ class RemotigRTCConnector {
 	}
 
 	filter(bandWidth, centerFreq) {
-		// TODO
-		// if (this.player_) {
-		//   this.player_.setFilter(centerFreq, bandWidth)
-		// }
 		this.sendCommand('filter=' + bandWidth)
 	}
 
@@ -76,11 +72,6 @@ class RemotigRTCConnector {
 	_connectSignaling() {
 		if (!this.options.rig || !this.options.token) return;
 
-		// const config = {
-		// 	transports: ['websocket'],
-		// 	reconnectionDelay: __remotigSignalingReconnectionDelay,
-		// 	reconnectionDelayMax: __remotigSignalingReconnectionDelayMax,
-		// }
 		console.info('connectSignaling:', this.options.url)
 		this._signaling = io.connect(this.options.url, this.options.connectio)
 
@@ -98,8 +89,7 @@ class RemotigRTCConnector {
 		this._signaling.on('joined', async (rig) => {
 			console.info('Operating ' + rig)
 			this._isReady = true
-			// this._getLocalAudio()
-			this._mic = await new Microphone(this.tcvr).request()
+			// this._mic = await new Microphone(this.tcvr).request()
 			this.sendSignal('ready')
 		})
 
@@ -162,10 +152,11 @@ class RemotigRTCConnector {
 
 	_maybeStart() {
 		console.info(`>>>>>>> maybeStart(): isStarted=${this._isStarted}, isChannelReady=${this._isReady}`)
-		if (!this._isStarted && this._mic && this._mic.stream && this._mic.track && this._isReady) {
+		if (!this._isStarted /*&& this._mic && this._mic.stream && this._mic.track*/ && this._isReady) {
 			console.debug('>>>>>> creating peer connection')
 			this._createPeerConnection()
-			this._pc.addTrack(this._mic.track, this._mic.stream)
+			// this._pc.addTrack(this._mic.track, this._mic.stream)
+
 			// this._localStream.getTracks().forEach(track => this._pc.addTrack(track, this._localStream))
 			this._isStarted = true
 		}
@@ -194,10 +185,6 @@ class RemotigRTCConnector {
 			this.disconnect()
 		}
 	}
-
-	// get audio() {
-	// 	return this._audio || {}
-	// }
 
 	_handleIceCandidate(event) {
 		console.debug('icecandidate event: ', event)

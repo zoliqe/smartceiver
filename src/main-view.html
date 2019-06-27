@@ -318,59 +318,59 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.filter = this.filter + 200
       }
 
-      decGain() {
-        const i = this.gains.indexOf(this.gain)
-        this.gain = this.gains[i > 0 ? i - 1 : 0]
-      }
-      incGain() {
-        const i = this.gains.indexOf(this.gain) + 1
-        this.gain = this.gains[i >= this.gains.length ? this.gains.length - 1 : i]
-      }
+      // decGain() {
+      //   const i = this.gains.indexOf(this.gain)
+      //   this.gain = this.gains[i > 0 ? i - 1 : 0]
+      // }
+      // incGain() {
+      //   const i = this.gains.indexOf(this.gain) + 1
+      //   this.gain = this.gains[i >= this.gains.length ? this.gains.length - 1 : i]
+      // }
 
-      decBand() {
-        this.band = this.band > 0 ? this.band - 1 : 0
-      }
-      incBand() {
-        const max = this.bands.length - 1
-        this.band = this.band < max ? this.band + 1 : max
-      }
+      // decBand() {
+      //   this.band = this.band > 0 ? this.band - 1 : 0
+      // }
+      // incBand() {
+      //   const max = this.bands.length - 1
+      //   this.band = this.band < max ? this.band + 1 : max
+      // }
 
-      bandName() {
-        return this.bands[this.band]
-      }
+      // bandName() {
+      //   return this.bands[this.band]
+      // }
 
-      switchStep() {
-        this.step = this.step < 200 ? 200 : 20
-      }
+      // switchStep() {
+      //   this.step = this.step < 200 ? 200 : 20
+      // }
 
       switchMode() {
         this.mode = this.mode > 0 ? this.mode - 1 : this.modes.length - 1
       }
 
-      switchAgc() {
-        this.agc = !this.agc
-      }
+      // switchAgc() {
+      //   this.agc = !this.agc
+      // }
 
       switchGain() {
         const i = this.gains.indexOf(this.gain)
         this.gain = this.gains[i > 0 ? i - 1 : this.gains.length - 1]
       }
 
-      switchVfo() {
-        // TODO
-      }
+      // switchVfo() {
+      //   // TODO
+      // }
 
       modeName() {
         return this.modes[this.mode]
       }
 
-      agcState() {
-        return this.agc ? 'ON' : 'OFF'
-      }
+      // agcState() {
+      //   return this.agc ? 'ON' : 'OFF'
+      // }
 
-      vfoMode() {
-        return 'MAIN'
-      }
+      // vfoMode() {
+      //   return 'MAIN'
+      // }
     }
 
     window.customElements.define(MainView.is, MainView);

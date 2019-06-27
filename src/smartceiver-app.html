@@ -21,6 +21,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/iron-selector/iron-selector.html">
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../bower_components/paper-button/paper-button.html">
 <link rel="import" href="main-view.html">
 <!-- <link rel="import" href="setuprx-view.html"> -->
 <!-- <link rel="import" href="setuptx-view.html"> -->
@@ -138,6 +139,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
     <app-drawer-layout fullbleed responsive-width="1024px">
       <!-- Drawer content -->
       <app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
+        <paper-button on-tap="mute" style="color: yellow">(Un)mute audio</paper-button>
         <app-toolbar>Tune step</app-toolbar>
         <iron-selector selected="{{tcvr.step}}" attr-for-selected="step" class="drawer-list">
           <template is="dom-repeat" items="[[tcvr.steps]]">
@@ -333,6 +335,10 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       restartAudio() {
         this.tcvr.fire(new TcvrEvent(EventType.resetAudio, true))
+      }
+
+      mute() {
+        this.tcvr.fire(new TcvrEvent(EventType.audioMute, true))
       }
 
       _urlParamsChanged(params) {

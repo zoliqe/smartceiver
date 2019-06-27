@@ -28,9 +28,11 @@ class AudioProcessor {
 		this._audioCtx.createMediaStreamSource(this._stream).connect(this._gain)
 		this._gain.connect(this._analyser)
 		this._buildFilterChain()
+
 		this.tcvr.bind(EventType.filter, 'audio',
 			event => this.updateFilter({bandwidth: event.value * 1.0}))
-
+		this.tcvr.bind(EventType.audioMute, 'audio',
+			event => this.switchMute())
 		// drawSpectrum()
 	}
 
@@ -60,6 +62,17 @@ class AudioProcessor {
 
 	unmute() {
 		this._track.enabled = true
+	}
+
+	switchMute() {
+		this._track.enabled = !this._track.enabled
+		// if (this._track.enabled) return;
+		// this._track.stop()
+		// this._stream.removeTrack()
+		// if (this._remoteAudio) {
+		// 	this._remoteAudio.removeAttribute("src")
+		// 	this._remoteAudio.removeAttribute("srcObject")
+		// }
 	}
 
 	_buildFilterChain() {
