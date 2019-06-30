@@ -9,22 +9,19 @@ const _filters = {
 const _sidetoneFreq = 650
 
 const connectorConfig = {
-	'heartbeat': 5000,      // time interval in ms for sending 'poweron' command
-	'connectDelay': 5000,   // delay in ms after connection establishment
-	'reconnectDelay': 2000,   // delay in ms between disc and conn commands
-	'url': 'wss://om4aa.ddns.net',
-	'connectio': {
+	heartbeat: 5000,      // time interval in ms for sending 'poweron' command
+	connectDelay: 5000,   // delay in ms after connection establishment
+	reconnectDelay: 2000,   // delay in ms between disc and conn commands
+	url: 'wss://om4aa.ddns.net',
+	connectio: {
 		transports: ['websocket'],
 		reconnectionDelay: 10000,
 		reconnectionDelayMax: 60000,
 	},
-	'iceServers': [{
-		'urls': [
-			'turns:om4aa.ddns.net:25349' // 'stun:stun.l.google.com:19302'
-		],
-		'username': 'remotig',
-		'credential': 'om4aa'
-	}],
+	iceServers: [
+		{urls: 'stun:stun.l.google.com:19302'},
+		{urls: 'turns:om4aa.ddns.net:25349', username: 'remotig', credential: 'om4aa'}
+	],
 }
 
 class Transceiver {
