@@ -249,8 +249,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       constructor() {
         super()
         this.page = 'tune'
-        this.token = ''
-        this.rig = ''
+        this.kredence = {}
         this.remoddle
         this.reverse = false
         document.tcvr = this.tcvr = new Transceiver()
@@ -274,9 +273,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       async _fetchStatus() {
-        if (!this.rig) return
+        if (!this.kredence.rig) return
 
-        const response = await fetch(`/remotig/${this.rig}/status`)
+        const response = await fetch(`/remotig/${this.kredence.rig}/status`)
         let online = false
         if (response.ok) {
           const status = await response.json()
@@ -326,7 +325,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       }
 
       switchPower() {
-        this.tcvr.switchPower(this.token, this.rig, this.remoddle, this.reverse)
+        this.tcvr.switchPower(this.kredence, this.remoddle, this.reverse)
       }
 
       connectRemoddle() {
@@ -343,10 +342,14 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
       _urlParamsChanged(params) {
         if (params.token) {
-          this.token = params.token.trim()
+          this.kredence.token = params.token.trim()
         }
         if (params.rig) {
-          this.rig = params.rig.trim()
+          this.kredence.rig = params.rig.trim()
+          if (this.kredence.rig.includes('@')) {
+            [this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
+          }
+          // this.kredence.url = 'wss://om4aa.ddns.net' // TODO parsovat z rig (bude zadavane do inputu)
           this._fetchStatus()
         }
         if (params.remoddle) {

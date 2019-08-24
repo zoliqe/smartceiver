@@ -9,18 +9,20 @@ const _filters = {
 const _sidetoneFreq = 650
 
 const connectorConfig = {
-	heartbeat: 5000,      // time interval in ms for sending 'poweron' command
-	connectDelay: 5000,   // delay in ms after connection establishment
-	reconnectDelay: 2000,   // delay in ms between disc and conn commands
-	url: 'wss://om4aa.ddns.net',
-	connectio: {
+	session: {
+		heartbeat: 5000,      // time interval in ms for sending 'poweron' command
+		connectDelay: 5000,   // delay in ms after connection establishment
+		reconnectDelay: 2000,   // delay in ms between disc and conn commands
+	},
+	signaling: {
 		transports: ['websocket'],
 		reconnectionDelay: 10000,
 		reconnectionDelayMax: 60000,
 	},
 	iceServers: [
 		{urls: 'stun:stun.l.google.com:19302'},
-		{urls: 'turns:om4aa.ddns.net:25349', username: 'remotig', credential: 'om4aa'}
+		// {urls: 'turns:om4aa.ddns.net:25349', username: 'remotig', credential: 'om4aa'},
+		{urls: 'turns:rozkvet.radioklub.sk:25349', username: 'remotig', credential: 'om4aa'},
 	],
 }
 
@@ -71,7 +73,7 @@ class Transceiver {
 		this._d("tcvr-init", "done")
 	}
 
-	switchPower(token, rig, remoddle, reversePaddle) {
+	switchPower(kredence, remoddle, reversePaddle) {
 		if ( /*! state &&*/ this._port) {
 			this._d('disconnect', this._port && this._port.constructor.id)
 			this._controls = null
@@ -85,9 +87,9 @@ class Transceiver {
 			this._reversePaddle = reversePaddle
 			let connector = tcvrConnectors.get(this._connectorId)
 			this.connectRemoddle(connector, remoddle)
-			connectorConfig.token = token
-			connectorConfig.rig = rig
-			connector.connect(this, connectorConfig, (port) => {
+			// connectorConfig.token = token
+			// connectorConfig.rig = rig
+			connector.connect(this, kredence, connectorConfig, (port) => {
 				this._port = port
 				// reset tcvr configuration
 				// this.freq = this._freq[this._band][this._mode]

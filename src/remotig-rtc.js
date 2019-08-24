@@ -8,10 +8,11 @@ class RemotigRTCConnector {
 		this._isStarted = false;
 	}
 
- 	connect(tcvr, options, successCallback, discCallback) {
+ 	connect(tcvr, kredence, options, successCallback, discCallback) {
 		if (this._isReady || this._isStarted) return;
 
 		this.tcvr = tcvr
+		this.kredence = kredence || {}
 		this.options = options || {}
 		this.onconnect = successCallback
 		this.ondisconnect = discCallback
@@ -22,7 +23,7 @@ class RemotigRTCConnector {
 		this.sendSignal('restart')
 		this.disconnect()
 		// this._socket && this._socket.disconnect()
-		setTimeout(_ => this._connectSignaling(), this.options.reconnectDelay)
+		setTimeout(_ => this._connectSignaling(), this.options.session.reconnectDelay)
 	}
 
 	disconnect(options = {alertUser: false}) {
@@ -70,10 +71,10 @@ class RemotigRTCConnector {
 	////////////////////////////////////////////////////
 
 	_connectSignaling() {
-		if (!this.options.rig || !this.options.token) return;
+		if (!this.kredence.rig || !this.kredence.token) return;
 
-		console.info('connectSignaling:', this.options.url)
-		this._signaling = io.connect(this.options.url, this.options.connectio)
+		console.info('connectSignaling:', this.kredence.qth)
+		this._signaling = io.connect('wss://' + this.kredence.qth, this.options.signaling)
 
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
@@ -120,8 +121,8 @@ class RemotigRTCConnector {
 			}
 		})
 
-		this._signaling.emit('join', {rig: this.options.rig, token: this.options.token})
-		console.debug('Joining', this.options.rig)
+		this._signaling.emit('join', this.kredence)
+		console.debug('Joining', this.kredence.rig)
 	}
 
 	sendSignal(message) {
@@ -229,10 +230,10 @@ class RemotigRTCConnector {
 		this.sendCommand('poweron')
 
 		setTimeout(() => {
-			this._startPowerOnTimer(this.options.heartbeat)
+			this._startPowerOnTimer(this.options.session.heartbeat)
 			this._bindCommands()
 			this.onconnect && this.onconnect(this)
-		}, this.options.connectDelay) // delay for tcvr-init after poweron 
+		}, this.options.session.connectDelay) // delay for tcvr-init after poweron 
 	}
 
 	_startPowerOnTimer(interval) {
@@ -269,7 +270,7 @@ class RemotigRTCConnector {
 		// this.tcvr.bind(EventType.attn, RemotigRTCConnector.id, event => this.sendCommand("attn" + (event.value ? "on" : "off")))
 		this.tcvr.bind(EventType.ptt, RemotigRTCConnector.id, event => this.sendCommand('ptt' + (event.value ? 'on' : 'off')))
 		this.tcvr.bind(EventType.agc, RemotigRTCConnector.id, event => this.sendCommand('agc' + (event.value ? 'on' : 'off')))
-		this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.options.rig))
+		this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.kredence.rig))
 	}
 
 }
