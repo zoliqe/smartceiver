@@ -1,3 +1,6 @@
+import {EventType} from '../util/events.mjs'
+
+// TODO update to use navigator.usb API (as WebUSBConnector do)
 class RemoddleUsb {
 	constructor(tcvr) {
 		this._encoder = new TextEncoder()
@@ -83,3 +86,4 @@ class RemoddleUsb {
 
 }
 
+export {RemoddleUsb}

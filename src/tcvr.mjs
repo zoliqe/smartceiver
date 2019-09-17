@@ -1,5 +1,7 @@
-const _bands = ['1.8', '3.5', '7', '10.1', '14', '18', '21', '24', '28']
-const _bandLowEdges = [1810, 3500, 7000, 10100, 14000, 18068, 21000, 24890, 28000]
+import {TcvrEvent, EventType} from './util/events.mjs'
+
+const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
+const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
 const _startFreqFromLowEdge = 21
 const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
 const _filters = {
@@ -19,11 +21,6 @@ const connectorConfig = {
 		reconnectionDelay: 10000,
 		reconnectionDelayMax: 60000,
 	},
-	iceServers: [
-		{urls: 'stun:stun.l.google.com:19302'},
-		// {urls: 'turns:om4aa.ddns.net:25349', username: 'remotig', credential: 'om4aa'},
-		{urls: 'turns:rozkvet.radioklub.sk:25349', username: 'remotig', credential: 'om4aa'},
-	],
 }
 
 class Transceiver {
@@ -61,9 +58,8 @@ class Transceiver {
 		// this._autoSpace = true
 		// this._buildBFO();
 
-		this._connectorId = selectedConnector || SmartceiverWebUSBConnector.id
+		// this._connectorId = connectorId //selectedConnector || SmartceiverWebUSBConnector.id
 		// this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
-		console.log('used connector: ' + this._connectorId)
 		
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
@@ -73,46 +69,31 @@ class Transceiver {
 		this._d("tcvr-init", "done")
 	}
 
-	switchPower(kredence, remoddle, reversePaddle) {
-		if ( /*! state &&*/ this._port) {
+	async switchPower(connector, kredence, remoddle, reversePaddle) {
+		if (this._port) {
 			this._d('disconnect', this._port && this._port.constructor.id)
 			this._controls = null
 			this.disconnectRemoddle()
 			this._port.disconnect()
-			this.unbind(this._connectorId)
+			this.unbind(connector.id)
 			this._port = null
 			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
-		} else /*if (state)*/ {
-			this._d('connect', this._connectorId)
+		} else if (connector) {
+			this._d('connect connector', connector.id)
 			this._reversePaddle = reversePaddle
-			let connector = tcvrConnectors.get(this._connectorId)
 			this.connectRemoddle(connector, remoddle)
-			// connectorConfig.token = token
-			// connectorConfig.rig = rig
-			connector.connect(this, kredence, connectorConfig, (port) => {
-				this._port = port
-				// reset tcvr configuration
-				// this.freq = this._freq[this._band][this._mode]
-				this.band = this._band
-				this.wpm = this._wpm
-				// setTimeout(_ => {
-					// this.mode = this._mode
-					// this.ptt = this._ptt
-					// this.wpm = this._wpm
-					// this.filter = this._filter[this._mode]
-					// this.gain = this._gain[this._band]
-					// this.agc = this._agc
-					// this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
-					// this._controls = new TcvrControls(this)
-				// }, 2000) // wait for band change on tcvr
-				this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
-				this._controls = new TcvrControls(this)
+			this._port = await connector.connect(this, kredence, connectorConfig)
+			// reset tcvr configuration
+			this.band = this._band
+			this.wpm = this._wpm
+			this.fire(new TcvrEvent(EventType.pwrsw, this.powerSwState), true)
+			// const ctlModule = await import('./remoddle/controls.mjs')
+			// this._controls = new ctlModule.TcvrControls(this)
 
-				window.onbeforeunload = _ => {
-					this.disconnectRemoddle()
-					this._port && this._port.disconnect()
-				}
-			})
+			window.onbeforeunload = _ => {
+				this.disconnectRemoddle()
+				this._port && this._port.disconnect()
+			}
 		}
 	}
 
@@ -125,8 +106,13 @@ class Transceiver {
 
 		try {
 			this._remoddle = null
-			if (type === 'usb') this._remoddle = await new RemoddleUsb(this).connect()
-			else if (type === 'bt') this._remoddle = await new RemoddleBluetooth(this).connect()
+			if (type === 'usb') {
+				const module = await import('./remoddle/remoddle-usb.mjs')
+				this._remoddle = await new module.RemoddleUsb(this).connect()
+			} else if (type === 'bt') {
+				const module = await import('./remoddle/remoddle-bt.mjs')
+				this._remoddle = await new module.RemoddleBluetooth(this).connect()
+			}
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
 		}
@@ -134,6 +120,8 @@ class Transceiver {
 		if (this._remoddle) {
 			this._remoddle.wpm = this.wpm // sync with current wpm state
 			this._remoddle.reverse = this._reversePaddle
+			const ctlModule = await import('./remoddle/controls.mjs')
+			this._controls = new ctlModule.TcvrControls(this)
 		}
 	}
 
@@ -456,15 +444,6 @@ class Transceiver {
 	}
 }
 
-class TcvrEvent {
-	constructor(type, value) {
-		this._type = type
-		this._value = value
-	}
-	get type() { return this._type }
-	get value() { return this._value }
-}
-
 class EventListener {
 	constructor(owner, callback) {
 		this._owner = owner
@@ -474,21 +453,4 @@ class EventListener {
 	get callback() { return this._callback }
 }
 
-const EventType = Object.freeze({
-	freq: 'freq', rit: 'rit', xit: 'xit', split: 'split',
-	wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', gain: 'gain',
-	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', reverse: 'reverse',
-	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', step: 'step', resetAudio: 'resetAudio',
-	audioMute: 'audioMute',
-})
-
-class ConnectorRegister {
-	constructor() { this._reg = {} }
-
-	register(connector) { this._reg[connector.constructor.id] = connector }
-	get(id) { return this._reg[id] }
-
-	get all() { return Object.values(this._reg) }
-}
-
-var tcvrConnectors = new ConnectorRegister();
+export {Transceiver}

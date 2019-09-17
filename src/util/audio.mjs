@@ -145,3 +145,5 @@ class AudioProcessor {
 		return n * this._audioCtx.sampleRate / this._analyser.fftSize
 	}
 }
+
+export {AudioProcessor}

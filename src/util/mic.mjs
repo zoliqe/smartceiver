@@ -53,3 +53,5 @@ class Microphone {
 		return this._stream
 	}
 }
+
+export {Microphone}

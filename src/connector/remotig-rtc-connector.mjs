@@ -1,6 +1,10 @@
+import {EventType} from '../util/events.mjs'
+import {AudioProcessor} from '../util/audio.mjs'
+// import {Microphone} from '../util/mic.mjs'
+
 class RemotigRTCConnector {
-	static get id() { return 'remotig-rtc'; }
-	static get name() { return 'Remotig remote via WebRTC'; }
+	static get id() { return 'RTC'; }
+	static get name() { return 'Remotig via WebRTC'; }
 	static get capabilities() { return [Remoddle.id]; }
 
 	constructor() {
@@ -8,15 +12,18 @@ class RemotigRTCConnector {
 		this._isStarted = false;
 	}
 
- 	connect(tcvr, kredence, options, successCallback, discCallback) {
-		if (this._isReady || this._isStarted) return;
+	get id() {
+		return this.constructor.id
+	}
+
+ 	async connect(tcvr, kredence, options) {
+		if (this._isReady || this._isStarted) return null
 
 		this.tcvr = tcvr
 		this.kredence = kredence || {}
 		this.options = options || {}
-		this.onconnect = successCallback
-		this.ondisconnect = discCallback
 		this._connectSignaling()
+		return new Promise(resolve => this.onconnect = resolve)
 	}
 
 	reconnect() {
@@ -53,6 +60,7 @@ class RemotigRTCConnector {
 		}
 		this._signaling && this._signaling.disconnect()
 		this._signaling = null
+		this.onconnect = null
 
 		if (options.alertUser) {
 			window.alert('Transceiver control disconnected!')
@@ -68,10 +76,23 @@ class RemotigRTCConnector {
 		this.sendCommand('filter=' + bandWidth)
 	}
 
+	checkState(kredence) {
+		if (!kredence.qth || !kredence.rig) return;
+		const signaling = io.connect('wss://' + kredence.qth, {transports: ['websocket']})
+		const statePromise = new Promise((resolve) => {
+			signaling.on('state', state => {
+				signaling.disconnect()
+				resolve(state)
+			})
+		})
+		signaling.emit('state', kredence.rig)
+		return statePromise
+	}
+
 	////////////////////////////////////////////////////
 
 	_connectSignaling() {
-		if (!this.kredence.rig || !this.kredence.token) return;
+		if (!this.kredence.qth || !this.kredence.rig || !this.kredence.token) return;
 
 		console.info('connectSignaling:', this.kredence.qth)
 		this._signaling = io.connect('wss://' + this.kredence.qth, this.options.signaling)
@@ -87,9 +108,10 @@ class RemotigRTCConnector {
 			this.disconnect()
 		})
 
-		this._signaling.on('joined', async (rig) => {
-			console.info('Operating ' + rig)
+		this._signaling.on('joined', async (data) => {
+			console.info(`Operating ${data.rig} as ${data.op}`)
 			this._isReady = true
+			this.iceServers = data.iceServers
 			// this._mic = await new Microphone(this.tcvr).request()
 			this.sendSignal('ready')
 		})
@@ -102,7 +124,7 @@ class RemotigRTCConnector {
 		this._signaling.on('message', (message) => {
 			console.info('signal message:', message)
 			if (message === 'ready') {
-				this._maybeStart()
+				// this._maybeStart()
 			} else if (message.type === 'offer') {
 				!this._isStarted && this._maybeStart()
 				this._pc.setRemoteDescription(new RTCSessionDescription(message))
@@ -167,7 +189,7 @@ class RemotigRTCConnector {
 
 	_createPeerConnection() {
 		try {
-			const config = {'iceServers': this.options.iceServers}
+			const config = {'iceServers': this.iceServers}
 			this._pc = new RTCPeerConnection(config)
 			this._pc.onicecandidate = event => this._handleIceCandidate(event)
 			this._pc.ontrack = event => this._audio = new AudioProcessor(event, this.tcvr)
@@ -275,4 +297,5 @@ class RemotigRTCConnector {
 
 }
 
-tcvrConnectors.register(new RemotigRTCConnector())
+// connectors.register(new RemotigRTCConnector())
+export { RemotigRTCConnector }

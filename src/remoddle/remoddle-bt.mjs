@@ -1,3 +1,6 @@
+import {BluetoothTerminal} from '../util/BluetoothTerminal.mjs'
+import {EventType} from '../util/events.mjs'
+
 class RemoddleBluetooth {
 	constructor(tcvr) {
 		this._port = null
@@ -66,3 +69,4 @@ class RemoddleBluetooth {
 
 }
 
+export {RemoddleBluetooth}

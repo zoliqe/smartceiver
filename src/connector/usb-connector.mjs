@@ -1,5 +1,6 @@
+import {EventType} from '../util/events.mjs'
 
-class SmartceiverWebUSBConnector {
+class WebUSBConnector {
   constructor() {
     this.devFilters = [
       { 'vendorId': 0x2341, 'productId': 0x8036 },
@@ -7,24 +8,43 @@ class SmartceiverWebUSBConnector {
     ]
   }
 
-  static get id() { return 'smartceiver-webusb'; }
-  static get name() { return 'SmartCeiver standalone WebUSB'; }
+  static get id() { return 'USB'; }
+  static get name() { return 'SmartCeiver standalone USB'; }
   static get capabilities() { return []; }
 
-  connect(tcvr, successCallback) {
+  get id() {
+    return this.constructor.id
+  }
+
+  connect(tcvr, kredence, options) {
     // this.requestPort()
-    navigator.usb.requestDevice({ 'filters': this.devFilters }).then(device => {
+    return new Promise(async (resolve) => {
+      const device = await navigator.usb.requestDevice({ 'filters': this.devFilters })
+      // .then(device => {
       console.log('Connecting to ' + device.productName)
-      this._connectDevice(device).then(port => {
-        console.log('Connected ' + device.productName)
-        this._bindCommands(tcvr, port)
-        successCallback(port);
-      }, error => {
-         console.log('Connection error (2): ' + error);
-      });
-    }).catch(error => {
-      console.error('Connection error (1): ' + error);
-    });
+      const port = await this._connectDevice(device)
+      // .then(port => {
+      console.log('Connected ' + device.productName)
+      this._bindCommands(tcvr, port)
+      resolve(port)
+      // }, error => console.log('Connection error (2): ' + error))
+      // })
+      //   .catch(error => console.error('Connection error (1): ' + error))
+    })
+  }
+
+  disconnect(options) {
+  }
+
+  get connected() {
+    return true
+  }
+
+  filter(bandWidth, centerFreq) {
+  }
+
+  checkState(kredence) {
+    return new Promise((resolve) => resolve({id: this.id})) // emulate online state
   }
 
   _connectDevice(device) {
@@ -116,4 +136,4 @@ class SmartceiverWebUSBPort {
   }
 }
 
-tcvrConnectors.register(new SmartceiverWebUSBConnector());
+export { WebUSBConnector }

@@ -1,3 +1,4 @@
+import {TcvrEvent, EventType} from '../util/events.mjs'
 
 class TcvrControls {
 
@@ -160,3 +161,5 @@ class TcvrControls {
 	}
 
 }
+
+export {TcvrControls}
