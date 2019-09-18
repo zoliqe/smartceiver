@@ -1,8 +1,8 @@
 import {secondsNow, log, whoIn, delay} from './utils.mjs'
 import {TcvrAdapter} from '../adapter.mjs'
-import {rigQth, powerPins, connector, tcvrAdapter} from './config.mjs'
+import {rigQth, tcvrAdapter} from './config.mjs'
 
-// TODO parse rigName from rigQth; remove pcConfig (fetch from proxy)
+// TODO parse rigName from rigQth; remove pcConfig (fetch from proxy); create class
 
 const pcConfig = {
 	//  'iceServers': [{
@@ -36,9 +36,7 @@ const controlChannelConfig = { ordered: true }
 
 ////////////////////////////////////////
 const authTimeout = 30 // sec
-const hwWatchdogTimeout = 120 // sec
 const heartbeat = 10 // sec
-const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'}
 
 /////////////////////////////////////////////
 
@@ -46,17 +44,16 @@ let whoNow = null
 let authTime = null
 let controlChannel = null
 let tcvr = null
-let state = State.off
 // let keyer = null
 let connectionReset = false
 
 async function onControlOpen() {
 	log('control connect')
 
-	powerOn()
-	await delay(4000) // wait for tcvr internal CPU start
-	tcvr = tcvr || new TcvrAdapter(tcvrAdapter())
+	// powerOn()
+	tcvr = tcvr || new TcvrAdapter(tcvrAdapter)
 	!connectionReset && (await tcvr.on())
+	tcvr.holdOn()
 
 	connectionReset = false
 	controlChannel.send('conack')
@@ -64,10 +61,12 @@ async function onControlOpen() {
 }
 
 function onControlClose() {
-	// tcvr = keyer = null
-	!connectionReset && tcvr && tcvr.off()
+	if (!connectionReset) {
+		logout()
+		tcvr && (await tcvr.off())
+	}
 	tcvr = null
-	!connectionReset && powerOff()
+	// !connectionReset && powerOff()
 }
 
 function onControlError(error) {
@@ -80,7 +79,7 @@ function onControlMessage(event) {
 	console.debug('cmd: ' + msg)
 
 	if (msg == 'poweron') {
-		powerOn() // heartbeat for session live
+		tcvr.holdOn() // heartbeat for session live
 //		tcvr = tcvr || new Transceiver(tcvrAdapter())
 	} else if (msg === 'poweroff') {
 //                tcvr && tcvr.off()
@@ -387,42 +386,12 @@ function checkAuthTimeout() {
 	console.debug(`checkAuthTimeout op=${whoNow} authTime=${authTime}`)
 	if (!authTime || (authTime + authTimeout) > secondsNow()) return
 
-	if (state === State.off) {
+	// if (state === State.off) {
 		logout()
-		return
-	}
+	// 	return
+	// }
 	log(`auth timeout for ${whoNow}`)
-	powerOff()
-}
-
-async function powerOn() {
-	if (state === State.stoping || state === State.starting) {
-		log(`Remotig in progress state ${state}, ignoring start`)
-		return
-	}
-
-	if (state === State.off) { // cold start
-		log(`powerOn`)
-		connector.timeout = hwWatchdogTimeout
-	}
-
-	state = State.starting
-	if (!managePower(true)) return
-	state = State.on
-}
-
-async function powerOff() {
-	if (state === State.off || state === State.stoping) return;
-
-	state = State.stoping
-	log(`powerOff`)
-	managePower(false)
-	await delay(500)
-	managePower(false)
-	await delay(1000)
-
-	state = State.off
-	logout()
+	tcvr && (await tcvr.off())
 }
 
 function logout() {
@@ -432,10 +401,4 @@ function logout() {
 	stop()
 	sendSignal('logout', rigName)
 }
-
-async function managePower(state) {
-	powerPins.forEach(async (pin) => connector.pinState(pin, state))
-	return true
-}
-
 

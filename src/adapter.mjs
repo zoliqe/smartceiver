@@ -74,13 +74,15 @@ addAgc('NONE')
 const agcTypes = Object.freeze(_agcTypes)
 
 class TcvrAdapter {
-	constructor(tcvrAdapter) {
-		this._adapter = tcvrAdapter
+	constructor(tcvrAdapterProvider) {
+		this._adapter = tcvrAdapterProvider()
 
-		tcvrAdapter.keyerConfiguration = tcvrAdapter.keyerConfiguration || {}
-		if (!tcvrAdapter.keyerConfiguration.connector)
-			tcvrAdapter.keyerConfiguration.connector = tcvrAdapter.connector
-		this._keyer = new Keyer(tcvrAdapter.keyerConfiguration)
+		this._powr = new PowrManager(this._adapter.connector)
+
+		this._adapter.keyerConfiguration = this._adapter.keyerConfiguration || {}
+		if (!this._adapter.keyerConfiguration.connector)
+			this._adapter.keyerConfiguration.connector = this._adapter.connector
+		this._keyer = new Keyer(this._adapter.keyerConfiguration)
 
 		// if (this._outOfBand(startFrequency)) {
 		// 	this.frequency = this.bands[0].freqFrom + 20*1000
@@ -95,12 +97,18 @@ class TcvrAdapter {
 	}
 
 	async on() {
+		await this._powr.on()
 		this._adapter.init && (await this._adapter.init())
 	}
 
-	off() {
+	async off() {
 		this._adapter && this._adapter.close && this._adapter.close()
 		this._adapter = null
+		await this._powr.off()
+	}
+
+	async holdOn() {
+		await this._powr.on()
 	}
 
 	get bands() {
@@ -303,6 +311,52 @@ class TcvrAdapter {
 	// get filter() {
 	// 	return this._filter
 	// }
+}
+
+const hwWatchdogTimeout = 120 // sec
+const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'}
+class PowrManager {
+
+	state = State.off
+
+	constructor(connector) {
+		this.connector = connector
+	}
+
+	async on() {
+		if (this.state === State.stoping || this.state === State.starting) {
+			console.warn(`Remotig in progress state ${state}, ignoring start`)
+			return
+		}
+
+		if (this.state === State.off) { // cold start
+			console.info(`powerOn`)
+			this.connector.timeout = hwWatchdogTimeout
+		}
+
+		this.state = State.starting
+		this._managePowr(true)
+		this.state = State.on
+	}
+
+	async off() {
+		if (this.state === State.off || this.state === State.stoping) return;
+
+		this.state = State.stoping
+		console.info(`powerOff`)
+		this._managePowr(false)
+		await delay(500)
+		this._managePowr(false)
+		await delay(1000)
+
+		this.state = State.off
+		logout()
+	}
+
+	async _managePowr(state) {
+		this.connector.powerPins.forEach(async (pin) => this.connector.pinState(pin, state))
+	}
+
 }
 
 export {TcvrAdapter, bands, modes, agcTypes}

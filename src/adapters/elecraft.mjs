@@ -1,4 +1,5 @@
-import {bands, modes, agcTypes} from './adapter.mjs'
+import {bands, modes, agcTypes} from '../adapter.mjs'
+import {delay} from '../remotig/utils.mjs'
 
 const _bands = [bands[160], bands[80], bands[40], bands[30], 
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
@@ -34,7 +35,8 @@ class ElecraftTcvr {
 		return new ElecraftTcvr(connector, keyerConfiguration, options)
 	}
 
-	init() {
+	async init() {
+		await delay(2000) // wait for tcvr internal CPU start
 		this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 

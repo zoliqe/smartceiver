@@ -1,4 +1,4 @@
-import {bands, modes, agcTypes} from './adapter.mjs'
+import {bands, modes, agcTypes} from '../adapter.mjs'
 import {delay} from '../remotig/utils.mjs'
 
 
@@ -36,8 +36,11 @@ class KenwoodTcvr {
 	}
 
 	async init() {
-		this._options.powerViaCat && this._uart('PS1')
-		await delay(2000)
+		await delay(4000) // wait for tcvr internal CPU start
+		if (this._options.powerViaCat) {
+			this._uart('PS1')
+			await delay(2000)
+		}
 		this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 

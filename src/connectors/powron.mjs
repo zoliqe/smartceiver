@@ -6,14 +6,19 @@ const PowronPins = Object.freeze({pin2: 0, pin3: 1, pin4: 2, pin5: 3,
 	pinA6: 6, pinA7: 7
 })
 
+// TODO refactor as usb.mjs
+
 class PowronConnector {
-	constructor({keyerPin = PowronPins.pin5, pttPin = PowronPins.pin6, serialBaudRate = 4800}) {
+	constructor({keyerPin = PowronPins.pin5, pttPin = PowronPins.pin6, powerPins = [PowronPins.pin2, PowronPins.pin4], 
+		serialBaudRate = 4800}) 
+	{
     this._encoder = new TextEncoder()
     this._decoder = new TextDecoder()
     this._port = null
 		this._timeout = 600
 		this._keyerPin = keyerPin
 		this._pttPin = pttPin
+		this.powerPins = powerPins
 		this._serialBaudRate = serialBaudRate
 		this.connect()
 	}
