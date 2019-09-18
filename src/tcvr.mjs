@@ -1,4 +1,4 @@
-import {TcvrEvent, EventType} from './util/events.mjs'
+import {TcvrEvent, EventType} from './utils/events.mjs'
 
 const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
 const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]

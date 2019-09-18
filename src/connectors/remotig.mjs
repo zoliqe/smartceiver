@@ -1,6 +1,6 @@
-import {EventType} from '../util/events.mjs'
-import {AudioProcessor} from '../util/audio.mjs'
-// import {Microphone} from '../util/mic.mjs'
+import {EventType} from '../utils/events.mjs'
+import {AudioProcessor} from '../utils/audio.mjs'
+// import {Microphone} from '../utils/mic.mjs'
 
 class RemotigRTCConnector {
 	static get id() { return 'RTC'; }

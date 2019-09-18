@@ -1,5 +1,5 @@
-import {BluetoothTerminal} from '../util/BluetoothTerminal.mjs'
-import {EventType} from '../util/events.mjs'
+import {BluetoothTerminal} from '../utils/BluetoothTerminal.mjs'
+import {EventType} from '../utils/events.mjs'
 
 class RemoddleBluetooth {
 	constructor(tcvr) {

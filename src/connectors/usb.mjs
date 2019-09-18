@@ -1,4 +1,4 @@
-import {EventType} from '../util/events.mjs'
+import {EventType} from '../utils/events.mjs'
 
 class WebUSBConnector {
   constructor() {

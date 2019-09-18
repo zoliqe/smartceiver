@@ -1,4 +1,4 @@
-import {EventType} from '../util/events.mjs'
+import {EventType} from '../utils/events.mjs'
 
 // TODO update to use navigator.usb API (as WebUSBConnector do)
 class RemoddleUsb {

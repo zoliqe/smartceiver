@@ -1,4 +1,4 @@
-import {TcvrEvent, EventType} from '../util/events.mjs'
+import {TcvrEvent, EventType} from '../utils/events.mjs'
 
 class TcvrControls {
 

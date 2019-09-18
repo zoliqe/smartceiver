@@ -196,35 +196,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 		</app-drawer-layout>
 	</template>
 
-	<!-- <script src="select-connector.js"></script> -->
-	<!-- <script src="tcvr.js"></script> -->
-	<!-- <script src="connector/connectors.js"></script> -->
-	<!-- <script defer src="controls.js"></script> -->
-	<!-- <script defer src="util/serial.js"></script> -->
-	<!-- <script defer src="util/BluetoothTerminal.js"></script> -->
-	<!-- <script defer src="remoddle/remoddle-usb.js"></script> -->
-	<!-- <script defer src="remoddle/remoddle-bt.js"></script> -->
-	<!-- <script defer src="https://simplewebrtc.com/latest-v2.js"></script> -->
-	<!-- <script defer src="k2-webrtc.js"></script> -->
-	<!-- <script defer src="wav-player.js"></script> -->
-	<!-- <script defer src="connector/usb-connector.js"></script> -->
-	<!-- <script defer src="3las/audio_player.js"></script> -->
-	<!-- <script defer src="3las/socket_client.js"></script> -->
-	<!-- <script defer src="3las/format_reader.js"></script> -->
-	<!-- <script defer src="3las/mpeg.js"></script> -->
-	<!-- <script defer src="3las/wav.js"></script> -->
-	<!-- <script defer src="3las-player.js"></script> -->
-	<script defer src="util/socket.io.js"></script>
-	<!-- <script defer src="rtc-player.js"></script> -->
-	<!-- <script defer src="util/audio.js"></script> -->
-	<!-- <script defer src="util/mic.js"></script> -->
-	<!-- <script defer src="remotig-ws.js"></script> -->
-	<!-- <script defer src="connector/remotig-rtc-connector.js"></script> -->
-
+	<script src="utils/socket.io.js" async defer></script>
+	<script src="connectors/powron-usb.mjs" async defer></script>
 	<script>
-		// import {Transceiver} from './tcvr.mjs'
-		// import {EventType, TcvrEvent} from './util/events.mjs'
-
 		class SmartceiverApp extends Polymer.Element {
 
 			static get is() { return 'smartceiver-app' }
@@ -267,7 +241,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			async _initTcvr() {
 				const tcvrModule = await import('./tcvr.mjs')
 				document.tcvr = this.tcvr = new tcvrModule.Transceiver()
-				const evtModule = await import('./util/events.mjs')
+				const evtModule = await import('./utils/events.mjs')
 				window.EventType = evtModule.EventType
 				window.TcvrEvent = evtModule.TcvrEvent
 
@@ -370,7 +344,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						connectorId = this.kredence.rig.toUpperCase()
 					}
 
-					const connectors = await import('./connector/connectors.mjs')
+					const connectors = await import('./connectors/connectors.mjs')
 					this.connector = await connectors.get(connectorId)
 					this.$.pwrbtn.disabled = this.connector == null
 					const state = await this._fetchStatus()
