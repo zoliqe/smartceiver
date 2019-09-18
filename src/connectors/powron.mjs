@@ -6,15 +6,15 @@ const PowronPins = Object.freeze({pin2: 0, pin3: 1, pin4: 2, pin5: 3,
 	pinA6: 6, pinA7: 7
 })
 
-class Powron {
-	constructor(options = {keyerPin, pttPin, serialBaudRate}) {
+class PowronConnector {
+	constructor({keyerPin = PowronPins.pin5, pttPin = PowronPins.pin6, serialBaudRate = 4800}) {
     this._encoder = new TextEncoder()
     this._decoder = new TextDecoder()
     this._port = null
 		this._timeout = 600
-		this._keyerPin = options.keyerPin
-		this._pttPin = options.pttPin
-		this._serialBaudRate = options.serialBaudRate
+		this._keyerPin = keyerPin
+		this._pttPin = pttPin
+		this._serialBaudRate = serialBaudRate
 		this.connect()
 	}
 
@@ -187,4 +187,4 @@ class Powron {
 	}
 }*/
 
-export {Powron, PowronPins}
+export {PowronConnector, PowronPins}

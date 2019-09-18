@@ -1,4 +1,4 @@
-import { Keyer } from "./keyer.mjs";
+import { Keyer } from "./adapter/keyer.mjs";
 
 const startFrequency = 7020000
 
@@ -73,7 +73,7 @@ addAgc('AUTO')
 addAgc('NONE')
 const agcTypes = Object.freeze(_agcTypes)
 
-class Adapter {
+class TcvrAdapter {
 	constructor(tcvrAdapter) {
 		this._adapter = tcvrAdapter
 
@@ -305,4 +305,4 @@ class Adapter {
 	// }
 }
 
-export {Adapter, bands, modes, agcTypes}
+export {TcvrAdapter, bands, modes, agcTypes}

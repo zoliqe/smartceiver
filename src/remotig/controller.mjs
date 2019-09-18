@@ -1,5 +1,5 @@
 import {secondsNow, log, whoIn, delay} from './utils.mjs'
-import {Adapter} from '../adapters/adapter.mjs'
+import {TcvrAdapter} from '../adapter.mjs'
 import {rigQth, powerPins, connector, tcvrAdapter} from './config.mjs'
 
 // TODO parse rigName from rigQth; remove pcConfig (fetch from proxy)
@@ -55,7 +55,7 @@ async function onControlOpen() {
 
 	powerOn()
 	await delay(4000) // wait for tcvr internal CPU start
-	tcvr = tcvr || new Adapter(tcvrAdapter())
+	tcvr = tcvr || new TcvrAdapter(tcvrAdapter())
 	!connectionReset && (await tcvr.on())
 
 	connectionReset = false

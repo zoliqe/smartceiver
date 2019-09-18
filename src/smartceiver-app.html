@@ -338,13 +338,13 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 					this.kredence.rig = params.rig.trim()
 					let connectorId
 					if (this.kredence.rig.includes('@')) {
-						connectorId = 'RTC';
+						connectorId = 'remotig';
 						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
-					} else if (this.kredence.rig == 'usb' || this.kredence.rig == 'bt') {
+					} else if (this.kredence.rig == 'powron' || this.kredence.rig == 'bluecat') {
 						connectorId = this.kredence.rig.toUpperCase()
 					}
 
-					const connectors = await import('./connectors/connectors.mjs')
+					const connectors = await import('./connector.mjs')
 					this.connector = await connectors.get(connectorId)
 					this.$.pwrbtn.disabled = this.connector == null
 					const state = await this._fetchStatus()

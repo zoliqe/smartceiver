@@ -72,7 +72,7 @@ class Transceiver {
 	async switchPower(connector, kredence, remoddle, reversePaddle) {
 		if (this._port) {
 			this._d('disconnect', this._port && this._port.constructor.id)
-			this._controls = null
+			this.controller = null
 			this.disconnectRemoddle()
 			this._port.disconnect()
 			this.unbind(connector.id)
@@ -105,14 +105,8 @@ class Transceiver {
 		this.disconnectRemoddle() // remove previous instance
 
 		try {
-			this._remoddle = null
-			if (type === 'usb') {
-				const module = await import('./remoddle/remoddle-usb.mjs')
-				this._remoddle = await new module.RemoddleUsb(this).connect()
-			} else if (type === 'bt') {
-				const module = await import('./remoddle/remoddle-bt.mjs')
-				this._remoddle = await new module.RemoddleBluetooth(this).connect()
-			}
+			const module = await import('./remoddle/connector.mjs')
+			this._remoddle = await new module.RemoddleBluetooth(this).connect()
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
 		}
@@ -120,8 +114,8 @@ class Transceiver {
 		if (this._remoddle) {
 			this._remoddle.wpm = this.wpm // sync with current wpm state
 			this._remoddle.reverse = this._reversePaddle
-			const ctlModule = await import('./remoddle/controls.mjs')
-			this._controls = new ctlModule.TcvrControls(this)
+			const ctlModule = await import('./remoddle/controller.mjs')
+			this.controller = new ctlModule.RemoddleController(this)
 		}
 	}
 
@@ -134,7 +128,7 @@ class Transceiver {
 	}
 
 	remoddleCommand(c) {
-		this._controls && this._controls.remoddleCommand(c)
+		this.controller && this.controller.remoddleCommand(c)
 	}
 
 	_keyPtt() {

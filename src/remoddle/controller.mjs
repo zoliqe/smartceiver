@@ -1,6 +1,6 @@
 import {TcvrEvent, EventType} from '../utils/events.mjs'
 
-class TcvrControls {
+class RemoddleController {
 
 	up = '+'
 	dn = '-'
@@ -162,4 +162,4 @@ class TcvrControls {
 
 }
 
-export {TcvrControls}
+export {RemoddleController}

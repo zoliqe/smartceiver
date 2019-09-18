@@ -2,7 +2,7 @@ import {EventType} from '../utils/events.mjs'
 import {AudioProcessor} from '../utils/audio.mjs'
 // import {Microphone} from '../utils/mic.mjs'
 
-class RemotigRTCConnector {
+class RemotigConnector {
 	static get id() { return 'RTC'; }
 	static get name() { return 'Remotig via WebRTC'; }
 	static get capabilities() { return [Remoddle.id]; }
