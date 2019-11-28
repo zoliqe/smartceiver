@@ -60,7 +60,7 @@ class Transceiver {
 
 		// this._connectorId = connectorId //selectedConnector || SmartceiverWebUSBConnector.id
 		// this._connectorId = typeof selectedConnector === 'undefined' ? SmartceiverWebUSBConnector.id : selectedConnector
-		
+
 		this._listeners = {}
 		// this.bind(EventType.keyDit, 'tcvr', event => this._tone(1))
 		// this.bind(EventType.keyDah, 'tcvr', event => this._tone(3))
@@ -110,7 +110,7 @@ class Transceiver {
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
 		}
-			
+
 		if (this._remoddle) {
 			this._remoddle.wpm = this.wpm // sync with current wpm state
 			this._remoddle.reverse = this._reversePaddle
@@ -447,4 +447,152 @@ class EventListener {
 	get callback() { return this._callback }
 }
 
-export {Transceiver}
+
+class Band {
+	constructor(name, id, minFreq, maxFreq) {
+		this.#name = name
+		this.#id = id
+		this.#freqFrom = minFreq
+		this.#freqTo = maxFreq
+    }
+
+	static byId(id) {
+		// return _bands.find(band => band.id == id)
+		return _bands[id]
+	}
+
+	static byFreq(freq) {
+		const f = Number(freq)
+		return Object.values(_bands)
+			.find(band => band.freqFrom <= f && band.freqTo >= f)
+    }
+
+    get name() {
+        return this.#name
+    }
+
+    get id() {
+        return this.#id
+    }
+
+    get freqFrom() {
+        return this.#freqFrom
+    }
+
+    get freqTo() {
+        return this.#freqTo
+    }
+}
+
+const _bands = {}
+const addBand = (name, id, minFreq, maxFreq) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
+addBand(1.8,	160,	1810,		2000)
+addBand(3.5,	80,		3500,		3800)
+addBand(5,		60,		5351,		5368)
+addBand(7,		40,		7000,		7200)
+addBand(10.1,	30,		10100,		10150)
+addBand(14,		20,		14000,		14350)
+addBand(18,		17,		18068,		18168)
+addBand(21,		15,		21000,		21450)
+addBand(24,		12,		24890,		24990)
+addBand(28,		10,		28000,		29700)
+addBand(50,		6,		50000,		54000)
+addBand(70,		4,		70000,		70500)
+addBand(144,	2,		144000,		146000)
+addBand(430,	70,		430000,		440000)
+addBand(1296,	23,		1240000,	1300000)
+const bands = Object.freeze(_bands)
+
+// class Mode {
+// 	constructor(id) {
+// 		this.id = id
+// 	}
+
+// 	static byId(id) {
+// 		return _modes.find(mode => mode.id == id)
+// 	}
+// }
+
+const _modes = {}
+const addMode = (id) => _modes[id] = id //_modes.push(new Mode(id))
+addMode('CW')
+addMode('CWR')
+addMode('LSB')
+addMode('USB')
+addMode('RTTY')
+addMode('RTTYR')
+addMode('NFM')
+addMode('WFM')
+addMode('AM')
+const modes = Object.freeze(_modes)
+
+const _agcTypes = {}
+const addAgc = (agc) => _agcTypes[agc] = agc
+addAgc('FAST')
+addAgc('SLOW')
+addAgc('MEDIUM')
+addAgc('AUTO')
+addAgc('NONE')
+const agcTypes = Object.freeze(_agcTypes)
+
+class TransceiverProperties {
+    #bands = []
+    #bandModes = {}
+    #bandGains = {}
+    #bandAgcTypes = {}
+    #bandModeFilters = {}
+
+    constructor({bands, bandModes, bandGains, bandAgcTypes, bandModeFilters}) {
+        this.#bands = bands
+        this.#bandModes = bandModes
+        this.#bandGains = bandGains
+        this.#bandAgcTypes = bandAgcTypes
+        this.#bandModeFilters = bandModeFilters
+    }
+
+    static fromJSON(json) {
+        return new TransceiverProperties(JSON.parse(json))
+    }
+
+    toJSON() {
+        return JSON.stringify(this)
+    }
+
+    modes(band) {
+        return this.#bandModes[band]
+    }
+
+    gains(band) {
+        return this.#bandGains[band]
+    }
+
+    agcTypes(band) {
+        return this.#bandAgcTypes[band]
+    }
+
+    filters(band, mode) {
+        return this.#bandModeFilters[band][mode]
+    }
+
+    get bands() {
+        return this.#bands
+    }
+
+    get bandModes() {
+        return this.#bandModes
+    }
+
+    get bandGains() {
+        return this.#bandGains
+    }
+
+    get bandAgcTypes() {
+        return this.#bandAgcTypes
+    }
+
+    get bandModeFilters() {
+        return this.#bandModeFilters
+    }
+}
+
+export {Transceiver, TransceiverProperties, bands, modes, agcTypes}

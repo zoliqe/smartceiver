@@ -4,7 +4,7 @@ const startFrequency = 7020000
 
 class Band {
 	constructor(name, id, minFreq, maxFreq) {
-		this.name = name 
+		this.name = name
 		this.id = id
 		this.freqFrom = minFreq
 		this.freqTo = maxFreq
@@ -89,7 +89,7 @@ class TcvrAdapter {
 		// } else {
 		// 	this.frequency = startFrequency
 		// }
-		
+
 		// this.mode = this.modes[0]
 		// if (this.agcTypes.length > 0) this.agc = this.agcTypes[0]
 		// this.gain = 0
@@ -151,7 +151,7 @@ class TcvrAdapter {
 
 	get info() {
 		return {
-			bands: this.bands, 
+			bands: this.bands,
 			modes: this.modes, //mode: this.mode,
 			filters: this.filtersAllModes, //filter: this.filter,
 			gainLevels: this.gainLevels, //gain: this.gain,
@@ -359,4 +359,4 @@ class PowrManager {
 
 }
 
-export {TcvrAdapter, bands, modes, agcTypes}
+export {TcvrAdapter}
