@@ -1,5 +1,5 @@
-import {bands, modes, agcTypes} from '../adapter.mjs'
-import {delay} from '../remotig/utils.mjs'
+import {bands, modes, agcTypes} from '../../tcvr.mjs'
+import {delay} from '../../utils/time.mjs'
 
 
 const _bands = [bands[160], bands[80], bands[40], bands[30], 
@@ -24,15 +24,13 @@ class KenwoodTcvr {
 	_rit = 0
 	_xit = 0
 
-	constructor(connector, keyerConfiguration, options) {
-		this.connector = connector
+	constructor(connector, options) {
 		this._uart = data => connector.serialData(data + ';')
-		this.keyerConfiguration = keyerConfiguration
 		this._options = options || {}
 	}
 
-	static TS2000(connector, keyerConfiguration, options = {powerViaCat: false}) {
-		return new KenwoodTcvr(connector, keyerConfiguration, options)
+	static TS2000(connector, options = {powerViaCat: false}) {
+		return new KenwoodTcvr(connector, options)
 	}
 
 	async init() {

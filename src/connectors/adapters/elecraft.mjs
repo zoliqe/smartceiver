@@ -1,5 +1,5 @@
-import {bands, modes, agcTypes} from '../adapter.mjs'
-import {delay} from '../remotig/utils.mjs'
+import {bands, modes, agcTypes} from '../../tcvr.mjs'
+import {delay} from '../../utils/time.mjs'
 
 const _bands = [bands[160], bands[80], bands[40], bands[30], 
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
@@ -25,14 +25,12 @@ class ElecraftTcvr {
 	_rit = 0
 	_xit = 0
 
-	constructor(connector, keyerConfiguration, options = {cwFilterCount, ssbFilterCount}) {
-		this.connector = connector
+	constructor(connector, options = {}) {
 		this._uart = data => connector.serialData(data + ';')
-		this.keyerConfiguration = keyerConfiguration
 	}
 
-	static K2(connector, keyerConfiguration, options = {cwFilterCount: 4, ssbFilterCount: 4}) { //baudrate = 4800, cwFilterCount = 4, ssbFilterCount = 4
-		return new ElecraftTcvr(connector, keyerConfiguration, options)
+	static K2(connector) { //baudrate = 4800
+		return new ElecraftTcvr(connector)
 	}
 
 	async init() {

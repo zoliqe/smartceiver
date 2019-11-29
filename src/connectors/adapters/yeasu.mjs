@@ -1,5 +1,5 @@
-import {bands, modes, agcTypes} from '../adapter.mjs'
-import {delay} from '../remotig/utils.mjs'
+import {bands, modes, agcTypes} from '../../tcvr.mjs'
+import {delay} from '../../utils/time.mjs'
 
 const _bands = [bands[160], bands[80], bands[40], bands[30], 
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
@@ -29,14 +29,12 @@ const hex2dec = (h) => {
 }
 
 class YeasuTcvr {
-	constructor(connector, keyerConfiguration) {
-		this.connector = connector
+	constructor(connector) {
 		this._uart = s => connector.serialData(s)
-		this.keyerConfiguration = keyerConfiguration
 	}
 
-	static FT1000MP(connector, keyerConfiguration) { // baudrate = 4800
-		return new YeasuTcvr(connector, keyerConfiguration)
+	static FT1000MP(connector) { // baudrate = 4800
+		return new YeasuTcvr(connector)
 	}
 
 	async init() {

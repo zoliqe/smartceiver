@@ -449,12 +449,18 @@ class EventListener {
 
 
 class Band {
+	
+	#name
+	#id
+	#freqFrom
+	#freqTo
+
 	constructor(name, id, minFreq, maxFreq) {
 		this.#name = name
 		this.#id = id
 		this.#freqFrom = minFreq
 		this.#freqTo = maxFreq
-    }
+	}
 
 	static byId(id) {
 		// return _bands.find(band => band.id == id)
@@ -465,134 +471,123 @@ class Band {
 		const f = Number(freq)
 		return Object.values(_bands)
 			.find(band => band.freqFrom <= f && band.freqTo >= f)
-    }
+	}
 
-    get name() {
-        return this.#name
-    }
+	toString() {
+		return JSON.stringify(this)
+	}
 
-    get id() {
-        return this.#id
-    }
+	toJSON() {
+		return {id: this.#id, name: this.#name, freqFrom: this.#freqFrom, freqTo: this.#freqTo}
+	}
 
-    get freqFrom() {
-        return this.#freqFrom
-    }
+	get name() {
+		return this.#name
+	}
 
-    get freqTo() {
-        return this.#freqTo
-    }
+	get id() {
+		return this.#id
+	}
+
+	get freqFrom() {
+		return this.#freqFrom
+	}
+
+	get freqTo() {
+		return this.#freqTo
+	}
 }
 
 const _bands = {}
-const addBand = (name, id, minFreq, maxFreq) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
-addBand(1.8,	160,	1810,		2000)
-addBand(3.5,	80,		3500,		3800)
-addBand(5,		60,		5351,		5368)
-addBand(7,		40,		7000,		7200)
-addBand(10.1,	30,		10100,		10150)
-addBand(14,		20,		14000,		14350)
-addBand(18,		17,		18068,		18168)
-addBand(21,		15,		21000,		21450)
-addBand(24,		12,		24890,		24990)
-addBand(28,		10,		28000,		29700)
-addBand(50,		6,		50000,		54000)
-addBand(70,		4,		70000,		70500)
-addBand(144,	2,		144000,		146000)
-addBand(430,	70,		430000,		440000)
-addBand(1296,	23,		1240000,	1300000)
+// const addBand = ([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
+[
+	[1.8,		160,		 1810,			2000],
+	[3.5,		80,			 3500,			3800],
+	[5,			60,			 5351,			5368],
+	[7,			40,			 7000,			7200],
+	[10.1,	30,			10100,		 10150],
+	[14,		20,			14000,		 14350],
+	[18,		17,			18068,		 18168],
+	[21,		15,			21000,		 21450],
+	[24,		12,			24890,		 24990],
+	[28,		10,	 		28000,		 29700],
+	[50,		6,			50000,		 54000],
+	[70,		4,			70000,		 70500],
+	[144,		2,		 144000,		146000],
+	[430,		70,		 430000,		440000],
+	[1296,	23,		1240000,	 1300000]
+].forEach(([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000))
 const bands = Object.freeze(_bands)
 
-// class Mode {
-// 	constructor(id) {
-// 		this.id = id
-// 	}
-
-// 	static byId(id) {
-// 		return _modes.find(mode => mode.id == id)
-// 	}
-// }
-
 const _modes = {}
-const addMode = (id) => _modes[id] = id //_modes.push(new Mode(id))
-addMode('CW')
-addMode('CWR')
-addMode('LSB')
-addMode('USB')
-addMode('RTTY')
-addMode('RTTYR')
-addMode('NFM')
-addMode('WFM')
-addMode('AM')
+['CW', 'CWR', 'LSB', 'USB', 'RTTY', 'RTTYR', 'NFM', 'WFM', 'AM'].forEach(id => _modes[id] = id)
 const modes = Object.freeze(_modes)
 
 const _agcTypes = {}
-const addAgc = (agc) => _agcTypes[agc] = agc
-addAgc('FAST')
-addAgc('SLOW')
-addAgc('MEDIUM')
-addAgc('AUTO')
-addAgc('NONE')
+['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'NONE'].forEach(agc => _agcTypes[agc] = agc)
 const agcTypes = Object.freeze(_agcTypes)
 
 class TransceiverProperties {
-    #bands = []
-    #bandModes = {}
-    #bandGains = {}
-    #bandAgcTypes = {}
-    #bandModeFilters = {}
 
-    constructor({bands, bandModes, bandGains, bandAgcTypes, bandModeFilters}) {
-        this.#bands = bands
-        this.#bandModes = bandModes
-        this.#bandGains = bandGains
-        this.#bandAgcTypes = bandAgcTypes
-        this.#bandModeFilters = bandModeFilters
-    }
+	#bands = []
+	#modes = []
+	#agcTypes = []
+	#bandGains = {}
+	#modeFilters = {}
 
-    static fromJSON(json) {
-        return new TransceiverProperties(JSON.parse(json))
-    }
+	constructor({ bands, modes, agcTypes, bandGains, modeFilters }) {
+		this.#bands = bands
+		this.#modes = modes
+		this.#agcTypes = agcTypes
+		this.#bandGains = bandGains
+		this.#modeFilters = modeFilters
+	}
 
-    toJSON() {
-        return JSON.stringify(this)
-    }
+	static fromJSON(json) {
+		return new TransceiverProperties(JSON.parse(json))
+	}
 
-    modes(band) {
-        return this.#bandModes[band]
-    }
+	toJSON() {
+		return {
+			bands: this.#bands,
+			modes: this.#modes,
+			agcTypes: this.#agcTypes,
+			bandGains: this.#bandGains,
+			modeFilters: this.#modeFilters
+		}
+	}
 
-    gains(band) {
-        return this.#bandGains[band]
-    }
+	toString() {
+		return JSON.stringify(this)
+	}
 
-    agcTypes(band) {
-        return this.#bandAgcTypes[band]
-    }
+	gains(band) {
+		return this.#bandGains[band] || []
+	}
 
-    filters(band, mode) {
-        return this.#bandModeFilters[band][mode]
-    }
+	filters(mode) {
+		return this.#modeFilters[mode] || []
+	}
 
-    get bands() {
-        return this.#bands
-    }
+	get bands() {
+		return this.#bands
+	}
 
-    get bandModes() {
-        return this.#bandModes
-    }
+	get modes() {
+		return this.#modes
+	}
 
-    get bandGains() {
-        return this.#bandGains
-    }
+	get agcTypes() {
+		return this.#agcTypes
+	}
 
-    get bandAgcTypes() {
-        return this.#bandAgcTypes
-    }
+	get bandGains() {
+		return this.#bandGains
+	}
 
-    get bandModeFilters() {
-        return this.#bandModeFilters
-    }
+	get modeFilters() {
+		return this.#modeFilters
+	}
 }
 
 export {Transceiver, TransceiverProperties, bands, modes, agcTypes}
