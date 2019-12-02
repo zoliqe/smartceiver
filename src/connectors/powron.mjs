@@ -213,10 +213,6 @@ class PowronConnector {
 		this.send('T' + this.#timeout)
 	}
 
-	get keyerPin() {
-		return this.#keyerPin
-	}
-
 	pinState(pin, state) {
 		pin != null && pins.includes(pin) && this.send(cmdByState(state) + pin)
 	}
