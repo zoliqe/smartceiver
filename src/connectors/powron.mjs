@@ -40,6 +40,9 @@ class PowronConnector {
 		this.#powerPins = powerPins || []
 		this.#adapter = adapterProvider()
 		this.#powr = new PowrManager(this)
+
+		this.keyerState(true)
+		this.pttState(false)
 		this.#keyer = new Keyer(this, keyerPin, keyerConfig)
 	}
 
@@ -142,7 +145,7 @@ class PowronConnector {
 
 	async on() {
 		await this.#powr.on()
-		this.#adapter.init && (await this.#adapter.init())
+		this.#adapter.init && (await this.#adapter.init(this.serialData))
 	}
 
 	async holdOn() {
@@ -150,7 +153,7 @@ class PowronConnector {
 	}
 
 	async off() {
-		this.#adapter && this.#adapter.close && this.#adapter.close()
+		this.#adapter.close && this.#adapter.close()
 		// this.#adapter = null
 		await this.#powr.off()
 	}
@@ -229,42 +232,42 @@ class PowronConnector {
 		this.send('T' + this.#timeout)
 	}
 
-	pinState(pin, state) {
+	async pinState(pin, state) {
 		if (pin != null && pins.includes(pin))
-			this.send(cmdByState(state) + pin)
+			await this.send(cmdByState(state) + pin)
 		else
 			console.error(`POWRON pinState: pin ${pin} not known`)
 	}
 
-	keyerState(state) {
+	async keyerState(state) {
 		if (this.#keyerPin) {
-			this.pinState(this.#keyerPin, false)
-			this.send(`K${state ? this.#keyerPin : 0}`)
+			await this.pinState(this.#keyerPin, false)
+			await this.send(`K${state ? this.#keyerPin : 0}`)
 		}
 	}
 
-	keyerCW(cmd) {
-		this.send(cmd)
+	async keyerCW(cmd) {
+		await this.send(cmd)
 	}
 
-	keyerSpeed(wpm) {
-		this.send('S' + wpm)
+	async keyerSpeed(wpm) {
+		await this.send('S' + wpm)
 	}
 
-	pttState(state) {
-		this.#pttPins
-			.forEach(pin => this.pinState(pin, state))
+	async pttState(state) {
+		await this.#pttPins
+			.forEach(async (pin) => await this.pinState(pin, state))
 	}
 
-	serial(baudrate) {
+	async serial(baudrate) {
 		if (baudrate >= 1200 && baudrate <= 115200)
-			this.send(`P${baudrate / 100}`)
+			await this.send(`P${baudrate / 100}`)
 		else
 			console.error(`POWRON: serial baudrate=${baudrate} not in range, value not set`)
 	}
 
-	serialData(data) {
-		(data != null) && this.send('>' + data)
+	async serialData(data) {
+		return data != null && (await this.send('>' + data))
 	}
 
 	// send(data, callback) {
@@ -359,7 +362,7 @@ class PowrManager {
 		}
 
 		this.#state = State.starting
-		this._managePowr(true)
+		await this._managePowr(true)
 		this.#state = State.on
 	}
 
@@ -368,17 +371,17 @@ class PowrManager {
 
 		this.#state = State.stoping
 		console.info(`powerOff`)
-		this._managePowr(false)
+		await this._managePowr(false)
 		await delay(500)
-		this._managePowr(false)
+		await this._managePowr(false)
 		await delay(1000)
 
 		this.#state = State.off
-		logout()
+		// logout()
 	}
 
 	async _managePowr(state) {
-		this.connector.powerPins.forEach(async (pin) => this.connector.pinState(pin, state))
+		await this.connector.powerPins.forEach(async (pin) => await this.connector.pinState(pin, state))
 	}
 
 }
@@ -393,50 +396,47 @@ class Keyer {
 	constructor(connector, keyerPin, {pttTimeout}) {
 		this.#wpm = 0
 		this.#pttTimeout = pttTimeout
-		this._cw = s => connector && connector.keyerCW(s)
-		this._speed = v => connector && connector.keyerSpeed(v)
-		this._key = state =>
-			connector && keyerPin != null && connector.pinState(keyerPin, state)
-		this._ptt = state => connector && connector.pttState(state)
-
-		connector && connector.keyerState(true)
-		this._ptt(false)
+		this._cw = async (s) => await connector.keyerCW(s)
+		this._speed = async (v) => await connector.keyerSpeed(v)
+		this._key = async (state) =>
+			keyerPin != null && (await connector.pinState(keyerPin, state))
+		this._ptt = async (state) => await connector.pttState(state)
 	}
 
-	send(msg) {
+	async send(msg) {
 		if (this.disabled) return
-		this._cw(msg)
+		await this._cw(msg)
 	}
 
-	ptt(state, timeout = this.#pttTimeout) {
+	async ptt(state, timeout = this.#pttTimeout) {
 		if (state) {
 			if (!timeout) return; // disable PTT
 
 			if (this.#pttTimer != null) clearTimeout(this.#pttTimer)
-			this._ptt(true) // this resets powron ptt watchdog counter
-			this.#pttTimer = setTimeout(() => {
+			await this._ptt(true) // this resets powron ptt watchdog counter
+			this.#pttTimer = setTimeout(async () => {
 				this.#pttTimer = null
-				this._ptt(false)
+				await this._ptt(false)
 			}, timeout)
 		} else {
-			this._ptt(false)
+			await this._ptt(false)
 			this.#pttTimer != null && clearTimeout(this.#pttTimer)
 			this.#pttTimer = null
 		}
 	}
 
-	key(state, timeout = this.#pttTimeout) {
+	async key(state, timeout = this.#pttTimeout) {
 		if (state) {
 			if (!timeout) return;
 
 			if (this.#keyTimer != null) clearTimeout(this.#keyTimer)
-			this._key(true) // reset powron watchdog timer
-			this.#keyTimer = setTimeout(() => {
+			await this._key(true) // reset powron watchdog timer
+			this.#keyTimer = setTimeout(async () => {
 				this.#keyTimer = null
-				this._key(false)
+				await this._key(false)
 			}, timeout)
 		} else {
-			this._key(false)
+			await this._key(false)
 			this.#keyTimer != null && clearTimeout(this.#keyTimer)
 			this.#keyTimer = null
 		}
@@ -448,7 +448,7 @@ class Keyer {
 
 	set wpm(value) {
 		this.#wpm = Number(value)
-		if (this.disabled) return
+		if (this.disabled) return // check after setting value, to allow disable/enable keyer
 		this._speed(this.#wpm)
 	}
 

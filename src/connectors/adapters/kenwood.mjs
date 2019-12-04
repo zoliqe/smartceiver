@@ -25,27 +25,28 @@ class KenwoodTcvr {
     _xit = 0
     #options
 
-	constructor(connector, options = {powerViaCat, baudrate}) {
-        this._uart = data => connector.serialData(data + ';')
+	constructor(options = {powerViaCat, baudrate}) {
+		this._uart = _ => {} // do nothing
         this.#options = options || {}
 	}
 
-	static TS2000(connector, options = {powerViaCat: false, baudrate: 9600}) {
-		return new KenwoodTcvr(connector, options)
+	static TS2000(options = {powerViaCat: false, baudrate: 9600}) {
+		return new KenwoodTcvr(options)
 	}
 
-	async init() {
+	async init(dataSender) {
+        this._uart = async (data) => await dataSender(data + ';')
 		await delay(4000) // wait for tcvr internal CPU start
 		if (this.#options.powerViaCat) {
-			this._uart('PS1')
+			await this._uart('PS1')
 			await delay(2000)
 		}
-		this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
+		await this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 
 	close() {
 		this.#options.powerViaCat && this._uart('PS0')
-		this._uart = data => {} // do nothing
+		this._uart = _ => {} // do nothing
     }
 
     get baudrate() {
@@ -99,8 +100,8 @@ class KenwoodTcvr {
 		this._uart(`RA0${attn > 0 ? 1 : 0}`)
 	}
 
-	filter(filter, mode) {
-		this._uart(`FW${String(filter).padStart(4, '0')}`)
+	async filter(filter, mode) {
+		await this._uart(`FW${String(filter).padStart(4, '0')}`)
 	}
 
 	set txpower(level) {
@@ -155,13 +156,13 @@ class KenwoodTcvr {
 		return Math.floor(v2 / 10) - Math.floor(v1 / 10)
 	}
 
-	clearRit() {
-		this._uart('RC')
+	async clearRit() {
+		await this._uart('RC')
 		this._rit = 0
 	}
 
-	clearXit() {
-		this._uart('RC')
+	async clearXit() {
+		await this._uart('RC')
 		this._xit = 0
 	}
 }

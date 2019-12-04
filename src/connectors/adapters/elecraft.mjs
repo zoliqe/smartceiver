@@ -27,27 +27,28 @@ class ElecraftTcvr {
     #model
     #options
 
-	constructor(model, connector, options = {baudrate}) {
-        this._uart = data => connector.serialData(data + ';')
+	constructor(model, options = {baudrate}) {
+		this._uart = _ => {} // do nothing
         this.#model = model || ''
         this.#options = options || {}
 	}
 
-	static K2(connector, options = {baudrate: 4800}) {
-		return new ElecraftTcvr('k2', connector, options)
+	static K2(options = {baudrate: 4800}) {
+		return new ElecraftTcvr('k2', options)
 	}
 
-	static KX3(connector, options = {baudrate: 38400}) {
-		return new ElecraftTcvr('kx3', connector, options)
+	static KX3(options = {baudrate: 38400}) {
+		return new ElecraftTcvr('kx3', options)
 	}
 
-	async init() {
+	async init(dataSender) {
+        this._uart = async (data) => await dataSender(data + ';')
 		await delay(2000) // wait for tcvr internal CPU start
 		this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 
 	close() {
-		this._uart = data => {} // do nothing
+		this._uart = _ => {} // do nothing
     }
 
     get baudrate() {
@@ -100,25 +101,25 @@ class ElecraftTcvr {
 		this._uart(`RA0${attn > 0 ? 1 : 0}`)
 	}
 
-	filter(filter, mode) {
+	async filter(filter, mode) {
 		const index = filters[mode].indexOf(filter)
         if (index < 0) return
-        if (this.#model === 'k2') this._filterK2(index)
-        else this._filterK3(filter)
+        if (this.#model === 'k2') await this._filterK2(index)
+        else await this._filterK3(filter)
     }
 
-    _filterK2(index) {
-		this._uart('K22')
-		this._uart(`FW0000${index + 1}`)
-		this._uart('K20')
+    async _filterK2(index) {
+		await this._uart('K22')
+		await this._uart(`FW0000${index + 1}`)
+		await this._uart('K20')
 		// const count = Object.keys(filters[mode]).length / 2
 		// for (let i = 0; i < count; i++) this._uart(`FW0000${index}`) // cycle trought filters (basic cmd format)
     }
 
-    _filterK3(bw) {
+    async _filterK3(bw) {
         bw = Number(bw) / 10
         bw = String(bw).padStart(4, '0')
-        this._uart('BW' + bw)
+        await this._uart('BW' + bw)
     }
 
 	set txpower(level) {
@@ -178,16 +179,16 @@ class ElecraftTcvr {
 		return Math.floor(v2 / 10) - Math.floor(v1 / 10)
 	}
 
-	clearRit() {
+	async clearRit() {
 		if (this._rit != -1) {
-			this._uart('RC')
+			await this._uart('RC')
 			this._rit = 0
 		}
 	}
 
-	clearXit() {
+	async clearXit() {
 		if (this._xit != -1) {
-			this._uart('RC')
+			await this._uart('RC')
 			this._xit = 0
 		}
 	}

@@ -1,15 +1,16 @@
 import {PowronConnector, PowronPins} from '../connectors/powron.mjs'
-import {ElecraftTcvr} from '../adapters/elecraft.mjs'
-import {IcomTcvr} from '../adapters/icom.mjs'
-import {YeasuTcvr} from '../adapters/yeasu.mjs'
-import {KenwoodTcvr} from '../adapters/kenwood.mjs'
+import {ElecraftTcvr} from '../connectors/adapters/elecraft.mjs'
+import {IcomTcvr} from '../connectors/adapters/icom.mjs'
+import {YeasuTcvr} from '../connectors/adapters/yeasu.mjs'
+import {KenwoodTcvr} from '../connectors/adapters/kenwood.mjs'
 
 const rigQth = 'k2@om4aa.ddns.net'
 
+const tcvrAdapter = () => ElecraftTcvr.K2()
+//const tcvrAdapter = () => KenwoodTcvr.TS2000({powerViaCat: true})
+//const tcvrAdapter = () => YeasuTcvr.FT1000MP()
+
 // poweron || bluecat
-const connector = new PowronConnector()
-const tcvrAdapter = () => ElecraftTcvr.K2(connector) // deffer serial initialization
-//const tcvrAdapter = () => KenwoodTcvr.TS2000(catConnector, {powerViaCat: true}) // deffer serial initialization
-//const tcvrAdapter = () => YeasuTcvr.FT1000MP(catConnector) // deffer serial initialization
+const connector = new PowronConnector(tcvrAdapter)
 
 export {rigQth, tcvrAdapter}

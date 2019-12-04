@@ -32,21 +32,22 @@ class YeasuTcvr {
 
     #options
 
-	constructor(connector, options = {baudrate}) {
-		this._uart = s => connector.serialData(s)
+	constructor(options = {baudrate}) {
+		this._uart = _ => {} // do nothing
         this.#options = options || {}
 	}
 
-	static FT1000MP(connector, options = {baudrate: 4800}) {
-		return new YeasuTcvr(connector, options)
+	static FT1000MP(options = {baudrate: 4800}) {
+		return new YeasuTcvr(options)
 	}
 
-	async init() {
+	async init(dataSender) {
+        this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
 	close() {
-		this._uart = data => {} // do nothing
+		this._uart = _ => {} // do nothing
     }
 
     get baudrate() {
@@ -106,10 +107,10 @@ class YeasuTcvr {
 		this._uart(data)
 	}
 
-	filter(filter, mode) {
+	async filter(filter, mode) {
 		const value = filterValues[filter]
 		const data = [0, 0, 0, value, 0x8C]
-		this._uart(data)
+		await this._uart(data)
 	}
 
 	set agc(agc) {

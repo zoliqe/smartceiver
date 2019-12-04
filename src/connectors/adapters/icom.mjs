@@ -27,21 +27,22 @@ class IcomTcvr {
 
     #options
 
-    constructor(connector, options = {address, baudrate}) {
-		this._uart = s => connector.serialData(s)
+    constructor(options = {address, baudrate}) {
+		this._uart = _ => {} // do nothing
         this.#options = options || {}
 	}
 
-	static IC706(connector, options = {address: 0x58, baudrate: 9600}) {
-		return new IcomTcvr(connector, options)
+	static IC706(options = {address: 0x58, baudrate: 9600}) {
+		return new IcomTcvr(options)
 	}
 
-	async init() {
+	async init(dataSender) {
+        this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
 	close() {
-		this._uart = data => {} // do nothing
+		this._uart = _ => {} // do nothing
 	}
 
 	get civAddress() {
@@ -140,7 +141,7 @@ class IcomTcvr {
 		this._uart(data)
 	}
 
-	filter(filter, mode) {
+	async filter(filter, mode) {
 		// not supported
 	}
 }
