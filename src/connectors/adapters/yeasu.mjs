@@ -1,7 +1,7 @@
 import {bands, modes, agcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
-const _bands = [bands[160], bands[80], bands[40], bands[30], 
+const _bands = [bands[160], bands[80], bands[40], bands[30],
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
 const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
 // const _agc = [agcTypes.FAST, agcTypes.SLOW]
@@ -29,12 +29,16 @@ const hex2dec = (h) => {
 }
 
 class YeasuTcvr {
-	constructor(connector) {
+
+    #options
+
+	constructor(connector, options = {baudrate}) {
 		this._uart = s => connector.serialData(s)
+        this.#options = options || {}
 	}
 
-	static FT1000MP(connector) { // baudrate = 4800
-		return new YeasuTcvr(connector)
+	static FT1000MP(connector, options = {baudrate: 4800}) {
+		return new YeasuTcvr(connector, options)
 	}
 
 	async init() {
@@ -43,7 +47,11 @@ class YeasuTcvr {
 
 	close() {
 		this._uart = data => {} // do nothing
-	}
+    }
+
+    get baudrate() {
+        return this.#options.baudrate
+    }
 
 	get agcTypes() {
 		return null
@@ -52,7 +60,7 @@ class YeasuTcvr {
 	get bands() {
 		return _bands
 	}
-	
+
 	get modes() {
 		return _modes
 	}
@@ -85,7 +93,7 @@ class YeasuTcvr {
 		const hz100_10 = Math.floor(f / 10) // 10Hz
 		f = f - (hz100_10 *             10)
 		// log(`f=${f}`)
-	
+
 		const data = [hex2dec(hz100_10), hex2dec(khz10_1), hex2dec(khz1000_100), hex2dec(mhz100_10),
 			0x0A]
 		// log(`TCVR f: ${data}`)

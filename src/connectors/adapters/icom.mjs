@@ -1,8 +1,8 @@
 import {bands, modes, agcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
-const _bands = [bands[160], bands[80], bands[40], bands[30], 
-	bands[20], bands[17], bands[15], bands[12], bands[10], bands[6], 
+const _bands = [bands[160], bands[80], bands[40], bands[30],
+	bands[20], bands[17], bands[15], bands[12], bands[10], bands[6],
 	bands[2], bands[70]]
 const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
 const _agc = [agcTypes.FAST, agcTypes.SLOW]
@@ -24,14 +24,16 @@ const hex2dec = (h) => {
 }
 
 class IcomTcvr {
-	#tcvrAddr
-	constructor(connector, address) {
+
+    #options
+
+    constructor(connector, options = {address, baudrate}) {
 		this._uart = s => connector.serialData(s)
-		this.#tcvrAddr = address
+        this.#options = options || {}
 	}
 
-	static IC706(connector) { // baudrate = 9600
-		return new IcomTcvr(connector, 0x58)
+	static IC706(connector, options = {address: 0x58, baudrate: 9600}) {
+		return new IcomTcvr(connector, options)
 	}
 
 	async init() {
@@ -43,8 +45,12 @@ class IcomTcvr {
 	}
 
 	get civAddress() {
-		return this.#tcvrAddr
-	}
+		return this.#options.address
+    }
+
+    get baudrate() {
+        return this.#options.baudrate
+    }
 
 	get agcTypes() {
 		return _agc
@@ -53,7 +59,7 @@ class IcomTcvr {
 	get bands() {
 		return _bands
 	}
-	
+
 	get modes() {
 		return _modes
 	}
@@ -87,9 +93,9 @@ class IcomTcvr {
 		f = f - (hz1000_100 * 100)
 		// log(`f=${f}`)
 		const hz10 = Math.floor(f / 10) * 10 // 10Hz
-	
+
 		const data = [0xFE, 0xFE,
-			this.#tcvrAddr, myCivAddr, 0, // 0: transfer Freq CMD w/o reply .. 5: set Freq CMD with reply
+			this.civAddress, myCivAddr, 0, // 0: transfer Freq CMD w/o reply .. 5: set Freq CMD with reply
 			hex2dec(hz10), hex2dec(hz1000_100), hex2dec(khz100_10), hex2dec(mhz10_1), mhz100,
 			0xFD]
 		// log(`TCVR f: ${data}`)
@@ -99,10 +105,10 @@ class IcomTcvr {
 	set mode(mode) {
 		const value = modeValues[mode]
 		if (value === null) return
-	
+
 		// log(`tcvrMode: ${mode} => ${value}`)
 		const data = [0xFE, 0xFE,
-			this.#tcvrAddr, myCivAddr, 0x06, value, 0x01,
+			this.civAddress, myCivAddr, 0x06, value, 0x01,
 			0xFD]
 		this._uart(data)
 	}
@@ -111,7 +117,7 @@ class IcomTcvr {
 		const value = agc == agcTypes.SLOW ? 0x02 : 0x01
 		// log(`tcvrAgc: ${state}`)
 		const data = [0xFE, 0xFE,
-			this.#tcvrAddr, myCivAddr, 0x16, 0x12, value,
+			this.civAddress, myCivAddr, 0x16, 0x12, value,
 			0xFD]
 		this._uart(data)
 	}
@@ -120,7 +126,7 @@ class IcomTcvr {
 		// log(`tcvrPreamp: ${state}`)
 		const value = gain > 0 ? 0x01 : 0
 		const data = [0xFE, 0xFE,
-			this.#tcvrAddr, myCivAddr, 0x16, 0x02, value,
+			this.civAddress, myCivAddr, 0x16, 0x02, value,
 			0xFD]
 		this._uart(data)
 	}
@@ -129,7 +135,7 @@ class IcomTcvr {
 		// log(`tcvrAttn: ${state}`)
 		const value = attn > 0 ? 0x20 : 0
 		const data = [0xFE, 0xFE,
-			this.#tcvrAddr, myCivAddr, 0x11, value,
+			this.civAddress, myCivAddr, 0x11, value,
 			0xFD]
 		this._uart(data)
 	}

@@ -2,7 +2,7 @@ import {bands, modes, agcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
 
-const _bands = [bands[160], bands[80], bands[40], bands[30], 
+const _bands = [bands[160], bands[80], bands[40], bands[30],
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
 const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
 const _agc = [agcTypes.FAST, agcTypes.SLOW]
@@ -19,23 +19,24 @@ filters[modes.CW] = filters[modes.CWR] = ['2000', '1000', '600', '500', '400', '
 filters[modes.LSB] = filters[modes.USB] = ['2100']
 
 class KenwoodTcvr {
-	
+
 	_splitState = false
 	_rit = 0
-	_xit = 0
+    _xit = 0
+    #options
 
-	constructor(connector, options) {
-		this._uart = data => connector.serialData(data + ';')
-		this._options = options || {}
+	constructor(connector, options = {powerViaCat, baudrate}) {
+        this._uart = data => connector.serialData(data + ';')
+        this.#options = options || {}
 	}
 
-	static TS2000(connector, options = {powerViaCat: false}) {
+	static TS2000(connector, options = {powerViaCat: false, baudrate: 9600}) {
 		return new KenwoodTcvr(connector, options)
 	}
 
 	async init() {
 		await delay(4000) // wait for tcvr internal CPU start
-		if (this._options.powerViaCat) {
+		if (this.#options.powerViaCat) {
 			this._uart('PS1')
 			await delay(2000)
 		}
@@ -43,9 +44,13 @@ class KenwoodTcvr {
 	}
 
 	close() {
-		this._options.powerViaCat && this._uart('PS0')
+		this.#options.powerViaCat && this._uart('PS0')
 		this._uart = data => {} // do nothing
-	}
+    }
+
+    get baudrate() {
+        return this.#options.baudrate
+    }
 
 	get agcTypes() {
 		return _agc
@@ -54,7 +59,7 @@ class KenwoodTcvr {
 	get bands() {
 		return _bands
 	}
-	
+
 	get modes() {
 		return _modes
 	}

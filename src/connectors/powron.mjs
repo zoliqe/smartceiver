@@ -1,9 +1,11 @@
 import {delay} from '../utils/time.mjs'
 
-const serialBaudRate = 4800
 const cmdByState = state => (state && 'H') || 'L'
 const startSeq = '$OM4AA#'
-const PowronPins = Object.freeze({pin2: 0, pin3: 1, pin4: 2, pin5: 3, 
+const startSeqDelay = 3000
+// const serialBaudRate = 4800
+const serialInitDelay = 1000
+const PowronPins = Object.freeze({pin2: 0, pin3: 1, pin4: 2, pin5: 3,
 	pin6: 4, pin7: 5, pin8: 6, pin9: 7, pin10: 8,
 	pinA0: 0, pinA1: 1, pinA2: 2, pinA3: 3, pinA4: 4, pinA5: 5,
 	pinA6: 6, pinA7: 7
@@ -17,20 +19,21 @@ const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
 class PowronConnector {
-	
+
 	#timeout = 600
-	#interfaceNumber = 2;  // original interface number of WebUSB Arduino demo
-	#endpointIn = 5;       // original in endpoint ID of WebUSB Arduino demo
-	#endpointOut = 4;      // original out endpoint ID of WebUSB Arduino demo
+	#interfaceNumber = 2  // original interface number of WebUSB Arduino demo
+	#endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
+	#endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
+	#device
 	#powerPins
 	#pttPins
 	#keyerPin
 	#adapter
 	#powr
 	#keyer
-	
-	constructor(adapterProvider, {keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6], 
-		powerPins = [PowronPins.pin2, PowronPins.pin4]}, keyerConfig = {pttTimeout = 5000}) 
+
+	constructor(adapterProvider, {keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
+		powerPins = [PowronPins.pin2, PowronPins.pin4]}, keyerConfig = {pttTimeout = 5000})
 	{
 		this.#keyerPin = keyerPin
 		this.#pttPins = pttPins || []
@@ -40,25 +43,29 @@ class PowronConnector {
 		this.#keyer = new Keyer(this, keyerPin, keyerConfig)
 	}
 
-  connect(tcvr, kredence, options) {
+  connect(tcvr, _, options) {
     if (!navigator.usb) {
       throw new Error('POWRON: WebUSB is not supported!')
     }
     // this.requestPort()
     return new Promise(async (resolve, reject) => {
 			try {
-				this.device = await navigator.usb.requestDevice({ 'filters': devFilters })
+				this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
 				// .then(device => {
-   	 	 	console.debug(`POWRON device: ${this.device.productName} (${this.device.manufacturerName})`)
+   	 	 	console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 				await this._open()
 				// .then(port => {
-				console.log('POWRON Connected ' + this.device.productName)
+				console.log('POWRON Connected ' + this.#device.productName)
 				// this._bindCommands(tcvr, port)
-				setTimeout(() => {
-					this.send(startSeq)
-					setTimeout(() => this.serial(serialBaudRate), 1000)
-				}, 3000)
-				resolve(this.device)
+				await delay(startSeqDelay)
+				this.send(startSeq)
+				await delay(serialInitDelay)
+				this.serial(this.#adapter.baudrate)
+				// setTimeout(() => {
+				// 	this.send(startSeq)
+				// 	setTimeout(() => this.serial(serialBaudRate), 1000)
+				// }, 3000)
+				resolve(this.#device)
 			} catch (error) {
 				reject(error)
 			}
@@ -66,24 +73,24 @@ class PowronConnector {
   }
 
   get connected() {
-    return true
+    return this.#device != null
   }
 
   _open() {
     const readLoop = () => {
-      this.device.transferIn(this.#endpointIn, 64).then(result => {
-        this.onReceive(this.decoder.decode(result.data))
+      this.#device.transferIn(this.#endpointIn, 64).then(result => {
+        this.onReceive(result.data)
         readLoop()
       }, error => this.onReceiveError(error))
     }
-    return this.device.open()
+    return this.#device.open()
       .then(() => {
-        if (this.device.configuration === null) {
-          return this.device.selectConfiguration(1)
+        if (this.#device.configuration === null) {
+          return this.#device.selectConfiguration(1)
         }
 			})
 			.then(() => {
-				const configurationInterfaces = this.device.configuration.interfaces
+				const configurationInterfaces = this.#device.configuration.interfaces
 				configurationInterfaces.forEach(element => {
 					element.alternates.forEach(elementalt => {
 						if (elementalt.interfaceClass == 0xff) {
@@ -100,9 +107,9 @@ class PowronConnector {
 					})
 				})
 			})
-      .then(() => this.device.claimInterface(this.#interfaceNumber))
-			.then(() => this.device.selectAlternateInterface(this.#interfaceNumber, 0))
-      .then(() => this.device.controlTransferOut({
+      .then(() => this.#device.claimInterface(this.#interfaceNumber))
+			.then(() => this.#device.selectAlternateInterface(this.#interfaceNumber, 0))
+      .then(() => this.#device.controlTransferOut({
         'requestType': 'class',
         'recipient': 'interface',
         'request': 0x22,
@@ -115,21 +122,24 @@ class PowronConnector {
   filter(bandWidth, centerFreq) {
   }
 
-  checkState(kredence) {
+  checkState() {
     return new Promise((resolve) => resolve({id: this.id})) // emulate online state
   }
 
-  disconnect() {
-    return this.device && this.device.controlTransferOut({
+  async disconnect() {
+		if (!this.#device) return
+
+    await this.#device.controlTransferOut({
       'requestType': 'class',
       'recipient': 'interface',
       'request': 0x22,
       'value': 0x00,
       'index': this.#interfaceNumber
     })
-      .then(() => this.device.close())
+		await this.#device.close()
+		this.#device = null
 	}
-	
+
 	async on() {
 		await this.#powr.on()
 		this.#adapter.init && (await this.#adapter.init())
@@ -145,9 +155,15 @@ class PowronConnector {
 		await this.#powr.off()
 	}
 
-  send(data) {
+  async send(data) {
 		//console.debug(`POWRON <= ${data.trim()}`)
-		return this.device && this.device.transferOut(this.#endpointOut, encoder.encode(data + '\n'))
+		if (this.connected) {
+			await this.#device.transferOut(this.#endpointOut, encoder.encode(data + '\n'))
+			return true
+		} else {
+			console.error(`POWRON: data not sent ${data}`)
+			return false
+		}
   }
 
   onReceive(data) {
@@ -165,7 +181,7 @@ class PowronConnector {
   //   }
 
 	// this._port && this.disconnect()
-	
+
 	// console.debug('getting serial.getPorts()')
   //   const ports = await serial.getPorts()
   //   console.debug(`powron getPorts(): ${JSON.stringify(ports)}`)
@@ -214,7 +230,10 @@ class PowronConnector {
 	}
 
 	pinState(pin, state) {
-		pin != null && pins.includes(pin) && this.send(cmdByState(state) + pin)
+		if (pin != null && pins.includes(pin))
+			this.send(cmdByState(state) + pin)
+		else
+			console.error(`POWRON pinState: pin ${pin} not known`)
 	}
 
 	keyerState(state) {
@@ -238,11 +257,14 @@ class PowronConnector {
 	}
 
 	serial(baudrate) {
-		this.send(`P${baudrate / 100}`)
+		if (baudrate >= 1200 && baudrate <= 115200)
+			this.send(`P${baudrate / 100}`)
+		else
+			console.error(`POWRON: serial baudrate=${baudrate} not in range, value not set`)
 	}
 
 	serialData(data) {
-		this.send('>' + data)
+		(data != null) && this.send('>' + data)
 	}
 
 	// send(data, callback) {
@@ -373,10 +395,10 @@ class Keyer {
 		this.#pttTimeout = pttTimeout
 		this._cw = s => connector && connector.keyerCW(s)
 		this._speed = v => connector && connector.keyerSpeed(v)
-		this._key = state => 
+		this._key = state =>
 			connector && keyerPin != null && connector.pinState(keyerPin, state)
 		this._ptt = state => connector && connector.pttState(state)
-		
+
 		connector && connector.keyerState(true)
 		this._ptt(false)
 	}

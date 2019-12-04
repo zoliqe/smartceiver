@@ -1,7 +1,7 @@
 import {bands, modes, agcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
-const _bands = [bands[160], bands[80], bands[40], bands[30], 
+const _bands = [bands[160], bands[80], bands[40], bands[30],
 	bands[20], bands[17], bands[15], bands[12], bands[10]]
 const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
 const _agc = [agcTypes.FAST, agcTypes.SLOW]
@@ -20,17 +20,25 @@ filters[modes.LSB] = filters[modes.USB] = ['2100', '2300', '700', '400']
 // filters[modes.LSB] = filters[modes.USB] = filters[modes.RTTY] = ['1k5', 'OP1', '400', '200']
 
 class ElecraftTcvr {
-	
+
 	_splitState = false
 	_rit = 0
-	_xit = 0
+    _xit = 0
+    #model
+    #options
 
-	constructor(connector, options = {}) {
-		this._uart = data => connector.serialData(data + ';')
+	constructor(model, connector, options = {baudrate}) {
+        this._uart = data => connector.serialData(data + ';')
+        this.#model = model || ''
+        this.#options = options || {}
 	}
 
-	static K2(connector) { //baudrate = 4800
-		return new ElecraftTcvr(connector)
+	static K2(connector, options = {baudrate: 4800}) {
+		return new ElecraftTcvr('k2', connector, options)
+	}
+
+	static KX3(connector, options = {baudrate: 38400}) {
+		return new ElecraftTcvr('kx3', connector, options)
 	}
 
 	async init() {
@@ -40,7 +48,11 @@ class ElecraftTcvr {
 
 	close() {
 		this._uart = data => {} // do nothing
-	}
+    }
+
+    get baudrate() {
+        return this.#options.baudrate
+    }
 
 	get agcTypes() {
 		return _agc
@@ -49,7 +61,7 @@ class ElecraftTcvr {
 	get bands() {
 		return _bands
 	}
-	
+
 	get modes() {
 		return _modes
 	}
@@ -89,14 +101,25 @@ class ElecraftTcvr {
 	}
 
 	filter(filter, mode) {
-		// const count = Object.keys(filters[mode]).length / 2
 		const index = filters[mode].indexOf(filter)
-		if (index < 0) return
+        if (index < 0) return
+        if (this.#model === 'k2') this._filterK2(index)
+        else this._filterK3(filter)
+    }
+
+    _filterK2(index) {
 		this._uart('K22')
 		this._uart(`FW0000${index + 1}`)
 		this._uart('K20')
+		// const count = Object.keys(filters[mode]).length / 2
 		// for (let i = 0; i < count; i++) this._uart(`FW0000${index}`) // cycle trought filters (basic cmd format)
-	}
+    }
+
+    _filterK3(bw) {
+        bw = Number(bw) / 10
+        bw = String(bw).padStart(4, '0')
+        this._uart('BW' + bw)
+    }
 
 	set txpower(level) {
 		this._uart(`PC${String(level).padStart(3, '0')}`)
