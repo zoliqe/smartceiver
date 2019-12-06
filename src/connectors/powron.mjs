@@ -1,11 +1,14 @@
-import {delay} from '../utils/time.mjs'
+import { delay } from '../utils/time.mjs'
+import { Keyer } from './extensions/keyer.mjs'
+import { PowrSwitch } from './extensions/powrsw.mjs'
 
 const cmdByState = state => (state && 'H') || 'L'
 const startSeq = '$OM4AA#'
 const startSeqDelay = 3000
 // const serialBaudRate = 4800
 const serialInitDelay = 1000
-const PowronPins = Object.freeze({pin2: 0, pin3: 1, pin4: 2, pin5: 3,
+const PowronPins = Object.freeze({
+	pin2: 0, pin3: 1, pin4: 2, pin5: 3,
 	pin6: 4, pin7: 5, pin8: 6, pin9: 7, pin10: 8,
 	pinA0: 0, pinA1: 1, pinA2: 2, pinA3: 3, pinA4: 4, pinA5: 5,
 	pinA6: 6, pinA7: 7
@@ -32,40 +35,48 @@ class PowronConnector {
 	#powr
 	#keyer
 
-	constructor(adapterProvider, {keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
-		powerPins = [PowronPins.pin2, PowronPins.pin4]}, keyerConfig = {pttTimeout = 5000})
-	{
+	constructor(adapterProvider, { keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
+		powerPins = [PowronPins.pin2, PowronPins.pin4], powerTimeout = 120 }, keyerConfig = { pttTimeout: 5000 }) {
 		this.#keyerPin = keyerPin
 		this.#pttPins = pttPins || []
 		this.#powerPins = powerPins || []
-		this.#adapter = adapterProvider()
-		this.#powr = new PowrManager(this)
-
+		this._powerTimeout(powerTimeout != null ? powerTimeout : 0)
 		this.keyerState(true)
 		this.pttState(false)
-		this.#keyer = new Keyer(this, keyerPin, keyerConfig)
+
+		this.#adapter = adapterProvider()
+		this.#powr = new PowrSwitch({
+			state: async (state) => await this.#powerPins.forEach(async (pin) => await this._pinState(pin, state))
+		})
+		this.#keyer = new Keyer({
+				send: async (cmd) => await this._send(cmd),
+				speed: async (wpm) => await this._send('S' + wpm),
+				state: () => this.#keyerPin != null,
+				key: async (state) => await this._pinState(this.#keyerPin, state),
+				ptt: async (state) => await this.#pttPins.forEach(async (pin) => await this._pinState(pin, state))
+			}, keyerConfig)
 	}
 
-  connect(tcvr, _, options) {
-    if (!navigator.usb) {
-      throw new Error('POWRON: WebUSB is not supported!')
-    }
-    // this.requestPort()
-    return new Promise(async (resolve, reject) => {
+	connect(tcvr, _, options) {
+		if (!navigator.usb) {
+			throw new Error('POWRON: WebUSB is not supported!')
+		}
+		// this.requestPort()
+		return new Promise(async (resolve, reject) => {
 			try {
 				this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
 				// .then(device => {
-   	 	 	console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
+				console.debug(`POWRON device: ${this.#device.productName} (${ this.#device.manufacturerName })`)
 				await this._open()
 				// .then(port => {
 				console.log('POWRON Connected ' + this.#device.productName)
 				// this._bindCommands(tcvr, port)
 				await delay(startSeqDelay)
-				this.send(startSeq)
+				this._send(startSeq)
 				await delay(serialInitDelay)
 				this.serial(this.#adapter.baudrate)
 				// setTimeout(() => {
-				// 	this.send(startSeq)
+				// 	this._send(startSeq)
 				// 	setTimeout(() => this.serial(serialBaudRate), 1000)
 				// }, 3000)
 				resolve(this.#device)
@@ -73,10 +84,6 @@ class PowronConnector {
 				reject(error)
 			}
 		}, error => console.log('POWRON Connection error: ' + error))
-  }
-
-  get connected() {
-    return this.#device != null
   }
 
   _open() {
@@ -122,13 +129,6 @@ class PowronConnector {
       .then(() => readLoop())
   }
 
-  filter(bandWidth, centerFreq) {
-  }
-
-  checkState() {
-    return new Promise((resolve) => resolve({id: this.id})) // emulate online state
-  }
-
   async disconnect() {
 		if (!this.#device) return
 
@@ -143,28 +143,88 @@ class PowronConnector {
 		this.#device = null
 	}
 
-	async on() {
+	async _on() {
 		await this.#powr.on()
 		this.#adapter.init && (await this.#adapter.init(this.serialData))
 	}
 
-	async holdOn() {
+	async _tick() {
 		await this.#powr.on()
 	}
 
-	async off() {
+	async _off() {
 		this.#adapter.close && this.#adapter.close()
-		// this.#adapter = null
 		await this.#powr.off()
 	}
 
-  async send(data) {
-		//console.debug(`POWRON <= ${data.trim()}`)
+  get connected() {
+    return this.#device != null
+  }
+
+  async checkState() {
+    return this.connected ? {id: this.id} : null
+  }
+
+  filter(bandWidth, centerFreq) {
+  }
+
+	// async keyerSend(cmd) {
+	// 	await this._send(cmd)
+	// }
+
+	// async keyerSpeed(wpm) {
+	// 	await this._send('S' + wpm)
+	// }
+
+	// async pttState(state) {
+	// 	await this.#pttPins
+	// 		.forEach(async (pin) => await this._pinState(pin, state))
+	// }
+
+	async serialData(data) {
+		return data != null && (await this._send('>' + data))
+	}
+
+	async _serialBaudrate(baudrate) {
+		if (baudrate >= 1200 && baudrate <= 115200)
+			await this._send(`P${ baudrate / 100 } `)
+		else
+			console.error(`POWRON: serial baudrate = ${ baudrate } not in range, value not set`)
+	}
+
+	async _powerTimeout(value) {
+		this.#timeout = Number(value)
+		this._send('T' + this.#timeout)
+	}
+
+	async _keyerPin(pin) {
+		if (pin != null && pins.includes(pin)) {
+			console.info('POWRON: Enabling keyer on pin', pin)
+			this.#keyerPin = pin
+			await this._pinState(pin, false)
+			await this._send(`K${pin}`)
+		} else {
+			console.info('POWRON: Disabling keyer on pin', this.#keyerPin)
+			await this._pinState(this.#keyerPin, false)
+			await this._send('K0')
+			this.#keyerPin = null
+		}
+	}
+
+	async _pinState(pin, state) {
+		if (pin != null && pins.includes(pin))
+			await this._send(cmdByState(state) + pin)
+		else
+			console.error(`POWRON pinState: pin ${ pin } not known`)
+	}
+
+  async _send(data) {
+		//console.debug(`POWRON <= ${ data.trim() } `)
 		if (this.connected) {
 			await this.#device.transferOut(this.#endpointOut, encoder.encode(data + '\n'))
 			return true
 		} else {
-			console.error(`POWRON: data not sent ${data}`)
+			console.error(`POWRON: data not sent ${ data } `)
 			return false
 		}
   }
@@ -187,7 +247,7 @@ class PowronConnector {
 
 	// console.debug('getting serial.getPorts()')
   //   const ports = await serial.getPorts()
-  //   console.debug(`powron getPorts(): ${JSON.stringify(ports)}`)
+  //   console.debug(`powron getPorts(): ${ JSON.stringify(ports) } `)
   //   if (ports.length == 1) {
   //     this._port = ports[0]
   //   } else if (ports.length > 1) {
@@ -204,14 +264,14 @@ class PowronConnector {
   //     reject('port is null')
   //     return
   //   }
-  //   console.debug(`powron device: ${this._port.device_.productName} (${this._port.device_.manufacturerName})`)
+  //   console.debug(`powron device: ${ this._port.device_.productName } (${ this._port.device_.manufacturerName })`)
 
   //   try {
   //     await this._port.connect()
   //     console.info('powron connected :-)')
 
 	// 		setTimeout(() => {
-	// 			this.send(startSeq)
+	// 			this._send(startSeq)
 	// 			this._serialBaudRate && setTimeout(() => this.serial(this._serialBaudRate), 1000)
 	// 		}, 3000)
 	// } catch (error) {
@@ -223,56 +283,9 @@ class PowronConnector {
   //   resolve(this)
   // }
 
-	get timeout() {
-		return this.#timeout
-	}
-
-	set timeout(value) {
-		this.#timeout = Number(value)
-		this.send('T' + this.#timeout)
-	}
-
-	async pinState(pin, state) {
-		if (pin != null && pins.includes(pin))
-			await this.send(cmdByState(state) + pin)
-		else
-			console.error(`POWRON pinState: pin ${pin} not known`)
-	}
-
-	async keyerState(state) {
-		if (this.#keyerPin) {
-			await this.pinState(this.#keyerPin, false)
-			await this.send(`K${state ? this.#keyerPin : 0}`)
-		}
-	}
-
-	async keyerCW(cmd) {
-		await this.send(cmd)
-	}
-
-	async keyerSpeed(wpm) {
-		await this.send('S' + wpm)
-	}
-
-	async pttState(state) {
-		await this.#pttPins
-			.forEach(async (pin) => await this.pinState(pin, state))
-	}
-
-	async serial(baudrate) {
-		if (baudrate >= 1200 && baudrate <= 115200)
-			await this.send(`P${baudrate / 100}`)
-		else
-			console.error(`POWRON: serial baudrate=${baudrate} not in range, value not set`)
-	}
-
-	async serialData(data) {
-		return data != null && (await this.send('>' + data))
-	}
-
-	// send(data, callback) {
-	// 	//console.debug(`POWRON <= ${data.trim()}`)
-  //   this._port && this._port.send(this._encoder.encode(data + '\n')) && console.debug(`powron sent: ${data}`)
+	// _send(data, callback) {
+	// 	//console.debug(`POWRON <= ${ data.trim() } `)
+  //   this._port && this._port._send(this._encoder.encode(data + '\n')) && console.debug(`powron sent: ${ data } `)
 	// }
 }
 
@@ -286,7 +299,7 @@ class PowronConnector {
 		this._pttPin = options.pttPin
 		this._serialBaudRate = options.serialBaudRate
 		setTimeout(() => {
-			this.send(startSeq)
+			this._send(startSeq)
 			this._serialBaudRate && setTimeout(() => this.serial(this._serialBaudRate), 1000)
 		}, 5000)
 }
@@ -297,165 +310,48 @@ class PowronConnector {
 
 	set timeout(value) {
 		this._timeout = Number(value)
-		this.send(`T${this._timeout}`)
+		this._send(`T${ this._timeout } `)
 	}
 
 	get keyerPin() {
 		return this._keyerPin
 	}
 
-	pinState(pin, state) {
-		this.send(cmdByState(state) + pin)
+	_pinState(pin, state) {
+		this._send(cmdByState(state) + pin)
 	}
 
 	keyerState(state) {
 		if (this._keyerPin && Object.values(PowronPins).includes(this._keyerPin)) {
-			this.pinState(this._keyerPin, false)
-			this.send(`K${state ? this._keyerPin : 0}`)
+			this._pinState(this._keyerPin, false)
+			this._send(`K${ state ? this._keyerPin : 0 } `)
 		}
 	}
 
 	keyerCW(cmd) {
-		this.send(cmd)
+		this._send(cmd)
 	}
 
 	keyerSpeed(wpm) {
-		this.send('S' + wpm)
+		this._send('S' + wpm)
 	}
 
 	pttState(state) {
-		this._pttPin && this.pinState(this._pttPin, state)
+		this._pttPin && this._pinState(this._pttPin, state)
 	}
 
 	serial(baudrate) {
-		this.send(`P${baudrate / 100}`)
+		this._send(`P${ baudrate / 100 } `)
 	}
 
 	serialData(data) {
-		this.send('>' + data)
+		this._send('>' + data)
 	}
 
-	send(data) {
+	_send(data) {
 		this._socket.emit('powron', data)
 	}
 }*/
 
-const hwWatchdogTimeout = 120 // sec
-const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'}
-class PowrManager {
-
-	#state = State.off
-
-	constructor(connector) {
-		this.connector = connector
-	}
-
-	async on() {
-		if (this.#state === State.stoping || this.#state === State.starting) {
-			console.warn(`Remotig in progress state ${this.#state}, ignoring start`)
-			return
-		}
-
-		if (this.#state === State.off) { // cold start
-			console.info(`powerOn`)
-			this.connector.timeout = hwWatchdogTimeout
-		}
-
-		this.#state = State.starting
-		await this._managePowr(true)
-		this.#state = State.on
-	}
-
-	async off() {
-		if (this.#state === State.off || this.#state === State.stoping) return;
-
-		this.#state = State.stoping
-		console.info(`powerOff`)
-		await this._managePowr(false)
-		await delay(500)
-		await this._managePowr(false)
-		await delay(1000)
-
-		this.#state = State.off
-		// logout()
-	}
-
-	async _managePowr(state) {
-		await this.connector.powerPins.forEach(async (pin) => await this.connector.pinState(pin, state))
-	}
-
-}
-
-class Keyer {
-
-	#wpm = 0
-	#pttTimeout
-	#pttTimer
-	#keyTimer
-
-	constructor(connector, keyerPin, {pttTimeout}) {
-		this.#wpm = 0
-		this.#pttTimeout = pttTimeout
-		this._cw = async (s) => await connector.keyerCW(s)
-		this._speed = async (v) => await connector.keyerSpeed(v)
-		this._key = async (state) =>
-			keyerPin != null && (await connector.pinState(keyerPin, state))
-		this._ptt = async (state) => await connector.pttState(state)
-	}
-
-	async send(msg) {
-		if (this.disabled) return
-		await this._cw(msg)
-	}
-
-	async ptt(state, timeout = this.#pttTimeout) {
-		if (state) {
-			if (!timeout) return; // disable PTT
-
-			if (this.#pttTimer != null) clearTimeout(this.#pttTimer)
-			await this._ptt(true) // this resets powron ptt watchdog counter
-			this.#pttTimer = setTimeout(async () => {
-				this.#pttTimer = null
-				await this._ptt(false)
-			}, timeout)
-		} else {
-			await this._ptt(false)
-			this.#pttTimer != null && clearTimeout(this.#pttTimer)
-			this.#pttTimer = null
-		}
-	}
-
-	async key(state, timeout = this.#pttTimeout) {
-		if (state) {
-			if (!timeout) return;
-
-			if (this.#keyTimer != null) clearTimeout(this.#keyTimer)
-			await this._key(true) // reset powron watchdog timer
-			this.#keyTimer = setTimeout(async () => {
-				this.#keyTimer = null
-				await this._key(false)
-			}, timeout)
-		} else {
-			await this._key(false)
-			this.#keyTimer != null && clearTimeout(this.#keyTimer)
-			this.#keyTimer = null
-		}
-	}
-
-	get wpm() {
-		return this.#wpm
-	}
-
-	set wpm(value) {
-		this.#wpm = Number(value)
-		if (this.disabled) return // check after setting value, to allow disable/enable keyer
-		this._speed(this.#wpm)
-	}
-
-	get disabled() {
-		return this.#wpm < 1
-	}
-
-}
 
 export {PowronConnector, PowronPins}
