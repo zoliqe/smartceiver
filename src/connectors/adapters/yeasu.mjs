@@ -1,26 +1,22 @@
-import {bands, modes, agcTypes} from '../../tcvr.mjs'
+import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
-const _bands = [bands[160], bands[80], bands[40], bands[30],
-	bands[20], bands[17], bands[15], bands[12], bands[10]]
-const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
-// const _agc = [agcTypes.FAST, agcTypes.SLOW]
 const modeValues = {}
-modeValues[modes.LSB] = 0x00
-modeValues[modes.USB] = 0x01
-modeValues[modes.CW]  = 0x03
-modeValues[modes.CWR] = 0x02
-modeValues[modes.AM]  = 0x04
-modeValues[modes.NFM] = 0x06
-modeValues[modes.WFM] = 0x07
-modeValues[modes.RTTY] = 0x08
-modeValues[modes.RTTYR] = 0x09
+modeValues[Modes.LSB] = 0x00
+modeValues[Modes.USB] = 0x01
+modeValues[Modes.CW]  = 0x03
+modeValues[Modes.CWR] = 0x02
+modeValues[Modes.AM]  = 0x04
+modeValues[Modes.NFM] = 0x06
+modeValues[Modes.WFM] = 0x07
+modeValues[Modes.RTTY] = 0x08
+modeValues[Modes.RTTYR] = 0x09
 const filterValues = {
-	'6000': 4,
-	'2400': 0,
-	'2000': 1,
-	'500': 2,
-	'250': 3,
+	6000: 4,
+	2400: 0,
+	2000: 1,
+	500: 2,
+	250: 3,
 }
 
 const hex2dec = (h) => {
@@ -34,51 +30,42 @@ class YeasuTcvr {
 
 	constructor(options = {baudrate}) {
 		this._uart = _ => {} // do nothing
-        this.#options = options || {}
+		this.#options = options || {}
 	}
 
 	static FT1000MP(options = {baudrate: 4800}) {
+		const filters = {}
+		filters[Modes.CW]  = filters[Modes.CWR] = [6000, 2400, 2000, 500, 250]
+		filters[Modes.LSB] = filters[Modes.USB] = [6000, 2400, 2000, 500, 250]
+
+		options.props = new TransceiverProperties({
+			bands: [
+				Bands[160], Bands[80], Bands[40], Bands[30],
+				Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]],
+			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
+			modeFilters: filters
+		})
 		return new YeasuTcvr(options)
 	}
 
 	async init(dataSender) {
-        this._uart = dataSender
+		this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
 	close() {
 		this._uart = _ => {} // do nothing
-    }
-
-    get baudrate() {
-        return this.#options.baudrate
-    }
-
-	get agcTypes() {
-		return null
 	}
 
-	get bands() {
-		return _bands
+	get baudrate() {
+		return this.#options.baudrate
 	}
 
-	get modes() {
-		return _modes
+	get properties() {
+		return this.#options.props
 	}
 
-	get preamps() {
-		return null
-	}
-
-	get attns() {
-		return null
-	}
-
-	filters(mode) {
-		return Object.keys(filterValues)
-	}
-
-	set frequency(f) {
+	async frequency(f) {
 		let mhz100_10 = 0
 		if (f >=                     10000000) { // 10MHz
 			mhz100_10 = Math.floor(f / 10000000)
@@ -98,28 +85,36 @@ class YeasuTcvr {
 		const data = [hex2dec(hz100_10), hex2dec(khz10_1), hex2dec(khz1000_100), hex2dec(mhz100_10),
 			0x0A]
 		// log(`TCVR f: ${data}`)
-		this._uart(data) //, (err) => err && log(`TCVR ${err.message}`))
+		await this._uart(data) //, (err) => err && log(`TCVR ${err.message}`))
 	}
 
-	set mode(mode) {
+	async mode(mode) {
 		const value = modeValues[mode]
+		if (value == null) {
+			console.error('YeasuTcvr: Unknown mode', mode)
+			return
+		}
 		const data = [0, 0, 0, value, 0x0C]
-		this._uart(data)
+		await this._uart(data)
 	}
 
 	async filter(filter, mode) {
-		const value = filterValues[filter]
+		const value = filterValues[Number(filter)]
+		if (value == null) {
+			console.error('YeasuTcvr: Unknown filter', filter)
+			return
+		}
 		const data = [0, 0, 0, value, 0x8C]
 		await this._uart(data)
 	}
 
-	set agc(agc) {
+	async agc(agc) {
 	}
 
-	set preamp(gain) {
+	async preamp(gain) {
 	}
 
-	set attn(attn) {
+	async attn(attn) {
 	}
 }
 

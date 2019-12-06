@@ -1,22 +1,15 @@
-import {bands, modes, agcTypes} from '../../tcvr.mjs'
+import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 
-const _bands = [bands[160], bands[80], bands[40], bands[30],
-	bands[20], bands[17], bands[15], bands[12], bands[10], bands[6],
-	bands[2], bands[70]]
-const _modes = [modes.CW, modes.CWR, modes.LSB, modes.USB]
-const _agc = [agcTypes.FAST, agcTypes.SLOW]
 const myCivAddr = 224
 const modeValues = {}
-modeValues[modes.LSB] = 0x00
-modeValues[modes.USB] = 0x01
-modeValues[modes.AM]  = 0x02
-modeValues[modes.CW]  = 0x03
-modeValues[modes.RTTY] = 0x04
-modeValues[modes.NFM] = 0x05
-modeValues[modes.WFM] = 0x06
-
-// const CivAddress = Object.freeze({IC706: 0x58})
+modeValues[Modes.LSB] = 0x00
+modeValues[Modes.USB] = 0x01
+modeValues[Modes.AM]  = 0x02
+modeValues[Modes.CW]  = 0x03
+modeValues[Modes.RTTY] = 0x04
+modeValues[Modes.NFM] = 0x05
+modeValues[Modes.WFM] = 0x06
 
 const hex2dec = (h) => {
 	const s = Math.floor(h / 10)
@@ -25,19 +18,32 @@ const hex2dec = (h) => {
 
 class IcomTcvr {
 
-    #options
+	#options
 
-    constructor(options = {address, baudrate}) {
+	constructor(options = {address, baudrate, props}) {
 		this._uart = _ => {} // do nothing
-        this.#options = options || {}
+		this.#options = options || {}
 	}
 
 	static IC706(options = {address: 0x58, baudrate: 9600}) {
+		const bands = [Bands[160], Bands[80], Bands[40], Bands[30],
+			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10], Bands[6],
+			Bands[2], Bands[70]]
+		const gains = {}
+		bands.forEach(b => gains[b] = [-10, 0, 10])
+
+		options.props = new TransceiverProperties({
+			bands: bands,
+			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
+			agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
+			bandGains: gains,
+			modeFilters: {} // no filters (TODO update to support optional filter)
+		})
 		return new IcomTcvr(options)
 	}
 
 	async init(dataSender) {
-        this._uart = dataSender
+		this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
@@ -47,37 +53,17 @@ class IcomTcvr {
 
 	get civAddress() {
 		return this.#options.address
-    }
-
-    get baudrate() {
-        return this.#options.baudrate
-    }
-
-	get agcTypes() {
-		return _agc
 	}
 
-	get bands() {
-		return _bands
+	get baudrate() {
+		return this.#options.baudrate
 	}
 
-	get modes() {
-		return _modes
+	get properties() {
+		return this.#options.props
 	}
 
-	get preamps() {
-		return [10]
-	}
-
-	get attns() {
-		return [10]
-	}
-
-	filters(mode) {
-		return null
-	}
-
-	set frequency(f) {
+	async frequency(f) {
 		let mhz100 = 0
 		if (f >= 100000000) {
 			mhz100 = Math.floor(f / 100000000)
@@ -100,46 +86,55 @@ class IcomTcvr {
 			hex2dec(hz10), hex2dec(hz1000_100), hex2dec(khz100_10), hex2dec(mhz10_1), mhz100,
 			0xFD]
 		// log(`TCVR f: ${data}`)
-		this._uart(data) //, (err) => err && log(`TCVR ${err.message}`))
+		await this._uart(data) //, (err) => err && log(`TCVR ${err.message}`))
 	}
 
-	set mode(mode) {
+	async mode(mode) {
 		const value = modeValues[mode]
-		if (value === null) return
+		if (value == null) {
+			console.error('IcomTcvr: Unknown mode', mode)
+			return
+		}
 
 		// log(`tcvrMode: ${mode} => ${value}`)
 		const data = [0xFE, 0xFE,
 			this.civAddress, myCivAddr, 0x06, value, 0x01,
 			0xFD]
-		this._uart(data)
+		await this._uart(data)
 	}
 
-	set agc(agc) {
-		const value = agc == agcTypes.SLOW ? 0x02 : 0x01
+	async agc(agc) {
+		const value = agc == AgcTypes.SLOW ? 0x02 : 0x01
 		// log(`tcvrAgc: ${state}`)
 		const data = [0xFE, 0xFE,
 			this.civAddress, myCivAddr, 0x16, 0x12, value,
 			0xFD]
-		this._uart(data)
+		await this._uart(data)
 	}
 
-	set preamp(gain) {
+	async gain(value) {
 		// log(`tcvrPreamp: ${state}`)
-		const value = gain > 0 ? 0x01 : 0
-		const data = [0xFE, 0xFE,
-			this.civAddress, myCivAddr, 0x16, 0x02, value,
+		const gain = value > 0 ? 0x01 : 0
+		let data = [0xFE, 0xFE,
+			this.civAddress, myCivAddr, 0x16, 0x02, gain,
 			0xFD]
-		this._uart(data)
+		await this._uart(data)
+
+		const attn = value < 0 ? 0x20 : 0
+		data = [0xFE, 0xFE,
+			this.civAddress, myCivAddr, 0x11, attn,
+			0xFD]
+		await this._uart(data)
 	}
 
-	set attn(attn) {
-		// log(`tcvrAttn: ${state}`)
-		const value = attn > 0 ? 0x20 : 0
-		const data = [0xFE, 0xFE,
-			this.civAddress, myCivAddr, 0x11, value,
-			0xFD]
-		this._uart(data)
-	}
+	// set attn(attn) {
+	// 	// log(`tcvrAttn: ${state}`)
+	// 	const value = attn > 0 ? 0x20 : 0
+	// 	const data = [0xFE, 0xFE,
+	// 		this.civAddress, myCivAddr, 0x11, value,
+	// 		0xFD]
+	// 	this._uart(data)
+	// }
 
 	async filter(filter, mode) {
 		// not supported

@@ -449,7 +449,7 @@ class EventListener {
 
 
 class Band {
-	
+
 	#name
 	#id
 	#freqFrom
@@ -517,30 +517,43 @@ const _bands = {}
 	[430,		70,		 430000,		440000],
 	[1296,	23,		1240000,	 1300000]
 ].forEach(([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000))
-const bands = Object.freeze(_bands)
+const Bands = Object.freeze(_bands)
 
 const _modes = {}
 ['CW', 'CWR', 'LSB', 'USB', 'RTTY', 'RTTYR', 'NFM', 'WFM', 'AM'].forEach(id => _modes[id] = id)
-const modes = Object.freeze(_modes)
+const Modes = Object.freeze(_modes)
 
 const _agcTypes = {}
 ['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'NONE'].forEach(agc => _agcTypes[agc] = agc)
-const agcTypes = Object.freeze(_agcTypes)
+const AgcTypes = Object.freeze(_agcTypes)
 
 class TransceiverProperties {
 
-	#bands = []
-	#modes = []
-	#agcTypes = []
-	#bandGains = {}
-	#modeFilters = {}
+	#bands
+	#modes
+	#agcTypes
+	#bandGains
+	#modeFilters
 
 	constructor({ bands, modes, agcTypes, bandGains, modeFilters }) {
+		if (!bands || !bands.length) throw new Error('No bands declared')
 		this.#bands = bands
-		this.#modes = modes
-		this.#agcTypes = agcTypes
-		this.#bandGains = bandGains
-		this.#modeFilters = modeFilters
+		this.#modes = modes && modes.length ? modes : [Modes.LSB]
+		this.#agcTypes = agcTypes && agcTypes.length ? agcTypes : [AgcTypes.NONE]
+
+		if (bandGains && bandGains.length) {
+			this.#bandGains = bandGains
+		} else {
+			this.#bandGains = []
+			bands.forEach(b => this.#bandGains[b] = [0])
+		}
+
+		if (modeFilters && modeFilters.length) {
+			this.#modeFilters = modeFilters
+		} else {
+			this.#modeFilters = []
+			modes.forEach(m => this.#modeFilters[m] = [3000])
+		}
 	}
 
 	static fromJSON(json) {
@@ -562,32 +575,38 @@ class TransceiverProperties {
 	}
 
 	gains(band) {
-		return this.#bandGains[band] || []
+		return this.#bands.includes(band) ? [...this.#bandGains[band]] : []
 	}
 
 	filters(mode) {
-		return this.#modeFilters[mode] || []
+		return this.#modes.includes(mode) ? [...this.#modeFilters[mode]] : []
 	}
 
 	get bands() {
-		return this.#bands
+		return [...this.#bands]
 	}
 
 	get modes() {
-		return this.#modes
+		return [...this.#modes]
 	}
 
 	get agcTypes() {
-		return this.#agcTypes
+		return [...this.#agcTypes]
 	}
 
 	get bandGains() {
-		return this.#bandGains
+		const bandGains = {}
+		Object.keys(this.#bandGains)
+			.forEach(b => bandGains[b] = [...this.#bandGains[b]])
+		return bandGains
 	}
 
 	get modeFilters() {
-		return this.#modeFilters
+		const modeFilters = {}
+		Object.keys(this.#modeFilters)
+			.forEach(m => modeFilters[m] = [...this.#modeFilters[m]])
+		return modeFilters
 	}
 }
 
-export {Transceiver, TransceiverProperties, bands, modes, agcTypes}
+export {Transceiver, TransceiverProperties, Bands, Modes, AgcTypes}

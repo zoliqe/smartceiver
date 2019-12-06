@@ -16,62 +16,6 @@ class TcvrAdapter {
 		// if (this.filters.length > 0) this.filter = this.filters[0]
 	}
 
-	get bands() {
-		return this._adapter.bands || [] //.map(Band.byId)
-	}
-
-	get modes() {
-		return this._adapter.modes || [modes.LSB]
-	}
-
-	get filters() {
-		if (!this._mode) return []
-		return this._adapter.filters(this._mode) || []
-	}
-
-	get filtersAllModes() {
-		const filters = {}
-		this.modes.forEach(mode => filters[mode] = this._adapter.filters(mode))
-		return filters
-	}
-
-	get attnLevels() {
-		return this._adapter.attns || []
-	}
-
-	get preampLevels() {
-		return this._adapter.preamps || []
-	}
-
-	get gainLevels() {
-		const res = this.attnLevels.map(v => 0 - v)
-		res.push(0)
-		res.push(...this.preampLevels)
-		return res
-	}
-
-	get agcTypes() {
-		return this._adapter.agcTypes || []
-	}
-
-	get info() {
-		return {
-			bands: this.bands,
-			modes: this.modes, //mode: this.mode,
-			filters: this.filtersAllModes, //filter: this.filter,
-			gainLevels: this.gainLevels, //gain: this.gain,
-			// attnLevels: this.attnLevels,
-			// preampLevels: this.preampLevels,
-			agcTypes: this.agcTypes, //agc: this.agc,
-			//frequency: this.frequency, split: this.split,
-			//wpm: this.wpm,
-		}
-	}
-
-	// get wpm() {
-	// 	return this._keyer && this._keyer.wpm
-	// }
-
 	set wpm(value) {
 		this._keyer && (this._keyer.wpm = value)
 	}
