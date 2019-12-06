@@ -57,7 +57,7 @@ class PowronConnector {
 			}, keyerConfig)
 	}
 
-	connect(tcvr, _, options) {
+	connect() {
 		if (!navigator.usb) {
 			throw new Error('POWRON: WebUSB is not supported!')
 		}
@@ -165,8 +165,8 @@ class PowronConnector {
     return this.connected ? {id: this.id} : null
   }
 
-  filter(bandWidth, centerFreq) {
-  }
+  // filter(bandWidth, centerFreq) {
+  // }
 
 	// async keyerSend(cmd) {
 	// 	await this._send(cmd)

@@ -60,8 +60,8 @@ class TcvrAdapter {
 			modes: this.modes, //mode: this.mode,
 			filters: this.filtersAllModes, //filter: this.filter,
 			gainLevels: this.gainLevels, //gain: this.gain,
-			attnLevels: this.attnLevels,
-			preampLevels: this.preampLevels,
+			// attnLevels: this.attnLevels,
+			// preampLevels: this.preampLevels,
 			agcTypes: this.agcTypes, //agc: this.agc,
 			//frequency: this.frequency, split: this.split,
 			//wpm: this.wpm,
@@ -81,7 +81,7 @@ class TcvrAdapter {
 			this._keyer && this._keyer.ptt(value)
 		}
 	}
-	
+
 	set key(value) {
 		if (this._mode == modes.CW || this._mode == modes.CWR) {
 			this._keyer && this._keyer.key(value)
