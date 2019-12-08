@@ -141,22 +141,6 @@ class TcvrAdapter {
 	// 	}
 	}
 
-	_findNearestWiderFilter(valueString) {
-		const value = parseInt(valueString, 10)
-		const values = this.filters
-			.map(bw => parseInt(bw, 10))
-			.sort((a, b) => a - b)
-		const widest = parseInt(values[values.length - 1], 10)
-		if (isNaN(value) || isNaN(widest)) return values[values.length - 1]
-
-		const result = values
-			.filter(bw => !isNaN(bw) && bw >= value)
-			.reduce((nearestWider, bw) => bw < nearestWider ? bw : nearestWider, widest)
-		console.debug('_findNearestWiderFilter:', {'for': valueString, 'found': result})
-		if (result == null) return String(widest)
-		return String(result)
-	}
-
 	// get filter() {
 	// 	return this._filter
 	// }

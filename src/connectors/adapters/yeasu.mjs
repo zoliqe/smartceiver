@@ -1,5 +1,6 @@
 import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
+import {selectFilter} from './utils.mjs'
 
 const modeValues = {}
 modeValues[Modes.LSB] = 0x00
@@ -98,13 +99,14 @@ class YeasuTcvr {
 		await this._uart(data)
 	}
 
-	async filter(filter, mode) {
-		const value = filterValues[Number(filter)]
-		if (value == null) {
-			console.error('YeasuTcvr: Unknown filter', filter)
+	async filter(value, mode) {
+		const filter = selectFilter(this.properties.filters(mode), value)
+		const fvalue = filterValues[filter]
+		if (fvalue == null) {
+			console.error('YeasuTcvr: Unknown filter', value)
 			return
 		}
-		const data = [0, 0, 0, value, 0x8C]
+		const data = [0, 0, 0, fvalue, 0x8C]
 		await this._uart(data)
 	}
 

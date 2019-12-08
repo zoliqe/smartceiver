@@ -59,6 +59,7 @@ class PowronConnector {
 
 	connect() {
 		if (!navigator.usb) {
+			alert('USB not supported. Cannot connect to transceiver.')
 			throw new Error('POWRON: WebUSB is not supported!')
 		}
 		// this.requestPort()
@@ -187,7 +188,7 @@ class PowronConnector {
 
 	async _serialBaudrate(baudrate) {
 		if (baudrate >= 1200 && baudrate <= 115200)
-			await this._send(`P${ baudrate / 100 } `)
+			await this._send(`P${ baudrate / 100 }`)
 		else
 			console.error(`POWRON: serial baudrate = ${ baudrate } not in range, value not set`)
 	}
