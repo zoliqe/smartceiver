@@ -246,6 +246,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 				this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
 				this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+				this.tcvr.bind(EventType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
 				this.tcvr.bind(EventType.pwrsw, 'ui', event => {
 					this.notifyPath('tcvr.freq')
 					this.notifyPath('tcvr.powerSwState')
