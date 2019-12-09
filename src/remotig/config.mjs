@@ -6,7 +6,8 @@ import {KenwoodTcvr} from '../connectors/adapters/kenwood.mjs'
 
 const rigQth = 'k2@om4aa.ddns.net'
 
-const tcvrAdapter = () => ElecraftTcvr.K2()
+// TODO refactor to async static methods and use import()
+const tcvrAdapter = ElecraftTcvr.K2()
 //const tcvrAdapter = () => KenwoodTcvr.TS2000({powerViaCat: true})
 //const tcvrAdapter = () => YeasuTcvr.FT1000MP()
 
