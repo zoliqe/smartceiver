@@ -24,11 +24,23 @@ export class Adapter {
 	}
 
 	async static K2(options) {
-		return new Adapter(await tcvrOptions('elecraft', 'k2', options))
+		return new Adapter(await tcvrOptions(this.manufacturer, 'k2', options))
 	}
 
 	async static KX3(options) {
-		return new Adapter(await tcvrOptions('elecraft', 'kx3', options))
+		return new Adapter(await tcvrOptions(this.manufacturer, 'kx3', options))
+	}
+
+	async static forTcvr(model, options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
+	}
+
+	static get manufacturer() {
+		return 'elecraft'
+	}
+
+	static get models() {
+		return ['k2', 'kx3']
 	}
 
 	async init(dataSender) {

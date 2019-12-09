@@ -38,6 +38,18 @@ export class Adapter {
 		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
 	}
 
+	async static forTcvr(model, options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
+	}
+
+	static get manufacturer() {
+		return 'yeasu'
+	}
+
+	static get models() {
+		return ['ft1000']
+	}
+
 	async init(dataSender) {
 		this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start

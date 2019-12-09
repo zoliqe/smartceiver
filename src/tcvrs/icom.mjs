@@ -30,6 +30,18 @@ export class Adapter {
 		return new Adapter(await tcvrOptions('icom', 'ic706', options))
 	}
 
+	async static forTcvr(model, options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
+	}
+
+	static get manufacturer() {
+		return 'icom'
+	}
+
+	static get models() {
+		return ['ic706']
+	}
+
 	async init(dataSender) {
 		this._uart = dataSender
 		await delay(2000) // wait for tcvr internal CPU start

@@ -1,3 +1,20 @@
+
+const adapters = ['elecraft', 'icom', 'kenwood', 'yeasu']
+const tcvrs
+
+async function transceivers() {
+	if (tcvrs) return tcvrs
+	tcvrs = {}
+	await adapters.forEach(async (manufacturer) => 
+		tcvrs[manufacturer] = (await import(`./${manufacturer}.mjs`)).Adapter.models)
+}
+
+async function adapterFor(manufacturer, model, options) {
+	const module = await import(`./${manufacturer}.mjs`)
+	const adapter = await module.Adapter.forTcvr(model, options)
+	return adapter
+}
+
 // import { Keyer } from "./adapter/keyer.mjs";
 
 // const startFrequency = 7020000
@@ -146,4 +163,4 @@ class TcvrAdapter {
 	// }
 }
 
-export {TcvrAdapter}
+export {transceivers, adapterFor}

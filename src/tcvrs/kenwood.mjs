@@ -26,6 +26,18 @@ export class Adapter {
 		return new Adapter(await tcvrOptions('kenwood', 'ts2000', options))
 	}
 
+	async static forTcvr(model, options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
+	}
+
+	static get manufacturer() {
+		return 'kenwood'
+	}
+
+	static get models() {
+		return ['ts2000']
+	}
+
 	async init(dataSender) {
 		this._uart = async (data) => await dataSender(data + ';')
 		await delay(4000) // wait for tcvr internal CPU start
