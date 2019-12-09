@@ -35,16 +35,18 @@ class PowronConnector {
 	#powr
 	#keyer
 
-	constructor(adapterProvider, { keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
-		powerPins = [PowronPins.pin2, PowronPins.pin4], powerTimeout = 120 }, keyerConfig = { pttTimeout: 5000 }) {
-		this.#keyerPin = keyerPin
-		this.#pttPins = pttPins || []
-		this.#powerPins = powerPins || []
-		this._powerTimeout(powerTimeout != null ? powerTimeout : 0)
+	constructor(tcvrAdapter, options = { keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
+		powerPins = [PowronPins.pin2, PowronPins.pin4], powerTimeout = 120 }, keyerConfig = { pttTimeout: 5000 }) 
+	{
+		options = options || {}
+		this.#keyerPin = options.keyerPin
+		this.#pttPins = options.pttPins || []
+		this.#powerPins = options.powerPins || []
+		this._powerTimeout(options.powerTimeout != null ? options.powerTimeout : 0)
 		this.keyerState(true)
 		this.pttState(false)
 
-		this.#adapter = adapterProvider()
+		this.#adapter = tcvrAdapter
 		this.#powr = new PowrSwitch({
 			state: async (state) => await this.#powerPins.forEach(async (pin) => await this._pinState(pin, state))
 		})
