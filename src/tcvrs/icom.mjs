@@ -1,5 +1,6 @@
-import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
+import {Bands, Modes, AgcTypes} from '../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
+import { tcvrOptions } from './utils.mjs'
 
 const myCivAddr = 224
 const modeValues = {}
@@ -16,7 +17,7 @@ const hex2dec = (h) => {
 	return s * 16 + (h - s * 10)
 }
 
-class IcomTcvr {
+export class Adapter {
 
 	#options
 
@@ -25,21 +26,8 @@ class IcomTcvr {
 		this.#options = options || {}
 	}
 
-	static IC706(options = {address: 0x58, baudrate: 9600}) {
-		const bands = [Bands[160], Bands[80], Bands[40], Bands[30],
-			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10], Bands[6],
-			Bands[2], Bands[70]]
-		const gains = {}
-		bands.forEach(b => gains[b] = [-10, 0, 10])
-
-		options.props = new TransceiverProperties({
-			bands: bands,
-			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-			agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
-			bandGains: gains,
-			modeFilters: {} // no filters (TODO update to support optional filter)
-		})
-		return new IcomTcvr(options)
+	static IC706(options) {
+		return new Adapter(await tcvrOptions('icom', 'ic706', options))
 	}
 
 	async init(dataSender) {
@@ -140,5 +128,3 @@ class IcomTcvr {
 		// not supported
 	}
 }
-
-export {IcomTcvr}

@@ -3,7 +3,7 @@
  * Finds first wider filter (declared by supported values)
  * for given value.
  */
-selectFilter(values, valueRaw) {
+function selectFilter(values, valueRaw) {
 	const value = parseInt(valueRaw, 10)
 	values = values
 		// .map(bw => parseInt(bw, 10))
@@ -19,4 +19,9 @@ selectFilter(values, valueRaw) {
 	return String(result)
 }
 
-export {selectFilter}
+async function tcvrOptions(manufacturer, model, options) {
+	const defaults = await import(`${manufacturer}/${model}.mjs`)
+	return {...defaults, ...options}
+}
+
+export {selectFilter, tcvrOptions}

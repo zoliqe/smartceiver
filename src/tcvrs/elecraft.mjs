@@ -1,6 +1,6 @@
-import { Bands, Modes, AgcTypes, TransceiverProperties } from '../../tcvr.mjs'
-import { delay } from '../../utils/time.mjs'
-import { selectFilter } from './utils.mjs'
+import { Bands, Modes, AgcTypes } from '../tcvr.mjs'
+import { delay } from '../utils/time.mjs'
+import { selectFilter, tcvrOptions } from './utils.mjs'
 
 const MD = {}
 MD[Modes.CW] = 3
@@ -9,7 +9,7 @@ MD[Modes.LSB] = 1
 MD[Modes.USB] = 2
 MD[Modes.RTTY] = 6
 
-class ElecraftTcvr {
+export class Adapter {
 
 	_splitState = false
 	_rit = 0
@@ -17,50 +17,18 @@ class ElecraftTcvr {
 	#model
 	#options
 
-	constructor(model, options = { baudrate, props }) {
+	constructor(options = { model, baudrate, props }) {
 		this._uart = _ => { } // do nothing
-		this.#model = model || ''
 		this.#options = options || {}
+		this.#model = options.model || ''
 	}
 
-	static K2(options = { baudrate: 4800 }) {
-		const bands = [
-			Bands[160], Bands[80], Bands[40], Bands[30],
-			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]]
-		const filters = {}
-		filters[Modes.CW]  = filters[Modes.CWR] = [1500, 700, 400, 250]
-		filters[Modes.LSB] = filters[Modes.USB] = [2100, 2300, 700, 400]
-		const gains = {}
-		bands.forEach(b => gains[b] = [-10, 0, 20])
-
-		options.props = new TransceiverProperties({
-			bands: bands,
-			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-			agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
-			bandGains: gains,
-			modeFilters: filters
-		})
-		return new ElecraftTcvr('k2', options)
+	async static K2(options) {
+		return new Adapter(await tcvrOptions('elecraft', 'k2', options))
 	}
 
-	static KX3(options = { baudrate: 38400 }) {
-		const bands = [
-			Bands[160], Bands[80], Bands[40], Bands[30],
-			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]]
-		const filters = {}
-		filters[Modes.CW]  = filters[Modes.CWR] = [1800, 1500, 600, 300, 200, 100]
-		filters[Modes.LSB] = filters[Modes.USB] = [2700, 2300, 2100, 1800, 1500, 1200, 1000, 800, 600]
-		const gains = {}
-		bands.forEach(b => gains[b] = [-10, 0, 20]) // TODO kx3 supports more preamps (10/20/30) per band - can we handle this via CAT?
-
-		options.props = new TransceiverProperties({
-			bands: bands,
-			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-			agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
-			bandGains: gains,
-			modeFilters: filters
-		})
-		return new ElecraftTcvr('kx3', options)
+	async static KX3(options) {
+		return new Adapter(await tcvrOptions('elecraft', 'kx3', options))
 	}
 
 	async init(dataSender) {
@@ -216,5 +184,3 @@ class ElecraftTcvr {
 		}
 	}
 }
-
-export { ElecraftTcvr }

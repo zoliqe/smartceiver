@@ -1,6 +1,6 @@
-import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
+import {Bands, Modes, AgcTypes} from '../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
-import {selectFilter} from './utils.mjs'
+import {selectFilter, tcvrOptions} from './utils.mjs'
 
 
 const MD = {}
@@ -10,7 +10,7 @@ MD[Modes.LSB] = 1
 MD[Modes.USB] = 2
 MD[Modes.RTTY] = 6
 
-class KenwoodTcvr {
+export class Adapter {
 
 	_splitState = false
 	_rit = 0
@@ -19,27 +19,11 @@ class KenwoodTcvr {
 
 	constructor(options = {powerViaCat, baudrate, props}) {
 		this._uart = _ => {} // do nothing
-        this.#options = options || {}
+		this.#options = options || {}
 	}
 
-	static TS2000(options = {powerViaCat: false, baudrate: 9600}) {
-		const bands = [
-			Bands[160], Bands[80], Bands[40], Bands[30],
-			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]]
-		const filters = {}
-		filters[Modes.CW]  = filters[Modes.CWR] = [2000, 1800, 1500, 600, 300, 200, 100]
-		filters[Modes.LSB] = filters[Modes.USB] = [2700, 2300, 2100, 1800, 1500, 1200, 1000, 800, 600]
-		const gains = {}
-		bands.forEach(b => gains[b] = [-10, 0, 20])
-
-		options.props = new TransceiverProperties({
-			bands: bands,
-			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-			agcTypes: [AgcTypes.FAST, AgcTypes.MEDIUM, AgcTypes.SLOW, AgcTypes.OFF],
-			bandGains: gains,
-			modeFilters: filters
-		})
-		return new KenwoodTcvr(options)
+	async static TS2000(options) {
+		return new Adapter(await tcvrOptions('kenwood', 'ts2000', options))
 	}
 
 	async init(dataSender) {
@@ -168,5 +152,3 @@ class KenwoodTcvr {
 		this._xit = 0
 	}
 }
-
-export {KenwoodTcvr}

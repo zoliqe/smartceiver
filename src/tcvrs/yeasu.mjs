@@ -1,6 +1,6 @@
-import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../tcvr.mjs'
+import {Bands, Modes, AgcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
-import {selectFilter} from './utils.mjs'
+import {selectFilter, tcvrOptions} from './utils.mjs'
 
 const modeValues = {}
 modeValues[Modes.LSB] = 0x00
@@ -25,7 +25,7 @@ const hex2dec = (h) => {
 	return s * 16 + (h - s * 10)
 }
 
-class YeasuTcvr {
+export class Adapter {
 
     #options
 
@@ -34,19 +34,8 @@ class YeasuTcvr {
 		this.#options = options || {}
 	}
 
-	static FT1000MP(options = {baudrate: 4800}) {
-		const filters = {}
-		filters[Modes.CW]  = filters[Modes.CWR] = [6000, 2400, 2000, 500, 250]
-		filters[Modes.LSB] = filters[Modes.USB] = [6000, 2400, 2000, 500, 250]
-
-		options.props = new TransceiverProperties({
-			bands: [
-				Bands[160], Bands[80], Bands[40], Bands[30],
-				Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]],
-			modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-			modeFilters: filters
-		})
-		return new YeasuTcvr(options)
+	static FT1000MP(options) {
+		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
 	}
 
 	async init(dataSender) {
@@ -119,5 +108,3 @@ class YeasuTcvr {
 	async attn(attn) {
 	}
 }
-
-export {YeasuTcvr}
