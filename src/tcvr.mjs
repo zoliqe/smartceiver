@@ -1,14 +1,15 @@
 import {TcvrEvent, EventType} from './utils/events.mjs'
 
-const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
-const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
+// const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
+// const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
 const _startFreqFromLowEdge = 21
-const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
+// const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
 const _filters = {
 	'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
-const _sidetoneFreq = 650
+const defaultMode = Mode.CW
+// const _sidetoneFreq = 650
 
 class Transceiver {
 
@@ -16,15 +17,15 @@ class Transceiver {
 	#state = {
 		// bands: [Bands[40]],
 		band: 40,
-		mode: Modes.CW,
+		mode: defaultMode,
 		freq: {40: 7021000},
-		split: {},
+		split: {40: 0},
 		rit: 0,
 		xit: 0,
 		step: 20,
 		gains: {40: 0},
 		agc: AgcTypes.AUTO,
-		filters: {'CW': 2000},
+		filters: {CW: _filters[defaultMode].max},
 		wpm: 28,
 		ptt: false,
 		keyed: false,
@@ -118,6 +119,10 @@ class Transceiver {
 
 	_unbindSignals() {
 		this.unbind('tcvr')
+	}
+
+	keepAlive() {
+		this.connected && this.fire(new TcvrEvent(EventType.keepAlive, Date.now()))
 	}
 
 	async connectRemoddle(options) {

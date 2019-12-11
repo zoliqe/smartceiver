@@ -23,7 +23,6 @@ const decoder = new TextDecoder()
 
 class PowronConnector {
 
-	#timeout = 600
 	#interfaceNumber = 2  // original interface number of WebUSB Arduino demo
 	#endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
 	#endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
@@ -39,7 +38,7 @@ class PowronConnector {
 		options = {
 			keyerPin: PowronPins.pin5, pttPins: [PowronPins.pin6],
 			powerPins: [PowronPins.pin2, PowronPins.pin4], 
-			powerTimeout: 120
+			powerTimeout: 30
 		},
 		keyerConfig = { pttTimeout: 5000 }}) 
 	{
@@ -47,21 +46,22 @@ class PowronConnector {
 		this.#keyerPin = options.keyerPin
 		this.#pttPins = options.pttPins || []
 		this.#powerPins = options.powerPins || []
-		this._powerTimeout(options.powerTimeout != null ? options.powerTimeout : 0)
+		const timeout = this._powerTimeout(options.powerTimeout)
 		this.keyerState(true)
 		this.pttState(false)
 
 		this.#adapter = tcvrAdapter
 		this.#powr = new PowrSwitch({
-			state: async (state) => await this.#powerPins.forEach(async (pin) => await this._pinState(pin, state))
+			state: async (state) => await this._pinState(this.#pttPins, state),
+			timeout: timeout
 		})
 		this.#keyer = new Keyer({
 			send: async (cmd) => await this._send(cmd),
 			speed: async (wpm) => await this._send('S' + wpm),
 			state: () => this.#keyerPin != null,
 			key: async (state) => await this._pinState(this.#keyerPin, state),
-			ptt: async (state) => await this.#pttPins.forEach(async (pin) => await this._pinState(pin, state))
-			}, keyerConfig)
+			ptt: async (state) => await this._pinState(this.#pttPins, state)
+		}, keyerConfig)
 	}
 
 	static get id() {
@@ -158,8 +158,8 @@ class PowronConnector {
 		this.#adapter.init && (await this.#adapter.init(this.serialData))
 	}
 
-	async _tick() {
-		await this.#powr.on()
+	_keepAlive() {
+		this.#powr.resetWatchdog()
 	}
 
 	async _off() {
@@ -179,22 +179,6 @@ class PowronConnector {
 		return #adapter.properties
 	}
 
-  // filter(bandWidth, centerFreq) {
-  // }
-
-	// async keyerSend(cmd) {
-	// 	await this._send(cmd)
-	// }
-
-	// async keyerSpeed(wpm) {
-	// 	await this._send('S' + wpm)
-	// }
-
-	// async pttState(state) {
-	// 	await this.#pttPins
-	// 		.forEach(async (pin) => await this._pinState(pin, state))
-	// }
-
 	async serialData(data) {
 		return data != null && (await this._send('>' + data))
 	}
@@ -207,8 +191,9 @@ class PowronConnector {
 	}
 
 	async _powerTimeout(value) {
-		this.#timeout = Number(value)
-		this._send('T' + this.#timeout)
+		const timeout = value || 0
+		this._send('T' + timeout > 0 ? timeout + 30 : 0)
+		return timeout
 	}
 
 	async _keyerPin(pin) {
@@ -226,6 +211,10 @@ class PowronConnector {
 	}
 
 	async _pinState(pin, state) {
+		if (Array.isArray(pin)) {
+			for (const p of pin) await this._pinState(p, state)
+			return
+		}
 		if (pin != null && pins.includes(pin))
 			await this._send(cmdByState(state) + pin)
 		else

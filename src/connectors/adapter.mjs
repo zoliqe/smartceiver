@@ -5,8 +5,8 @@ const tcvrs
 async function transceivers() {
 	if (tcvrs) return tcvrs
 	tcvrs = {}
-	await manufacturers.forEach(async (manufacturer) => 
-		tcvrs[manufacturer] = (await import(`./tcvrs/${manufacturer}.mjs`)).Adapter.models)
+	for (const manufacturer of manufacturers) 
+		tcvrs[manufacturer] = (await import(`./tcvrs/${manufacturer}.mjs`)).Adapter.models
 }
 
 async function adapterFor({manufacturer, model, options}) {

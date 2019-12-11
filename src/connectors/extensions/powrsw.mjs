@@ -1,13 +1,13 @@
 import {delay} from '../../utils/time.mjs'
 
-// const hwWatchdogTimeout = 120 // sec
 const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'}
 export class PowrSwitch {
 
 	#state = State.off
 	#connector
+	#watchdog
 
-	constructor(powerConnector = {state}) {
+	constructor(powerConnector = {state, timeout}) {
 		this.#connector = powerConnector
 	}
 
@@ -19,11 +19,11 @@ export class PowrSwitch {
 
 		if (this.#state === State.off) { // cold start
 			console.info(`powerOn`)
-		// 	this.connector.timeout = hwWatchdogTimeout
 		}
 
 		this.#state = State.starting
 		await this.#connector.state(true)
+		this._watchdogStart()
 		this.#state = State.on
 	}
 
@@ -32,12 +32,38 @@ export class PowrSwitch {
 
 		this.#state = State.stoping
 		console.info(`powerOff`)
+		this._watchdogStop()
 		await this.#connector.state(false)
 		await delay(500)
 		await this.#connector.state(false)
 		await delay(1000)
 
 		this.#state = State.off
+	}
+
+	resetWatchdog() {
+		this._watchdogStart({reset: true})
+	}
+
+	_watchdogStart({reset = false} = {}) {
+		if (!#connector.timeout) return
+		if (reset && #watchdog == null) return
+		if (!reset) {
+			if (#watchdog != null) clearTimeout(#watchdog)
+			console.info('PowrSW watchdog active, timeout:', #connector.timeout)
+		}
+
+		#watchdog = setTimeout(() => {
+			console.info('PowrSW watchdog timedout')
+			this.off()
+		}, #connector.timeout * 1000);
+	}
+
+	_watchdogStop() {
+		if (#watchdog != null) {
+			clearTimeout(#watchdog)
+			#watchdog = null
+		}
 	}
 
 }
