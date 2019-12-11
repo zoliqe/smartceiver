@@ -46,23 +46,23 @@ export class PowrSwitch {
 	}
 
 	_watchdogStart({reset = false} = {}) {
-		if (!#connector.timeout) return
-		if (reset && #watchdog == null) return
+		if (!this.#connector.timeout) return
+		if (reset && this.#watchdog == null) return
 		if (!reset) {
-			if (#watchdog != null) clearTimeout(#watchdog)
-			console.info('PowrSW watchdog active, timeout:', #connector.timeout)
+			if (this.#watchdog != null) clearTimeout(this.#watchdog)
+			console.info('PowrSW watchdog active, timeout:', this.#connector.timeout)
 		}
 
-		#watchdog = setTimeout(() => {
+		this.#watchdog = setTimeout(() => {
 			console.info('PowrSW watchdog timedout')
 			this.off()
-		}, #connector.timeout * 1000);
+		}, this.#connector.timeout * 1000);
 	}
 
 	_watchdogStop() {
-		if (#watchdog != null) {
+		if (this.#watchdog != null) {
 			clearTimeout(#watchdog)
-			#watchdog = null
+			this.#watchdog = null
 		}
 	}
 

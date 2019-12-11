@@ -74,17 +74,17 @@ class PowronConnector {
 			throw new Error('POWRON: WebUSB is not supported!')
 		}
 		try {
-			#device = await navigator.usb.requestDevice({ 'filters': devFilters })
+			this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
 			// .then(device => {
-			console.debug(`POWRON device: ${#device.productName} (${#device.manufacturerName})`)
+			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 			await this._open()
 			// .then(port => {
-			console.info('POWRON Connected ' + #device.productName)
+			console.info('POWRON Connected ' + this.#device.productName)
 			// this._bindCommands(tcvr, port)
 			await delay(startSeqDelay)
 			this._send(startSeq)
 			await delay(serialInitDelay)
-			this.serial(#adapter.baudrate)
+			this.serial(this.#adapter.baudrate)
 			// setTimeout(() => {
 			// 	this._send(startSeq)
 			// 	setTimeout(() => this.serial(serialBaudRate), 1000)
@@ -176,7 +176,7 @@ class PowronConnector {
 	}
 	
 	get tcvrProps() {
-		return #adapter.properties
+		return this.#adapter.properties
 	}
 
 	async serialData(data) {

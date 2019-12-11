@@ -83,11 +83,11 @@ class Transceiver {
 			this._port = await connector.connect(this)
 			this._bindSignals()
 			// reset tcvr configuration
-			#props = await connector.tcvrProps
+			this.#props = await connector.tcvrProps
 			this._buildFreqTable()
 			// TODO check default band,mode,agc,gain, filter
-			this.band = #state.band
-			this.wpm = #state.wpm
+			this.band = this.#state.band
+			this.wpm = this.#state.wpm
 			this.fire(new TcvrEvent(EventType.pwrsw, this._port != null), true)
 			// const ctlModule = await import('./remoddle/controls.mjs')
 			// this._controls = new ctlModule.TcvrControls(this)
@@ -100,14 +100,14 @@ class Transceiver {
 	}
 
 	_buildFreqTable() {
-		for (let band of #props.bands) {
-			#state.freq[band.id] = {}
-			#state.split[band.id] = {}
-			for (let mode of #props.modes) {
-				#state.freq[band.id][mode] = band.freqFrom + (_startFreqFromLowEdge * 1000)
-				#state.split[band.id][mode] = 0
+		for (let band of this.#props.bands) {
+			this.#state.freq[band.id] = {}
+			this.#state.split[band.id] = {}
+			for (let mode of this.#props.modes) {
+				this.#state.freq[band.id][mode] = band.freqFrom + (_startFreqFromLowEdge * 1000)
+				this.#state.split[band.id][mode] = 0
 			}
-			#state.gains[band.id] = 0
+			this.#state.gains[band.id] = 0
 		}
 	}
 
@@ -156,8 +156,8 @@ class Transceiver {
 	}
 
 	_keyTx() {
-		if (!#state.keyed) {
-			#state.keyed = true
+		if (!this.#state.keyed) {
+			this.#state.keyed = true
 			this.fire(new TcvrEvent(EventType.keyTx, true))
 		}
 		if (this._txTimer) {
@@ -166,41 +166,41 @@ class Transceiver {
 		}
 		this._txTimer = setTimeout(() => {
 			this._txTimer = null
-			if (#state.keyed) {
-				#state.keyed = false
+			if (this.#state.keyed) {
+				this.#state.keyed = false
 				this.fire(new TcvrEvent(EventType.keyTx, false))
 			} 
 		}, 100)
 	}
 
 	get ptt() {
-		return #state.ptt
+		return this.#state.ptt
 	}
 	set ptt(state) {
 		if (!this.online) return
-		if (#state.mode !== Modes.LSB && #state.mode !== Modes.USB) return
-		#state.ptt = state
+		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
+		this.#state.ptt = state
 		this._d("ptt", status)
 		this.fire(new TcvrEvent(EventType.ptt, state))
 	}
 
 	get wpm() {
-		return #state.wpm
+		return this.#state.wpm
 	}
 	set wpm(wpm) {
 		if (!this.online) return
 		if (wpm < 16 || wpm > 40) return
 		this._d("wpm", wpm)
-		#state.wpm = wpm
+		this.#state.wpm = wpm
 		this.fire(new TcvrEvent(EventType.wpm, wpm))
 	}
 
 	get reverse() {
-		return #state.paddleReverse
+		return this.#state.paddleReverse
 	}
 	set reverse(value) {
 		if (!this.online) return
-		#state.paddleReverse = value
+		this.#state.paddleReverse = value
 		this._d('reverse', value)
 		this.fire(new TcvrEvent(EventType.reverse, value))
 	}
@@ -214,19 +214,19 @@ class Transceiver {
 	}
 
 	get bands() {
-		return #props.bands
+		return this.#props.bands
 	}
 
 	get band() {
-		return #state.band
+		return this.#state.band
 	}
 	set band(band) {
 		if (!this.online) return
-		if (!#props.bands.includes(band)) return
+		if (!this.#props.bands.includes(band)) return
 
 		this._d("band", band)
-		#state.band = band
-		this.freq = #state.freq[#state.band][#state.mode] // call setter
+		this.#state.band = band
+		this.freq = this.#state.freq[this.#state.band][this.#state.mode] // call setter
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
 			this.fire(new TcvrEvent(EventType.mode, this.mode))
@@ -242,25 +242,25 @@ class Transceiver {
 	}
 
 	get freq() {
-		return #state.freq[#state.band][#state.mode]
+		return this.#state.freq[this.#state.band][this.#state.mode]
 	}
 	set freq(freq) {
 		if (!this.online) return
 		if (this._outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
 		// 	return
-		#state.freq[#state.band][#state.mode] = freq
+		this.#state.freq[this.#state.band][this.#state.mode] = freq
 		this._d("freq", freq)
 		this.fire(new TcvrEvent(EventType.freq, freq))
 	}
 
 	get split() {
-		return #state.split[#state.band][#state.mode]
+		return this.#state.split[this.#state.band][this.#state.mode]
 	}
 	set split(freq) {
 		if (!this.online) return
 		if (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq)) return
-		#state.split[#state.band][#state.mode] = freq
+		this.#state.split[this.#state.band][this.#state.mode] = freq
 		this._d('split', freq)
 		this.fire(new TcvrEvent(EventType.split, freq))
 	}
@@ -269,13 +269,13 @@ class Transceiver {
 	}
 
 	get rit() {
-		return #state.rit
+		return this.#state.rit
 	}
 	set rit(value) {
 		if (!this.online) return
 		this._d('rit', value)
 		if (Math.abs(value) < 10000) {
-			#state.rit = value
+			this.#state.rit = value
 			this.fire(new TcvrEvent(EventType.rit, value))
 		}
 	}
@@ -284,13 +284,13 @@ class Transceiver {
 	}
 
 	get xit() {
-		return #state.xit
+		return this.#state.xit
 	}
 	set xit(value) {
 		if (!this.online) return
 		this._d('xit', value)
 		if (Math.abs(value) < 10000) {
-			#state.xit = value
+			this.#state.xit = value
 			this.fire(new TcvrEvent(EventType.xit, value))
 		}
 	}
@@ -302,90 +302,90 @@ class Transceiver {
 		return [20, 200]
 	}
 	get step() {
-		return #state.step
+		return this.#state.step
 	}
 	set step(value) {
 		this._d('step', value)
 		if (this.steps.includes(value)) {
-			#state.step = value
+			this.#state.step = value
 			this.fire(new TcvrEvent(EventType.step, value))
 		}
 	}
 
 	get modes() {
-		return #props.modes
+		return this.#props.modes
 	}
 	get mode() {
-		return #state.mode
+		return this.#state.mode
 	}
 	set mode(value) {
 		if (!this.online) return
 		this._d("mode", value)
 		if (this.modes.includes(mode)) {
-			#state.mode = value
-			this.fire(new TcvrEvent(EventType.mode, #state.mode))
-			this.fire(new TcvrEvent(EventType.freq, #state.freq[#state.band][#state.mode]))
-			this.fire(new TcvrEvent(EventType.filter, #state.filter[#state.mode]))
+			this.#state.mode = value
+			this.fire(new TcvrEvent(EventType.mode, this.#state.mode))
+			this.fire(new TcvrEvent(EventType.freq, this.#state.freq[this.#state.band][this.#state.mode]))
+			this.fire(new TcvrEvent(EventType.filter, this.#state.filter[this.#state.mode]))
 		}
 	}
 
 	get filter() {
-		return #state.filter[#state.mode]
+		return this.#state.filter[this.mode]
 	}
 	set filter(bw) {
 		if (!this.online) return
 		this._d('filter', bw)
 		const filterRange = _filters[this.mode]
 		if (filterRange.min <= bw && filterRange.max >= bw) {
-			#state.filter[#state.mode] = bw
-			this.fire(new TcvrEvent(EventType.filter, {filter: bw, mode: #state.mode}))
+			this.#state.filter[this.mode] = bw
+			this.fire(new TcvrEvent(EventType.filter, {filter: bw, mode: this.mode}))
 		}
 	}
 
 	get gains() {
-		return #props.bandGains[#state.band]
+		return this.#props.bandGains[this.band]
 	}
 
 	get gain() {
-		return #state.gain[#state.band]
+		return this.#state.gain[this.band]
 	}
 	set gain(value) {
 		if (this.online && this.gains.includes(value)) {
-			#state.gain[#state.band] = value
+			this.#state.gain[this.band] = value
 			this.fire(new TcvrEvent(EventType.gain, value))
 		}
 	}
 
 	get agcTypes() {
-		return #props.agcTypes
+		return this.#props.agcTypes
 	}
 
 	get agc() {
-		return #state.agc
+		return this.#state.agc
 	}
 	set agc(value) {
 		if (this.online && this.agcTypes.includes(value)) {
-			#state.agc = value
+			this.#state.agc = value
 			this._d('agc', value)
 			this.fire(new TcvrEvent(EventType.agc, value))
 		}
 	}
 
 	toggleFast() {
-		#state.step = #state.step == 20 ? 200 : 20
+		this.#state.step = this.#state.step == 20 ? 200 : 20
 	}
 
 	bind(type, owner, callback) {
-		if (!(type in #listeners)) {
-			#listeners[type] = []
+		if (!(type in this.#listeners)) {
+			this.#listeners[type] = []
 		}
-		#listeners[type].push(new EventListener(owner, callback))
-		this._d(`bind: ${type} for ${owner}, callbacks`, #listeners[type].length)
+		this.#listeners[type].push(new EventListener(owner, callback))
+		this._d(`bind: ${type} for ${owner}, callbacks`, this.#listeners[type].length)
 	}
 
 	unbind(owner) {
-		for (let type in #listeners) {
-			let stack = #listeners[type]
+		for (let type in this.#listeners) {
+			let stack = this.#listeners[type]
 			for (let i = 0, l = stack.length; i < l; i++) {
 				if (stack[i] && stack[i].owner == owner) {
 					this._d(`unbind ${type} for ${owner}`)
@@ -397,13 +397,13 @@ class Transceiver {
 
 	fire(event, force) {
 		if (!force && !this.online) return false
-		let stack = #listeners[event.type]
+		let stack = this.#listeners[event.type]
 		stack && stack.forEach(listener => listener.callback.call(this, event))
 		return true //!event.defaultPrevented;
 	}
 
 	_d(what, value) {
-		console.debug(`[${new Date()}] ${what}:`, value);
+		console.debug(`[${new Date().toJSON()}] ${what}:`, value);
 	}
 }
 
