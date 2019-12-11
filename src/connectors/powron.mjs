@@ -35,8 +35,13 @@ class PowronConnector {
 	#powr
 	#keyer
 
-	constructor(tcvrAdapter, options = { keyerPin = PowronPins.pin5, pttPins = [PowronPins.pin6],
-		powerPins = [PowronPins.pin2, PowronPins.pin4], powerTimeout = 120 }, keyerConfig = { pttTimeout: 5000 }) 
+	constructor(tcvrAdapter, {
+		options = {
+			keyerPin: PowronPins.pin5, pttPins: [PowronPins.pin6],
+			powerPins: [PowronPins.pin2, PowronPins.pin4], 
+			powerTimeout: 120
+		},
+		keyerConfig = { pttTimeout: 5000 }}) 
 	{
 		options = options || {}
 		this.#keyerPin = options.keyerPin
@@ -51,42 +56,44 @@ class PowronConnector {
 			state: async (state) => await this.#powerPins.forEach(async (pin) => await this._pinState(pin, state))
 		})
 		this.#keyer = new Keyer({
-				send: async (cmd) => await this._send(cmd),
-				speed: async (wpm) => await this._send('S' + wpm),
-				state: () => this.#keyerPin != null,
-				key: async (state) => await this._pinState(this.#keyerPin, state),
-				ptt: async (state) => await this.#pttPins.forEach(async (pin) => await this._pinState(pin, state))
+			send: async (cmd) => await this._send(cmd),
+			speed: async (wpm) => await this._send('S' + wpm),
+			state: () => this.#keyerPin != null,
+			key: async (state) => await this._pinState(this.#keyerPin, state),
+			ptt: async (state) => await this.#pttPins.forEach(async (pin) => await this._pinState(pin, state))
 			}, keyerConfig)
 	}
 
-	connect() {
+	static get id() {
+		return 'powron'
+	}
+
+	async connect() {
 		if (!navigator.usb) {
 			alert('USB not supported. Cannot connect to transceiver.')
 			throw new Error('POWRON: WebUSB is not supported!')
 		}
-		// this.requestPort()
-		return new Promise(async (resolve, reject) => {
-			try {
-				this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
-				// .then(device => {
-				console.debug(`POWRON device: ${this.#device.productName} (${ this.#device.manufacturerName })`)
-				await this._open()
-				// .then(port => {
-				console.log('POWRON Connected ' + this.#device.productName)
-				// this._bindCommands(tcvr, port)
-				await delay(startSeqDelay)
-				this._send(startSeq)
-				await delay(serialInitDelay)
-				this.serial(this.#adapter.baudrate)
-				// setTimeout(() => {
-				// 	this._send(startSeq)
-				// 	setTimeout(() => this.serial(serialBaudRate), 1000)
-				// }, 3000)
-				resolve(this.#device)
-			} catch (error) {
-				reject(error)
-			}
-		}, error => console.log('POWRON Connection error: ' + error))
+		try {
+			#device = await navigator.usb.requestDevice({ 'filters': devFilters })
+			// .then(device => {
+			console.debug(`POWRON device: ${#device.productName} (${#device.manufacturerName})`)
+			await this._open()
+			// .then(port => {
+			console.info('POWRON Connected ' + #device.productName)
+			// this._bindCommands(tcvr, port)
+			await delay(startSeqDelay)
+			this._send(startSeq)
+			await delay(serialInitDelay)
+			this.serial(#adapter.baudrate)
+			// setTimeout(() => {
+			// 	this._send(startSeq)
+			// 	setTimeout(() => this.serial(serialBaudRate), 1000)
+			// }, 3000)
+		} catch (error) {
+			console.error('POWRON Connection error: ' + error)
+			throw error
+		}
+		return this
   }
 
   _open() {
@@ -166,7 +173,11 @@ class PowronConnector {
 
   async checkState() {
     return this.connected ? {id: this.id} : null
-  }
+	}
+	
+	get tcvrProps() {
+		return #adapter.properties
+	}
 
   // filter(bandWidth, centerFreq) {
   // }
@@ -190,7 +201,7 @@ class PowronConnector {
 
 	async _serialBaudrate(baudrate) {
 		if (baudrate >= 1200 && baudrate <= 115200)
-			await this._send(`P${ baudrate / 100 }`)
+			await this._send(`P${ baudrate / 100 } `)
 		else
 			console.error(`POWRON: serial baudrate = ${ baudrate } not in range, value not set`)
 	}
@@ -205,7 +216,7 @@ class PowronConnector {
 			console.info('POWRON: Enabling keyer on pin', pin)
 			this.#keyerPin = pin
 			await this._pinState(pin, false)
-			await this._send(`K${pin}`)
+			await this._send(`K${ pin } `)
 		} else {
 			console.info('POWRON: Disabling keyer on pin', this.#keyerPin)
 			await this._pinState(this.#keyerPin, false)

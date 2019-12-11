@@ -334,18 +334,21 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 					this.kredence.token = params.token.trim()
 				}
 				this.autoPower = params.autopwr && (params.autopwr.trim() === '1')
+				let connectorParams = undefined
 				if (params.rig) {
-					this.kredence.rig = params.rig.trim()
+					this.kredence.rig = params.rig.trim().toLowerCase()
 					let connectorId
 					if (this.kredence.rig.includes('@')) {
-						connectorId = 'remotig';
+						connectorId = 'remotig'
 						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
-					} else if (this.kredence.rig == 'powron' || this.kredence.rig == 'bluecat') {
-						connectorId = this.kredence.rig.toUpperCase()
+						connectorParams = {kredence: this.kredence}
+					} else if (this.kredence.rig.includes('-')) {
+						connectorId = 'powron'
+						connectorParams = {tcvr: {}}
+						[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
 					}
 
-					const connectors = await import('./connector.mjs')
-					this.connector = await connectors.get(connectorId)
+					this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
 					this.$.pwrbtn.disabled = this.connector == null
 					const state = await this._fetchStatus()
 					// this not working due autoplay policy

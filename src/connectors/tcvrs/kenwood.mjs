@@ -1,4 +1,4 @@
-import {Bands, Modes, AgcTypes} from '../tcvr.mjs'
+import {Bands, Modes, AgcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 import {selectFilter, tcvrOptions} from './utils.mjs'
 

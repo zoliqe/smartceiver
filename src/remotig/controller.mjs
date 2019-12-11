@@ -1,5 +1,5 @@
 import {secondsNow, log, whoIn, delay} from './utils.mjs'
-import {TcvrAdapter} from '../adapter.mjs'
+import {TcvrAdapter} from '../connectors/adapter.mjs'
 import {rigQth, tcvrAdapter} from './config.mjs'
 
 // TODO parse rigName from rigQth; remove pcConfig (fetch from proxy); create class

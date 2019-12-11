@@ -3,37 +3,48 @@ import {AudioProcessor} from '../utils/audio.mjs'
 // import {Microphone} from '../utils/mic.mjs'
 
 class RemotigConnector {
-	static get id() { return 'RTC'; }
+	static get id() { return 'remotig'; }
 	static get name() { return 'Remotig via WebRTC'; }
 	static get capabilities() { return [Remoddle.id]; }
 
-	constructor() {
-		this._isReady = false;
-		this._isStarted = false;
+	constructor(kredence, options = {
+		session: {
+			heartbeat: 5000,      // time interval in ms for sending 'poweron' command
+			connectDelay: 5000,   // delay in ms after connection establishment
+			reconnectDelay: 2000,   // delay in ms between disc and conn commands
+		},
+		signaling: {
+			transports: ['websocket'],
+			reconnectionDelay: 10000,
+			reconnectionDelayMax: 60000,
+		}}) 
+	{
+		this._isReady = false
+		this._isStarted = false
+		this.options = options || {}
+		this.kredence = kredence || {}
 	}
 
 	get id() {
 		return this.constructor.id
 	}
 
- 	async connect(tcvr, kredence, options) {
+ 	connect(tcvr) {
 		if (this._isReady || this._isStarted) return null
 
 		this.tcvr = tcvr
-		this.kredence = kredence || {}
-		this.options = options || {}
 		this._connectSignaling()
-		return new Promise(resolve => this.onconnect = resolve)
+		return new Promise(resolve => this.onconnect = () => resolve(this))
 	}
 
-	reconnect() {
-		this.sendSignal('restart')
-		this.disconnect()
-		// this._socket && this._socket.disconnect()
-		setTimeout(_ => this._connectSignaling(), this.options.session.reconnectDelay)
-	}
+	// async reconnect() {
+	// 	this.sendSignal('restart')
+	// 	await this.disconnect()
+	// 	// this._socket && this._socket.disconnect()
+	// 	setTimeout(_ => this._connectSignaling(), this.options.session.reconnectDelay)
+	// }
 
-	disconnect(options = {alertUser: false}) {
+	async disconnect(options = {alertUser: false}) {
 		this.sendSignal('bye')
 		this._audio && this._audio.close()
 		this._audio = null
@@ -76,16 +87,21 @@ class RemotigConnector {
 		this.sendCommand('filter=' + bandWidth)
 	}
 
-	checkState(kredence) {
-		if (!kredence.qth || !kredence.rig) return;
-		const signaling = io.connect('wss://' + kredence.qth, {transports: ['websocket']})
+	checkState() {
+		// if (!kredence.qth || !kredence.rig) return;
+		// const signaling = io.connect('wss://' + kredence.qth, {transports: ['websocket']}) 
+		if (!this._signaling) return
 		const statePromise = new Promise((resolve) => {
-			signaling.on('state', state => {
-				signaling.disconnect()
+			this._stateResolved = state => {
+				this._stateResolved = null
 				resolve(state)
-			})
+			}
+			// signaling.on('state', state => {
+			// 	signaling.disconnect()
+			// 	resolve(state)
+			// })
 		})
-		signaling.emit('state', kredence.rig)
+		this._signaling.emit('state', this.kredence.rig)
 		return statePromise
 	}
 
@@ -97,6 +113,7 @@ class RemotigConnector {
 		console.info('connectSignaling:', this.kredence.qth)
 		this._signaling = io.connect('wss://' + this.kredence.qth, this.options.signaling)
 
+		this._signaling.on('state', state => this._stateResolved && this._stateResolved(state))
 		this._signaling.on('full', rig => {
 			console.error(`Rig ${rig} is busy`)
 			window.alert('Transceiver is busy.')
@@ -123,9 +140,7 @@ class RemotigConnector {
 		// This client receives a message
 		this._signaling.on('message', (message) => {
 			console.info('signal message:', message)
-			if (message === 'ready') {
-				// this._maybeStart()
-			} else if (message.type === 'offer') {
+			if (message.type === 'offer') {
 				!this._isStarted && this._maybeStart()
 				this._pc.setRemoteDescription(new RTCSessionDescription(message))
 				this._doAnswer()
@@ -254,7 +269,7 @@ class RemotigConnector {
 		setTimeout(() => {
 			this._startPowerOnTimer(this.options.session.heartbeat)
 			this._bindCommands()
-			this.onconnect && this.onconnect(this)
+			this.onconnect && this.onconnect()
 		}, this.options.session.connectDelay) // delay for tcvr-init after poweron 
 	}
 
@@ -292,7 +307,7 @@ class RemotigConnector {
 		// this.tcvr.bind(EventType.attn, RemotigRTCConnector.id, event => this.sendCommand("attn" + (event.value ? "on" : "off")))
 		this.tcvr.bind(EventType.ptt, RemotigRTCConnector.id, event => this.sendCommand('ptt' + (event.value ? 'on' : 'off')))
 		this.tcvr.bind(EventType.agc, RemotigRTCConnector.id, event => this.sendCommand('agc' + (event.value ? 'on' : 'off')))
-		this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.kredence.rig))
+		// this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.kredence.rig))
 	}
 
 }
