@@ -1,4 +1,5 @@
 import { delay } from '../utils/time.mjs'
+import {SignalsBinder} from '../utils/signals.mjs'
 import { Keyer } from './extensions/keyer.mjs'
 import { PowrSwitch } from './extensions/powrsw.mjs'
 
@@ -33,6 +34,7 @@ class PowronConnector {
 	#adapter
 	#powr
 	#keyer
+	#signals
 
 	constructor(tcvrAdapter, {
 		options = {
@@ -62,6 +64,8 @@ class PowronConnector {
 			key: async (state) => await this._pinState(this.#keyerPin, state),
 			ptt: async (state) => await this._pinState(this.#pttPins, state)
 		}, keyerConfig)
+
+		this._initSignals()
 	}
 
 	static get id() {
@@ -89,6 +93,7 @@ class PowronConnector {
 			// 	this._send(startSeq)
 			// 	setTimeout(() => this.serial(serialBaudRate), 1000)
 			// }, 3000)
+			await this._on()
 		} catch (error) {
 			console.error('POWRON Connection error: ' + error)
 			throw error
@@ -142,6 +147,7 @@ class PowronConnector {
   async disconnect() {
 		if (!this.#device) return
 
+		await this._off()
     await this.#device.controlTransferOut({
       'requestType': 'class',
       'recipient': 'interface',
@@ -158,7 +164,7 @@ class PowronConnector {
 		this.#adapter.init && (await this.#adapter.init(this.serialData))
 	}
 
-	_keepAlive() {
+	async _keepAlive() {
 		this.#powr.resetWatchdog()
 	}
 
@@ -238,7 +244,29 @@ class PowronConnector {
 
   onReceiveError(error) {
     console.error('POWRON error:', error)
-  }
+	}
+	
+	_initSignals() {
+		this.#signals = new SignalsBinder(this.constructor.id, {
+			keyDit: async () => await this.#keyer.send('.'),
+			keyDah: async () => await this.#keyer.send('-'),
+			keySpace: async () => await this.#keyer.send('_'),
+			wpm: async (value) => await this.#keyer.wpm(value),
+			ptt: async (value) => await this.#keyer.ptt(value),
+			mode: async (value) => await this.#adapter.mode(value),
+			filter: async (value) => await this.#adapter.filter(value),
+			gain: async (value) => await this.#adapter.gain(value),
+			agc: async (value) => await this.#adapter.agc(value),
+			freq: async (value) => await this.#adapter.freqency(value),
+			split: async (value) => await this.#adapter.split(value),
+			rit: async (value) => await this.#adapter.rit(value),
+			xit: async (value) => await this.#adapter.xit(value),
+		})
+	}
+
+	get signals() {
+		return this.#signals
+	}
 
 	// async connect() {
 	//   console.debug('powron connect request')

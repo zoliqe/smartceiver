@@ -93,7 +93,7 @@ export class Adapter {
 	// 	await this._uart(`RA0${attn > 0 ? 1 : 0}`)
 	// }
 
-	async filter(value, mode) {
+	async filter({value, mode}) {
 		const filter = selectFilter(this.properties.filters(mode), value)
 		if (this.#model === 'k2') await this._filterK2(filter, mode)
     else await this._filterK3(filter)

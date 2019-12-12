@@ -1,3 +1,5 @@
+import {EventType} from '../utils/signals.mjs'
+
 class Microphone {
 	constructor(tcvr) {
 		this.userMediaConstraints = {

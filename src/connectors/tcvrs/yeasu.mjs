@@ -100,7 +100,7 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async filter(value, mode) {
+	async filter({value, mode}) {
 		const filter = selectFilter(this.properties.filters(mode), value)
 		const fvalue = filterValues[filter]
 		if (fvalue == null) {

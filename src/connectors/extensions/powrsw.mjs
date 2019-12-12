@@ -23,8 +23,8 @@ export class PowrSwitch {
 
 		this.#state = State.starting
 		await this.#connector.state(true)
-		this._watchdogStart()
 		this.#state = State.on
+		this._watchdogStart()
 	}
 
 	async off() {
@@ -41,12 +41,13 @@ export class PowrSwitch {
 		this.#state = State.off
 	}
 
-	resetWatchdog() {
+	async resetWatchdog() {
+		await this.#connector.state(true) // reset HW watchdog
 		this._watchdogStart({reset: true})
 	}
 
 	_watchdogStart({reset = false} = {}) {
-		if (!this.#connector.timeout) return
+		if (!this.#connector.timeout || this.#state !== State.on) return
 		if (reset && this.#watchdog == null) return
 		if (!reset) {
 			if (this.#watchdog != null) clearTimeout(this.#watchdog)
@@ -61,7 +62,7 @@ export class PowrSwitch {
 
 	_watchdogStop() {
 		if (this.#watchdog != null) {
-			clearTimeout(#watchdog)
+			clearTimeout(this.#watchdog)
 			this.#watchdog = null
 		}
 	}

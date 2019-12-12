@@ -1,4 +1,4 @@
-import {TcvrEvent, EventType} from '../utils/events.mjs'
+import {TcvrEvent, EventType} from '../utils/signals.mjs'
 
 class RemoddleController {
 

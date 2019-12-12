@@ -1,4 +1,4 @@
-import {TcvrEvent, EventType} from './utils/events.mjs'
+import {TcvrEvent, EventType} from './utils/signals.mjs'
 
 // const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
 // const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
@@ -9,7 +9,7 @@ const _filters = {
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
 const defaultMode = Mode.CW
-// const _sidetoneFreq = 650
+const _sidetoneFreq = 650
 
 class Transceiver {
 
@@ -72,7 +72,7 @@ class Transceiver {
 			this.controller = null
 			this.disconnectRemoddle()
 			this._port.disconnect()
-			this.unbind(connector.id)
+			this._port.signals.out.unbind(this)
 			this._port = null
 			this.fire(new TcvrEvent(EventType.pwrsw, false), true)
 			this._unbindSignals()
@@ -82,6 +82,7 @@ class Transceiver {
 			this.connectRemoddle(remoddleOptions)
 			this._port = await connector.connect(this)
 			this._bindSignals()
+			this._port.signals.out.bind(this)
 			// reset tcvr configuration
 			this.#props = await connector.tcvrProps
 			this._buildFreqTable()
@@ -232,7 +233,7 @@ class Transceiver {
 			this.fire(new TcvrEvent(EventType.mode, this.mode))
 			this.fire(new TcvrEvent(EventType.gain, this.gain))
 			this.fire(new TcvrEvent(EventType.agc, this.agc))
-			this.fire(new TcvrEvent(EventType.filter, this.filter))
+			this.fire(new TcvrEvent(EventType.filter, {filter: this.filter, mode: this.mode}))
 		}, 2000) // wait for band change on tcvr
 	}
 
@@ -325,7 +326,7 @@ class Transceiver {
 			this.#state.mode = value
 			this.fire(new TcvrEvent(EventType.mode, this.#state.mode))
 			this.fire(new TcvrEvent(EventType.freq, this.#state.freq[this.#state.band][this.#state.mode]))
-			this.fire(new TcvrEvent(EventType.filter, this.#state.filter[this.#state.mode]))
+			this.fire(new TcvrEvent(EventType.filter, {filter: this.filter, mode: this.mode}))
 		}
 	}
 
@@ -357,15 +358,18 @@ class Transceiver {
 	}
 
 	get agcTypes() {
-		return this.#props.agcTypes
+		return [...this.#props.agcTypes, AgcTypes.AUTO]
 	}
-
+	get _resolvedAutoAgc() {
+		return this.mode == Modes.CW || this.mode == Modes.CWR ?
+			AgcTypes.FAST : AgcTypes.SLOW
+	}
 	get agc() {
 		return this.#state.agc
 	}
 	set agc(value) {
 		if (this.online && this.agcTypes.includes(value)) {
-			this.#state.agc = value
+			this.#state.agc = value != AgcTypes.AUTO ? value : this._resolvedAutoAgc
 			this._d('agc', value)
 			this.fire(new TcvrEvent(EventType.agc, value))
 		}
@@ -398,7 +402,7 @@ class Transceiver {
 	fire(event, force) {
 		if (!force && !this.online) return false
 		let stack = this.#listeners[event.type]
-		stack && stack.forEach(listener => listener.callback.call(this, event))
+		stack && stack.forEach(listener => listener.callback.call(this, event)) // TODO made async?
 		return true //!event.defaultPrevented;
 	}
 
@@ -493,7 +497,7 @@ const _modes = {}
 const Modes = Object.freeze(_modes)
 
 const _agcTypes = {}
-['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'NONE'].forEach(agc => _agcTypes[agc] = agc)
+['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'OFF'].forEach(agc => _agcTypes[agc] = agc)
 const AgcTypes = Object.freeze(_agcTypes)
 
 class TransceiverProperties {

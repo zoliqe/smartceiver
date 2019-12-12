@@ -1,4 +1,4 @@
-import {EventType} from '../utils/events.mjs'
+import {SignalsBinder} from '../utils/signals.mjs'
 import {AudioProcessor} from '../utils/audio.mjs'
 // import {Microphone} from '../utils/mic.mjs'
 
@@ -23,6 +23,7 @@ class RemotigConnector {
 		this._isStarted = false
 		this.options = options || {}
 		this.kredence = kredence || {}
+		this._initSignals()
 	}
 
 	get id() {
@@ -83,9 +84,9 @@ class RemotigConnector {
 		return this._isStarted && this._pc && this._cmdChannel
 	}
 
-	filter(bandWidth, centerFreq) {
-		this.sendCommand('filter=' + bandWidth)
-	}
+	// filter(bandWidth, centerFreq) {
+	// 	this.sendCommand('filter=' + bandWidth)
+	// }
 
 	checkState() {
 		// if (!kredence.qth || !kredence.rig) return;
@@ -289,25 +290,45 @@ class RemotigConnector {
 		console.error('command error:', event)
 	}
 
+	_initSignals() {
+		this.#signals = new SignalsBinder(this.constructor.id, {
+			keyDit: async () => this.sendCommand('.'),
+			keyDah: async () => this.sendCommand('-'),
+			keySpace: async () => this.sendCommand('_'),
+			wpm: async (value) => this.sendCommand('wpm=' + value),
+			ptt: async (value) => this.sendCommand('ptt' + (value ? 'on' : 'off')),
+			mode: async (value) => this.sendCommand("mode=" + value),
+			filter: async (value) => this.sendCommand('filter=' + value),
+			gain: async (value) => this.sendCommand(`gain=${value}`),
+			agc: async (value) => this.sendCommand('agc=' + value),
+			freq: async (value) => this.sendCommand(`f=${value}`),
+			split: async (value) => this.sendCommand(`split=${value}`),
+			rit: async (value) => this.sendCommand(`rit=${value}`),
+			xit: async (value) => this.sendCommand(`xit=${value}`),
+		})
+	}
+
+	get signals() {
+		return this.#signals
+	}
+
 	_bindCommands() {
 		if (!this.tcvr || !this._cmdChannel) return
 
-		this.tcvr.bind(EventType.keyDit, RemotigRTCConnector.id, () => this.sendCommand("."))
-		this.tcvr.bind(EventType.keyDah, RemotigRTCConnector.id, () => this.sendCommand("-"))
-		this.tcvr.bind(EventType.keySpace, RemotigRTCConnector.id, () => this.sendCommand("_"))
-		this.tcvr.bind(EventType.mode, RemotigRTCConnector.id, event => this.sendCommand("mode=" + event.value.toLowerCase()))
-		this.tcvr.bind(EventType.freq, RemotigRTCConnector.id, event => this.sendCommand(`f=${event.value}`))
-		this.tcvr.bind(EventType.rit, RemotigRTCConnector.id, event => this.sendCommand(`rit=${event.value}`))
-		this.tcvr.bind(EventType.xit, RemotigRTCConnector.id, event => this.sendCommand(`xit=${event.value}`))
-		this.tcvr.bind(EventType.split, RemotigRTCConnector.id, event => this.sendCommand(`split=${event.value}`))
-		this.tcvr.bind(EventType.wpm, RemotigRTCConnector.id, event => this.sendCommand("wpm=" + event.value))
-		this.tcvr.bind(EventType.filter, RemotigRTCConnector.id, event => this.filter(event.value, this.tcvr.sidetoneFreq))
-		this.tcvr.bind(EventType.gain, RemotigRTCConnector.id, event => this.sendCommand(`gain=${event.value}`))
-		// this.tcvr.bind(EventType.preamp, RemotigRTCConnector.id, event => this.sendCommand("preamp" + (event.value ? "on" : "off")))
-		// this.tcvr.bind(EventType.attn, RemotigRTCConnector.id, event => this.sendCommand("attn" + (event.value ? "on" : "off")))
-		this.tcvr.bind(EventType.ptt, RemotigRTCConnector.id, event => this.sendCommand('ptt' + (event.value ? 'on' : 'off')))
-		this.tcvr.bind(EventType.agc, RemotigRTCConnector.id, event => this.sendCommand('agc' + (event.value ? 'on' : 'off')))
-		// this.tcvr.bind(EventType.resetAudio, RemotigRTCConnector.id, _ => this.reconnect(this.kredence.rig))
+		// this.tcvr.bind(EventType.keyDit, RemotigConnector.id, () => this.sendCommand("."))
+		// this.tcvr.bind(EventType.keyDah, RemotigConnector.id, () => this.sendCommand("-"))
+		// this.tcvr.bind(EventType.keySpace, RemotigConnector.id, () => this.sendCommand("_"))
+		// this.tcvr.bind(EventType.mode, RemotigConnector.id, event => this.sendCommand("mode=" + event.value.toLowerCase()))
+		// this.tcvr.bind(EventType.freq, RemotigConnector.id, event => this.sendCommand(`f=${event.value}`))
+		// this.tcvr.bind(EventType.rit, RemotigConnector.id, event => this.sendCommand(`rit=${event.value}`))
+		// this.tcvr.bind(EventType.xit, RemotigConnector.id, event => this.sendCommand(`xit=${event.value}`))
+		// this.tcvr.bind(EventType.split, RemotigConnector.id, event => this.sendCommand(`split=${event.value}`))
+		// this.tcvr.bind(EventType.wpm, RemotigConnector.id, event => this.sendCommand("wpm=" + event.value))
+		// this.tcvr.bind(EventType.filter, RemotigConnector.id, event => this.filter(event.value, this.tcvr.sidetoneFreq))
+		// this.tcvr.bind(EventType.gain, RemotigConnector.id, event => this.sendCommand(`gain=${event.value}`))
+		// this.tcvr.bind(EventType.ptt, RemotigConnector.id, event => this.sendCommand('ptt' + (event.value ? 'on' : 'off')))
+		// this.tcvr.bind(EventType.agc, RemotigConnector.id, event => this.sendCommand('agc' + (event.value ? 'on' : 'off')))
+		// this.tcvr.bind(EventType.resetAudio, RemotigConnector.id, _ => this.reconnect(this.kredence.rig))
 	}
 
 }

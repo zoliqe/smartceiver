@@ -136,7 +136,7 @@ export class Adapter {
 	// 	this._uart(data)
 	// }
 
-	async filter(filter, mode) {
+	async filter({filter, mode}) {
 		// not supported
 	}
 }

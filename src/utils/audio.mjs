@@ -1,3 +1,5 @@
+import {EventType} from './signals.mjs'
+
 class AudioProcessor {
 	constructor(rtcTrackEvent, tcvr) {
 		console.debug('Remote RTCTrackEvent:', rtcTrackEvent)
@@ -30,7 +32,7 @@ class AudioProcessor {
 		this._buildFilterChain()
 
 		this.tcvr.bind(EventType.filter, 'audio',
-			event => this.updateFilter({bandwidth: event.value * 1.0}))
+			event => this.updateFilter({bandwidth: event.value.filter * 1.0}))
 		this.tcvr.bind(EventType.audioMute, 'audio',
 			event => this.switchMute())
 		// drawSpectrum()
