@@ -1,4 +1,4 @@
-import {EventType} from '../utils/signals.mjs'
+import {SignalType} from '../utils/signals.mjs'
 
 class Microphone {
 	constructor(tcvr) {
@@ -26,7 +26,7 @@ class Microphone {
 				console.debug('Adding microphone', stream, this._track)
 				this._track && console.info('Microphone constraints:', this._track.getSettings())
 				this.mute()
-				this.tcvr.bind(EventType.ptt, 'mic', 
+				this.tcvr.bind(SignalType.ptt, 'mic', 
 					event => event.value ? this.unmute() : this.mute())
 				return this
 			})

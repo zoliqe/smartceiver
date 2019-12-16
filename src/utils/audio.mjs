@@ -1,4 +1,4 @@
-import {EventType} from './signals.mjs'
+import {SignalType} from './signals.mjs'
 
 class AudioProcessor {
 	constructor(rtcTrackEvent, tcvr) {
@@ -20,7 +20,7 @@ class AudioProcessor {
 		// this._canvas = document.querySelector('#fft')
 		// this._canvasCtx = canvas.getContext('2d')
 		// canvas.height = 256
-		this.tcvr.bind(EventType.ptt, 'audio', 
+		this.tcvr.bind(SignalType.ptt, 'audio', 
 			event => event.value ? this.mute() : this.unmute())
 		this._connectStream() // hook for https://bugs.chromium.org/p/chromium/issues/detail?id=121673
 
@@ -31,9 +31,9 @@ class AudioProcessor {
 		this._gain.connect(this._analyser)
 		this._buildFilterChain()
 
-		this.tcvr.bind(EventType.filter, 'audio',
+		this.tcvr.bind(SignalType.filter, 'audio',
 			event => this.updateFilter({bandwidth: event.value.filter * 1.0}))
-		this.tcvr.bind(EventType.audioMute, 'audio',
+		this.tcvr.bind(SignalType.audioMute, 'audio',
 			event => this.switchMute())
 		// drawSpectrum()
 	}

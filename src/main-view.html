@@ -144,33 +144,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
     <ul class="app-grid">
     <li><div class="card knob-card">
-      <!--<paper-dropdown-menu label="BAND" class="band">
-        <paper-listbox slot="dropdown-content" selected="{{band}}">
-          <template is="dom-repeat" items="[[bands]]">
-            <paper-item>{{item}} MHz</paper-item>
-          </template>
-        </paper-listbox>
-      </paper-dropdown-menu>
-      <paper-dropdown-menu label="MODE" class="mode">
-          <paper-listbox slot="dropdown-content" selected="{{mode}}">
-            <template is="dom-repeat" items="[[modes]]">
-              <paper-item>{{item}}</paper-item>
-            </template>
-          </paper-listbox>
-        </paper-dropdown-menu>-->
       <div id="knob" class="knob" on-wheel="rotateByWheel">
         <div id="dimp" class="dimp"></div>
       </div>
-        <!-- <paper-button toggles active="{{locked}}" raised class="toggles">LOCK</paper-button> -->
-        <!-- <paper-item class="controls">
-                        <paper-button toggles raised on-tap="switchStep" class="toggles" disabled="[[!power]]">STEP<br />[[step]]
-                        </paper-button>
-                      </paper-item> -->
-        <!-- <paper-button toggles raised on-tap="switchAgc" class="toggles" disabled="[[!power]]">AGC<br/>[[agcState(agc)]]</paper-button> -->
-        <!-- <paper-button toggles raised on-tap="switchVfo" class="toggles" disabled="[[!power]]">VFO<br/>[[vfoMode()]]</paper-button> -->
-        <!-- <paper-item class="controls"> -->
-        <!-- <paper-button toggles active="{{ptt}}" raised class="toggles">PTT</paper-button> -->
-        <!-- </paper-item> -->
       <div class="controls">
         <paper-item>
           <paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!power]]">
@@ -185,17 +161,6 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       </div>
     </div></li>
     <li><div class="card" role="listbox">
-      <!-- <h1>Controls</h1> -->
-      <!-- <paper-item class="ctl">
-        <paper-button raised on-tap="decBand" disabled="[[!power]]" class="ctl">--</paper-button>
-        <span class="ctl-value">[[bandName(band)]] <span class="ctl-name">MHz</span></span>
-        <paper-button raised on-tap="incBand" disabled="[[!power]]" class="ctl">++</paper-button>
-      </paper-item> -->
-      <!-- <paper-item class="ctl">
-        <paper-button raised on-tap="decGain" disabled="[[!power]]" class="ctl">--</paper-button>
-        <span class="ctl-value">[[gain]] <span class="ctl-name">dB</span></span>
-        <paper-button raised on-tap="incGain" disabled="[[!power]]" class="ctl">++</paper-button>
-      </paper-item> -->
       <paper-item class="ctl">
         <paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!power]]">--</paper-button>
         <span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
@@ -318,6 +283,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         this.filter = this.filter + 200
       }
 
+      switchMode() {
+        this.mode = this.mode > 0 ? this.mode - 1 : this.modes.length - 1
+      }
+
+      switchGain() {
+        const i = this.gains.indexOf(this.gain)
+        this.gain = this.gains[i > 0 ? i - 1 : this.gains.length - 1]
+      }
+
       // decGain() {
       //   const i = this.gains.indexOf(this.gain)
       //   this.gain = this.gains[i > 0 ? i - 1 : 0]
@@ -343,18 +317,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
       //   this.step = this.step < 200 ? 200 : 20
       // }
 
-      switchMode() {
-        this.mode = this.mode > 0 ? this.mode - 1 : this.modes.length - 1
-      }
-
       // switchAgc() {
       //   this.agc = !this.agc
       // }
-
-      switchGain() {
-        const i = this.gains.indexOf(this.gain)
-        this.gain = this.gains[i > 0 ? i - 1 : this.gains.length - 1]
-      }
 
       // switchVfo() {
       //   // TODO

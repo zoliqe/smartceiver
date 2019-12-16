@@ -1,4 +1,4 @@
-import {TcvrEvent, EventType} from '../utils/signals.mjs'
+import {TcvrSignal, SignalType} from '../utils/signals.mjs'
 
 class RemoddleController {
 
@@ -58,9 +58,9 @@ class RemoddleController {
 		const code = c.charCodeAt(0);
 		if (code <= 32) return // whitespace
 		// console.log('remoddle:', c)
-		if (c === '-') this._tcvr.fire(new TcvrEvent(EventType.keyDah, 1))
-		else if (c === '.') this._tcvr.fire(new TcvrEvent(EventType.keyDit, 1))
-		else if (c === '_') this._tcvr.fire(new TcvrEvent(EventType.keySpace, 1))
+		if (c === '-') this._tcvr.fire(new TcvrSignal(SignalType.keyDah, 1))
+		else if (c === '.') this._tcvr.fire(new TcvrSignal(SignalType.keyDit, 1))
+		else if (c === '_') this._tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
 		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
 		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
 		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up

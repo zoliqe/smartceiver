@@ -137,8 +137,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				tail="{{subroute}}"></app-route>
 
 		<app-drawer-layout fullbleed responsive-width="1024px">
-			<!-- Drawer content -->
-			<app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
+			<!-- <app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
 				<paper-button on-tap="mute" style="color: yellow">(Un)mute audio</paper-button>
 				<app-toolbar>Tune step</app-toolbar>
 				<iron-selector selected="{{tcvr.step}}" attr-for-selected="step" class="drawer-list">
@@ -148,21 +147,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				</iron-selector>
 
 				<app-toolbar>Band</app-toolbar>
-				<!--  role="navigation" -->
 				<iron-selector selected="{{tcvr.band}}" attr-for-selected="index" class="drawer-list">
 					<template is="dom-repeat" items="[[tcvr.bands]]">
 						<a index="[[index]]">{{item}} MHz</a>
-						<!-- <a index="[[index]]" drawer-toggle>{{item}} MHz</a> -->
 					</template>
-					<!-- <a name="setup-rx" href="/setup-rx">Setup RX</a>
-					<a name="settings" href="/smartceiver/settings">Settings</a>
-					<a name="cwmem" href="/smartceiver/cwmem">CW Memories</a> -->
 				</iron-selector>
-			</app-drawer>
+			</app-drawer> -->
 
-			<!-- Main content -->
-			<app-header-layout has-scrolling-region>
-
+			<!-- Main content has-scrolling-region-->
+			<app-header-layout>
 				<app-header slot="header" fixed effects="waterfall">
 					<app-toolbar>
 						<paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
@@ -177,7 +170,38 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 					</app-toolbar>
 				</app-header>
 
-				<iron-pages
+				<ul class="app-grid">
+					<li><div class="card knob-card">
+						<div id="knob" class="knob" on-wheel="rotateByWheel">
+							<div id="dimp" class="dimp"></div>
+						</div>
+						<div class="controls">
+							<paper-item>
+								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!powerState]]">
+									MODE<br />[[mode]]
+								</paper-button>
+							</paper-item>
+							<paper-item>
+								<paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" disabled="[[!powerState]]">
+									GAIN<br />[[gain]]
+								</paper-button>
+							</paper-item>
+						</div>
+					</div></li>
+					<li><div class="card" role="listbox">
+						<paper-item class="ctl">
+							<paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!powerState]]">--</paper-button>
+							<span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
+							<paper-button raised on-tap="increaseWpm" class="ctl" disabled="[[!powerState]]">++</paper-button>
+						</paper-item>
+						<paper-item class="ctl">
+							<paper-button raised on-tap="decFilter" disabled="[[!powerState]]" class="ctl">--</paper-button>
+							<span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
+							<paper-button raised on-tap="incFilter" disabled="[[!powerState]]" class="ctl">++</paper-button>
+						</paper-item>
+					</div></li>
+					</ul>
+					<!-- <iron-pages
 						selected="[[page]]"
 						attr-for-selected="name"
 						fallback-selection="error404"
@@ -187,11 +211,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						filter="{{tcvr.filter}}" wpm="{{tcvr.wpm}}" gain="{{tcvr.gain}}" gains="[[tcvr.gains]]" 
 						ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}" power="[[tcvr.powerSwState]]">
 					</main-view>
-					<!--<setuprx-view name="setup-rx"></setuprx-view>-->
-					<!-- <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view> -->
-					<!-- <cwmem-view name="cwmem"></cwmem-view> -->
 					<error404-view name="error404"></error404-view>
-				</iron-pages>
+				</iron-pages> -->
 			</app-header-layout>
 		</app-drawer-layout>
 	</template>
@@ -209,10 +230,17 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						reflectToAttribute: true,
 						// observer: '_pageChanged',
 					},
-				 freqDisplay: {
+					freqDisplay: {
 						type: String,
-						computed: 'formatFreq(tcvr.freq, operator)'
-					}
+						computed: 'formatFreq(this._freq, operator)'
+					},
+          step: {type: Number, notify: false, value: true},
+          filter: {type: Number, notify: false, value: true},
+          wpm: {type: Number, notify: false, value: true},
+          mode: {type: String, notify: false, value: true},
+					gain: {type: Number, notify: false, value: true},
+					powerState: {type: Boolean, notify: false, value: true},
+					// band: {type: Object, notify: false},
 				}
 			}
 
@@ -225,11 +253,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 			constructor() {
 				super()
-				this.page = 'tune'
-				this.connectorId
 				this.kredence = {}
 				this.remoddle
-				this.reverse = false
 				this._initTcvr()
 
 				this.operator = ':::'
@@ -239,26 +264,45 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 			async _initTcvr() {
 				const tcvrModule = await import('./tcvr.mjs')
-				document.tcvr = this.tcvr = new tcvrModule.Transceiver()
-				const evtModule = await import('./utils/events.mjs')
-				window.EventType = evtModule.EventType
-				window.TcvrEvent = evtModule.TcvrEvent
+				let transceiver
+				document.tcvr = transceiver = new tcvrModule.Transceiver()
+				window.Band = tcvrModule.Band
+				const signalsModule = await import('./utils/signals.mjs')
+				window.SignalType = signalsModule.SignalType
+				// window.TcvrSignal = signalsModule.TcvrSignal
 
-				this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
-				this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
-				this.tcvr.bind(EventType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
-				this.tcvr.bind(EventType.pwrsw, 'ui', event => {
-					this.notifyPath('tcvr.freq')
-					this.notifyPath('tcvr.powerSwState')
-					this.$.tune.notifyPath('freq')
-					this.$.tune.notifyPath('power')
-					this.$.pwrbtn.className = event.value ? 'on' : 'off'
+				this.signals = new signalsModule.SignalsBinder('ui', {
+					ptt: value => this.$.freq.style = value ? "color: #883333;" : '',
+					keyTx: value => this.$.freq.style = value ? "color: #883333;" : '',
+					wpm: value => { this.wpm = value; this.notifyPath('wpm'); },
+					mode: value => { this.mode = value; this.notifyPath('mode'); },
+					filter: value => { this.filter = value; this.notifyPath('filter'); },
+					gain: value => { this.gain = value; this.notifyPath('gain'); },
+					step: value => { this.step = value; this.notifyPath('step'); },
+					freq: value => this._freqChanged(value),
+					pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = event.value ? 'on' : 'off'; },
 				})
-				this.tcvr.bind(EventType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
-				this.tcvr.bind(EventType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
-				this.tcvr.bind(EventType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
-				this.tcvr.bind(EventType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
-				this.tcvr.bind(EventType.step, 'ui', event => this.notifyPath('tcvr.step'))
+				this.signals.out.bind(transceiver)
+
+				const ctlrModule = await import('./controller.mjs')
+				this.tcvr = new ctlrModule.TcvrController('ui')
+				this.tcvr.registerTo(transceiver)
+				// this.tcvr.bind(SignalType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
+				// this.tcvr.bind(SignalType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+				// this.tcvr.bind(SignalType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+				// this.tcvr.bind(SignalType.pwrsw, 'ui', event => {
+				// 	this.notifyPath('tcvr.freq')
+				// 	this.notifyPath('tcvr.powerSwState')
+				// 	this.$.tune.notifyPath('freq')
+				// 	this.$.tune.notifyPath('power')
+				// 	this.$.pwrbtn.className = event.value ? 'on' : 'off'
+				// })
+				// this.tcvr.bind(SignalType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
+				// this.tcvr.bind(SignalType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
+				// this.tcvr.bind(SignalType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
+				// this.tcvr.bind(SignalType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
+				// this.tcvr.bind(SignalType.step, 'ui', event => this.notifyPath('tcvr.step'))
+				this.powerState = false
 			}
 
 			async _fetchStatus() {
@@ -280,17 +324,18 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				if (freq == this._freq) {
 					return // stop propagate freq change when changed by tuning knob (already propagated)
 				}
-				this.notifyPath('tcvr.freq')
-				this.$.tune.notifyPath('freq')
+				this._freq = freq
+				this.notifyPath('this._freq')
+				// this.$.tune.notifyPath('freq')
 
-				if (this.tcvr.band == this._band) return
-				this._band = this.tcvr.band
-				this.notifyPath('tcvr.band')
+				// if (this.tcvr.band == this._band) return
+				// this._band = this.tcvr.band
+				// this.notifyPath('tcvr.band')
 			}
 
 			formatFreq(freq) {
 				this._freq = freq // store value for change detect
-				if (freq === null || !this.tcvr || !this.tcvr.powerSwState) {
+				if (freq === null || !this.tcvr || !this.powerState) {
 					return this.operator
 				}
 
@@ -303,7 +348,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				if (khz < 100) {
 				 res += '0'
 				}
-			 res += khz
+				res += khz
 				if (khz % 1 === 0) {
 				 res += '.00'
 				} else if (freq % 100 === 0) {
@@ -313,8 +358,8 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				return res
 			}
 
-			switchPower() {
-				this.tcvr.switchPower(this.connector, this.kredence, this.remoddle, this.reverse)
+			async switchPower() {
+				await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
 			}
 
 			// connectRemoddle() {
@@ -322,12 +367,12 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			// }
 
 			// restartAudio() {
-			// 	this.tcvr.fire(new TcvrEvent(EventType.resetAudio, true))
+			// 	this.tcvr.fire(new TcvrSignal(SignalType.resetAudio, true))
 			// }
 
-			mute() {
-				this.tcvr.fire(new TcvrEvent(EventType.audioMute, true))
-			}
+			// mute() {
+				// this.tcvr.fire(new TcvrSignal(SignalType.audioMute, true))
+			// }
 
 			async _urlParamsChanged(params) {
 				if (params.token) {
@@ -359,7 +404,36 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				if (params.remoddle) {
 					this.remoddle = params.remoddle.trim()
 				}
-				this.reverse = params.reverse && (params.reverse.trim() === '1')
+				this.tcvr.reversePaddle = params.reverse && (params.reverse.trim() === '1')
+			}
+
+      decreaseWpm() {
+        this.tcvr.wpm = this.wpm - 2;
+      }
+      increaseWpm() {
+        this.tcvr.wpm = this.wpm + 2;
+      }
+
+      decFilter() {
+        this.tcvr.filter = this.filter - 200
+      }
+      incFilter() {
+        this.tcvr.filter = this.filter + 200
+      }
+
+      switchMode() {
+				const i = this.tcvr.modes.indexOf(this.mode)
+        this.tcvr.mode = this.tcvr.modes[i < (this.modes.length - 1) ? i + 1 : 0]
+      }
+
+      switchGain() {
+        const i = this.tcvr.gains.indexOf(this.gain)
+        this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.gains.length - 1]
+			}
+			
+			switchBand() {
+				const i = this.tcvr.bands.indexOf(Band.byFreq(this._freq))
+				this.tcvr.band = this.tcvr.bands[i < (this.bands.length - 1) ? i + 1 : 0]
 			}
 
 			// _routePageChanged(page) {
