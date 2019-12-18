@@ -1,24 +1,5 @@
-import {Bands, Modes, AgcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
 import {selectFilter, tcvrOptions} from './utils.mjs'
-
-const modeValues = {}
-modeValues[Modes.LSB] = 0x00
-modeValues[Modes.USB] = 0x01
-modeValues[Modes.CW]  = 0x03
-modeValues[Modes.CWR] = 0x02
-modeValues[Modes.AM]  = 0x04
-modeValues[Modes.NFM] = 0x06
-modeValues[Modes.WFM] = 0x07
-modeValues[Modes.RTTY] = 0x08
-modeValues[Modes.RTTYR] = 0x09
-const filterValues = {
-	6000: 4,
-	2400: 0,
-	2000: 1,
-	500: 2,
-	250: 3,
-}
 
 const hex2dec = (h) => {
 	const s = Math.floor(h / 10)
@@ -38,6 +19,10 @@ export class Adapter {
 		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
 	}
 
+	static FT817(options) {
+		return new Adapter(await tcvrOptions('yeasu', 'ft817', options))
+	}
+
 	async static forTcvr(model, options) {
 		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
 	}
@@ -47,7 +32,7 @@ export class Adapter {
 	}
 
 	static get models() {
-		return ['ft1000']
+		return ['ft1000', 'ft817']
 	}
 
 	async init(dataSender) {
@@ -88,39 +73,35 @@ export class Adapter {
 		f = f - (hz100_10 *             10)
 		// log(`f=${f}`)
 
-		const data = [hex2dec(hz100_10), hex2dec(khz10_1), hex2dec(khz1000_100), hex2dec(mhz100_10),
-			0x0A]
+		const data = this.#options.freqdata(hex2dec(mhz100_10), hex2dec(khz1000_100), hex2dec(khz10_1), hex2dec(hz100_10))
 		// log(`TCVR f: ${data}`)
 		await this._uart(data) //, (err) => err && log(`TCVR ${err.message}`))
 	}
 
 	async mode(mode) {
-		const value = modeValues[mode]
-		if (value == null) {
+		const data = this.#options.modedata(mode)
+		if (data == null) {
 			console.error('YeasuTcvr: Unknown mode', mode)
 			return
 		}
-		const data = [0, 0, 0, value, 0x0C]
 		await this._uart(data)
 	}
 
 	async filter({value, mode}) {
+		if (this.#options.model === 'ft817') return // unsupported
 		const filter = selectFilter(this.properties.filters(mode), value)
-		const fvalue = filterValues[filter]
-		if (fvalue == null) {
+		const data = this.#options.filterdata(filter)
+		if (data == null) {
 			console.error('YeasuTcvr: Unknown filter', value)
 			return
 		}
-		const data = [0, 0, 0, fvalue, 0x8C]
 		await this._uart(data)
 	}
 
 	async agc(agc) {
 	}
 
-	async preamp(gain) {
+	async gain(gain) {
 	}
 
-	async attn(attn) {
-	}
 }
