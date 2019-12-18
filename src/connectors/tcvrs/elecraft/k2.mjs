@@ -7,7 +7,7 @@ const filters = {}
 filters[Modes.CW]  = filters[Modes.CWR] = [1500, 700, 400, 250]
 filters[Modes.LSB] = filters[Modes.USB] = [2100, 2300, 700, 400]
 const gains = {}
-bands.forEach(b => gains[b] = [-10, 0, 20])
+bands.forEach(b => gains[b] = [-10, 20])
 
 export default {
 	model: 'k2',
