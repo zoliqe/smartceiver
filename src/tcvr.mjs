@@ -15,19 +15,8 @@ const _sidetoneFreq = 650
 class Transceiver {
 
 	#props
-	#state = {
-		freq: {},
-		split: {},
-		gains: {},
-		filters: {},
-		rit: 0,
-		xit: 0,
-		step: 20,
-		wpm: 28,
-		ptt: false,
-		keyed: false,
-		paddleReverse: false,
-	}
+	#state = {}
+	#defaults = { rit: 0, xit: 0, step: 20, wpm: 28, paddleReverse: false }
 	#bus = new SignalBus()
 	#acl = []
 
@@ -82,15 +71,8 @@ class Transceiver {
 			this._port = await connector.connect(this)
 			this._bindSignals()
 			this._port.signals.out.bind(this.#bus)
-						    
-			const props = await connector.tcvrProps
-			const defaults = await connector.tcvrDefaults
-			this._mergePropsToState(props, defaults)
 			
-			// reset tcvr configuration
-			// TODO check default band,mode,agc,gain, filter
-			this.band = this.#state.band
-			this.wpm = this.#state.wpm
+			await this._initState(connector)
 			this.fire(new TcvrSignal(SignalType.pwrsw, this._port != null), true)
 			// const ctlModule = await import('./remoddle/controls.mjs')
 			// this._controls = new ctlModule.TcvrControls(this)
@@ -100,6 +82,25 @@ class Transceiver {
 				this._port && this._port.disconnect()
 			}
 		}
+	}
+
+	async _initState(connector) {
+		this.#state = {} // TODO load state from KV storage
+		Object.keys(this.#defaults).forEach(this._mergeDefault)
+		this.#state.ptt = false
+		this.#state.keyed = false
+
+		const props = await connector.tcvrProps
+		const defaults = await connector.tcvrDefaults
+		this._mergePropsToState(props, defaults)
+
+		// reset tcvr configuration
+		this.band = this.#state.band
+		this.wpm = this.#state.wpm
+	}
+
+	_mergeDefault(prop) {
+		this.#state[prop] = this.#state[prop] || this.#defaults[prop]
 	}
 
 	_mergePropsToState(props, defaults) {
