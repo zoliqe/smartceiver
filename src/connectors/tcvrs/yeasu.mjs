@@ -27,7 +27,7 @@ const hex2dec = (h) => {
 
 export class Adapter {
 
-    #options
+	#options
 
 	constructor(options = {baudrate}) {
 		this._uart = _ => {} // do nothing
@@ -65,6 +65,10 @@ export class Adapter {
 
 	get properties() {
 		return this.#options.props
+	}
+
+	get defaults() {
+		return this.#options.defaults
 	}
 
 	async frequency(f) {
