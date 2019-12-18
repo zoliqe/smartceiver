@@ -61,6 +61,10 @@ export class Adapter {
 		return this.#options.props
 	}
 
+	get defaults() {
+		return this.#options.defaults
+	}
+
 	async frequency(freq) {
 		let cmd = 'FA000'
 		if (freq < 10000000) cmd += '0'
