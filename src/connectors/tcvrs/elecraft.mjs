@@ -57,6 +57,10 @@ export class Adapter {
 		return this.#options.props
 	}
 
+	get defaults() {
+		return this.#options.defaults
+	}
+
 	get baudrate() {
 		return this.#options.baudrate
 	}
