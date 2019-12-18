@@ -63,6 +63,10 @@ export class Adapter {
 		return this.#options.props
 	}
 
+	get defaults() {
+		return this.#options.defaults
+	}
+
 	async frequency(f) {
 		let mhz100 = 0
 		if (f >= 100000000) {
