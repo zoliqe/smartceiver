@@ -49,8 +49,8 @@ class PowronConnector {
 		this.#pttPins = options.pttPins || []
 		this.#powerPins = options.powerPins || []
 		const timeout = this._powerTimeout(options.powerTimeout)
-		this.keyerState(true)
-		this.pttState(false)
+		// this.keyerState(true)
+		// this.pttState(false)
 
 		this.#adapter = tcvrAdapter
 		this.#powr = new PowrSwitch({

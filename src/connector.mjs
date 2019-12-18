@@ -14,6 +14,12 @@ export const get = async (connector, params) => {
 		const conn = await import('./connectors/powron.mjs')
 		return new conn.PowronConnector(adapter, params)
 	}
+	if (connector === 'sercat') {
+		requireTcvr(params)
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connectors/sercat.mjs')
+		return new conn.SercatConnector(adapter, params)
+	}
 	if (connector === 'bluecat') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)

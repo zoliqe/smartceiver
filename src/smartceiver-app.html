@@ -388,7 +388,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
 						connectorParams = {kredence: this.kredence}
 					} else if (this.kredence.rig.includes('-')) {
-						connectorId = 'powron'
+						connectorId = 'sercat' //'powron'
 						connectorParams = {tcvr: {}}
 						[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
 					}
