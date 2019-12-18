@@ -144,17 +144,17 @@ class PowronConnector {
       .then(() => readLoop())
   }
 
-  async disconnect() {
+	async disconnect() {
 		if (!this.#device) return
 
 		await this._off()
-    await this.#device.controlTransferOut({
-      'requestType': 'class',
-      'recipient': 'interface',
-      'request': 0x22,
-      'value': 0x00,
-      'index': this.#interfaceNumber
-    })
+		await this.#device.controlTransferOut({
+			'requestType': 'class',
+			'recipient': 'interface',
+			'request': 0x22,
+			'value': 0x00,
+			'index': this.#interfaceNumber
+		})
 		await this.#device.close()
 		this.#device = null
 	}
@@ -173,16 +173,21 @@ class PowronConnector {
 		await this.#powr.off()
 	}
 
-  get connected() {
-    return this.#device != null
-  }
+	get connected() {
+		return this.#device != null
+	}
 
-  async checkState() {
-    return this.connected ? {id: this.id} : null
+	async checkState() {
+		// TODO maybe check present device by navigator.usb.getDevices()?
+		return {id: this.id} //this.connected ? {id: this.id} : null
 	}
 	
 	get tcvrProps() {
 		return this.#adapter.properties
+	}
+
+	get tcvrDefaults() {
+		return this.#adapter.defaults
 	}
 
 	async serialData(data) {
@@ -227,7 +232,7 @@ class PowronConnector {
 			console.error(`POWRON pinState: pin ${ pin } not known`)
 	}
 
-  async _send(data) {
+	async _send(data) {
 		//console.debug(`POWRON <= ${ data.trim() } `)
 		if (this.connected) {
 			await this.#device.transferOut(this.#endpointOut, encoder.encode(data + '\n'))
@@ -236,14 +241,14 @@ class PowronConnector {
 			console.error(`POWRON: data not sent ${ data } `)
 			return false
 		}
-  }
+	}
 
-  onReceive(data) {
-    console.debug('POWRON rcvd:', decoder.decode(data))
-  }
+	onReceive(data) {
+		console.debug('POWRON rcvd:', decoder.decode(data))
+	}
 
-  onReceiveError(error) {
-    console.error('POWRON error:', error)
+	onReceiveError(error) {
+		console.error('POWRON error:', error)
 	}
 	
 	_initSignals() {
