@@ -13,5 +13,6 @@ export default {
 			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]],
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
 		modeFilters: filters
-	})
+	}),
+	defaults: {band: Bands[20], mode: Modes.CW, agc: AgcTypes.AUTO}
 }
