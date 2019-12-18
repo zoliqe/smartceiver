@@ -16,5 +16,6 @@ export default {
 		agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
 		bandGains: gains,
 		modeFilters: {} // no filters (TODO update to support optional filter)
-	})
+	}),
+	defaults: {band: Bands[20], mode: Modes.CW, agc: AgcTypes.FAST}
 }
