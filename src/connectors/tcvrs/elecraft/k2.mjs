@@ -12,11 +12,10 @@ bands.forEach(b => gains[b] = [-10, 0, 20])
 export default {
 	model: 'k2',
 	baudrate: 4800,
-	resolveAutoAgc: true,
 	props: new TransceiverProperties({
 		bands: bands,
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-		agcTypes: [AgcTypes.FAST, AgcTypes.SLOW, AgcTypes.AUTO],
+		agcTypes: [AgcTypes.FAST, AgcTypes.SLOW],
 		bandGains: gains,
 		modeFilters: filters
 	}),
