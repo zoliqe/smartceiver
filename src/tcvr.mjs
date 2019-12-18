@@ -397,6 +397,11 @@ class Transceiver {
 		}
 	}
 
+// 	TODO find better place to resolve Auto AGC
+// 	get _resolvedAutoAgc() {
+// 		return this.mode == Modes.CW || this.mode == Modes.CWR ?
+// 			AgcTypes.FAST : AgcTypes.SLOW
+// 	}
 	get agcTypes() {
 		return this.#props && this.#props.agcTypes
 	}
@@ -500,10 +505,10 @@ class Band {
 const _bands = {}
 // const addBand = ([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
 [
-	[1.8,		160,		 1810,			2000],
-	[3.5,		80,			 3500,			3800],
-	[5,			60,			 5351,			5368],
-	[7,			40,			 7000,			7200],
+	[1.8,   160,     1810,      2000],
+	[3.5,	  80,      3500,      3800],
+	[5,	    60,      5351,      5368],
+	[7,     40,	     7000,      7200],
 	[10.1,	30,			10100,		 10150],
 	[14,		20,			14000,		 14350],
 	[18,		17,			18068,		 18168],
@@ -540,10 +545,10 @@ class TransceiverProperties {
 		this.#modes = modes && modes.length ? modes : [Modes.LSB]
 		this.#agcTypes = agcTypes && agcTypes.length ? agcTypes : [AgcTypes.NONE]
 
-		if (bandGains && bandGains.length) {
-			this.#bandGains = bandGains
-		} else {
 			this.#bandGains = {}
+		if (bandGains && bandGains.length) {
+			Object.keys(bandGains).forEach(b => this.#bandGains[b] = [0, ...bandGains[b]]) // 0 is mandatory
+		} else {
 			bands.forEach(b => this.#bandGains[b] = [0])
 		}
 
