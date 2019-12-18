@@ -3,30 +3,26 @@ import { SignalBus } from './utils/signals.mjs'
 
 // const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
 // const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
-const _startFreqFromLowEdge = 21
+// const _startFreqFromLowEdge = 21
 // const _modes = ['LSB', 'USB', 'CW', /*'CWR'*/] // order copies mode code for MDn cmd
 const _filters = {
 	'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
-const defaultMode = Mode.CW
+// const defaultMode = Mode.CW
 const _sidetoneFreq = 650
 
 class Transceiver {
 
 	#props
 	#state = {
-		// bands: [Bands[40]],
-		band: 40,
-		mode: defaultMode,
-		freq: {40: 7021000},
-		split: {40: 0},
+		freq: {},
+		split: {},
+		gains: {},
+		filters: {},
 		rit: 0,
 		xit: 0,
 		step: 20,
-		gains: {40: 0},
-		agc: AgcTypes.AUTO,
-		filters: {CW: _filters[defaultMode].max},
 		wpm: 28,
 		ptt: false,
 		keyed: false,
@@ -76,17 +72,22 @@ class Transceiver {
 			this._port.disconnect()
 			this._port.signals.out.unbind(this)
 			this._port = null
+			
 			this.fire(new TcvrSignal(SignalType.pwrsw, false), true)
 			this._unbindSignals()
+			this.#props = null
 		} else if (connector) {
 			this._d('connect connector', connector.id)
 			this.connectRemoddle(remoddleOptions)
 			this._port = await connector.connect(this)
 			this._bindSignals()
 			this._port.signals.out.bind(this.#bus)
+						    
+			const props = await connector.tcvrProps
+			const defaults = await connector.tcvrDefaults
+			this._mergePropsToState(props, defaults)
+			
 			// reset tcvr configuration
-			this.#props = await connector.tcvrProps
-			this._buildFreqTable()
 			// TODO check default band,mode,agc,gain, filter
 			this.band = this.#state.band
 			this.wpm = this.#state.wpm
@@ -101,16 +102,48 @@ class Transceiver {
 		}
 	}
 
-	_buildFreqTable() {
-		for (let band of this.#props.bands) {
-			this.#state.freq[band.id] = {}
-			this.#state.split[band.id] = {}
-			for (let mode of this.#props.modes) {
-				this.#state.freq[band.id][mode] = band.freqFrom + (_startFreqFromLowEdge * 1000)
-				this.#state.split[band.id][mode] = 0
+	_mergePropsToState(props, defaults) {
+		if (props == null) throw new Error('TCVR: Connector returns empty props!')
+		this._buildFreqTable(props)
+		this._buildFilterTable(props)
+		this._buildGainsTable(props)
+		
+		if (!this.#state.band || !props.bands.includes(this.#state.band))
+			this.#state.band = defaults.band
+		if (!this.#state.mode || !props.modes.includes(this.#state.mode))
+			this.#state.mode = defaults.mode
+		if (!this.#state.agc || !props.agcTypes.includes(this.#state.agc))
+			this.#state.agc = defaults.agc
+		
+		this.#props = props // set field after everything is set
+	}
+
+	_buildFreqTable(props) {
+		this.#state.freq = this.#state.freq || {}
+		this.#state.split = this.#state.split || {}
+		for (let band of props.bands) {
+			this.#state.freq[band.id] = this.#state.freq[band.id] || {}
+			this.#state.split[band.id] = this.#state.split[band.id] || {}
+			for (let mode of props.modes) {
+				this.#state.freq[band.id][mode] = this.#state.freq[band.id][mode] || band.freqFrom
+				this.#state.split[band.id][mode] = this.#state.split[band.id][mode] || 0
 			}
 			this.#state.gains[band.id] = 0
 		}
+	}
+		
+	_buildFilterTable(props) {
+		this.#state.filters = this.#state.filters || {}
+		props.modes.forEach(mode => 
+				    this.#state.filters[mode] = this.#state.filters[mode] || _filters[mode].max)
+	}
+	
+	_buildGainsTable(props) {
+		this.#state.gains = this.#state.gains || {}
+		props.bands.forEach(band => {
+			const gain = this.#state.gains[band]
+			this.#state.gains[band] = (gain && props.gains(band).includes(gain)) || 0
+		})
 	}
 
 	_bindSignals() {
@@ -124,7 +157,7 @@ class Transceiver {
 	}
 
 	keepAlive() {
-		this.connected && this.fire(new TcvrSignal(SignalType.keepAlive, Date.now()))
+		this.online && this.fire(new TcvrSignal(SignalType.keepAlive, Date.now()))
 	}
 
 	async connectRemoddle(options) {
@@ -178,7 +211,7 @@ class Transceiver {
 	get ptt() {
 		return this.#state.ptt
 	}
-	set ptt(controller, state) {
+	ptt(controller, state) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
 		this.#state.ptt = state
@@ -189,7 +222,7 @@ class Transceiver {
 	get wpm() {
 		return this.#state.wpm
 	}
-	set wpm(controller, wpm) {
+	wpm(controller, wpm) {
 		if (!this.online || this._denieded(controller)) return
 		if (wpm < 16 || wpm > 40) return
 		this._d("wpm", wpm)
@@ -200,7 +233,7 @@ class Transceiver {
 	get reversePaddle() {
 		return this.#state.paddleReverse
 	}
-	set reversePaddle(controller, value) {
+	reversePaddle(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this.#state.paddleReverse = value
 		this._d('reverse', value)
@@ -212,17 +245,17 @@ class Transceiver {
 	}
 
 	get online() {
-		return this._port && this._port.connected
+		return this._port && this._port.connected && this.#props
 	}
 
 	get bands() {
-		return this.#props.bands
+		return this.#props && this.#props.bands
 	}
 
 	get band() {
 		return this.#state.band
 	}
-	set band(controller, band) {
+	band(controller, band) {
 		if (!this.online || this._denieded(controller)) return
 		if (!this.#props.bands.includes(band)) return
 
@@ -246,7 +279,7 @@ class Transceiver {
 	get freq() {
 		return this.#state.freq[this.#state.band][this.#state.mode]
 	}
-	set freq(controller, freq) {
+	freq(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (this._outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
@@ -316,7 +349,7 @@ class Transceiver {
 	}
 
 	get modes() {
-		return this.#props.modes
+		return this.#props && this.#props.modes
 	}
 	get mode() {
 		return this.#state.mode
@@ -333,7 +366,7 @@ class Transceiver {
 	}
 
 	get filters() {
-		return this.#props.filters(this.mode)
+		return this.#props && this.#props.filters(this.mode)
 	}
 	get filter() {
 		return this.#state.filter[this.mode]
@@ -349,7 +382,7 @@ class Transceiver {
 	}
 
 	get gains() {
-		return this.#props.bandGains[this.band]
+		return this.#props && this.#props.bandGains[this.band]
 	}
 
 	get gain() {
@@ -364,11 +397,7 @@ class Transceiver {
 	}
 
 	get agcTypes() {
-		return [...this.#props.agcTypes, AgcTypes.AUTO]
-	}
-	get _resolvedAutoAgc() {
-		return this.mode == Modes.CW || this.mode == Modes.CWR ?
-			AgcTypes.FAST : AgcTypes.SLOW
+		return this.#props && this.#props.agcTypes
 	}
 	get agc() {
 		return this.#state.agc
@@ -376,7 +405,7 @@ class Transceiver {
 	agc(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.agcTypes.includes(value)) {
-			this.#state.agc = value != AgcTypes.AUTO ? value : this._resolvedAutoAgc
+			this.#state.agc = value
 			this._d('agc', value)
 			this.fire(new TcvrSignal(SignalType.agc, value))
 		}
