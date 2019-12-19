@@ -8,7 +8,7 @@ class TcvrSignal {
 }
 
 const SignalType = Object.freeze({
-	freq: 'freq', rit: 'rit', xit: 'xit', split: 'split',
+	freq: 'freq', band: 'band', rit: 'rit', xit: 'xit', split: 'split',
 	wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', gain: 'gain',
 	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', keyTx: 'keyTx', reverse: 'reverse',
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', keepAlive: 'keepAlive', step: 'step', 
@@ -54,7 +54,7 @@ class SignalsBinder {
 		this.#out = new Signals([
 				SignalType.keyDit, SignalType.keyDah, SignalType.keySpace, SignalType.wpm, SignalType.ptt,
 				SignalType.mode, SignalType.filter, SignalType.gain, SignalType.agc, SignalType.pwrsw,
-				SignalType.freq, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
+				SignalType.freq, SignalType.band, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
 			], outSignals, listenerId)
 	}
 

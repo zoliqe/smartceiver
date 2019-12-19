@@ -17,26 +17,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<!-- <link rel="import" href="../bower_components/iron-pages/iron-pages.html"> -->
+<!-- <link rel="import" href="../bower_components/iron-selector/iron-selector.html"> -->
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="main-view.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="shared-styles.html">
+<!-- <link rel="import" href="main-view.html"> -->
 <!-- <link rel="import" href="setuprx-view.html"> -->
 <!-- <link rel="import" href="setuptx-view.html"> -->
 <!-- <link rel="import" href="cwmem-view.html"> -->
-<link rel="import" href="error404-view.html">
+<!-- <link rel="import" href="error404-view.html"> -->
 
 <dom-module id="smartceiver-app">
 	<template>
-		<style>
+		<style includes="shared-styles app-grid-style">
 			:host {
 				--app-primary-color: #333;
 				--app-secondary-color: #95c029;
 
+        --app-grid-columns: 2;
+        --app-grid-gutter: 2px;
+
 				display: block;
 			}
+
+      @media (max-width: 680px) {
+        :host {
+          --app-grid-columns: 1;
+        }
+      }
 
 			app-drawer-layout:not([narrow]) [drawer-toggle] {
 				display: none;
@@ -61,6 +74,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			}
 			app-header paper-icon-button.off {
 				background-color: darkred;
+			}
+			app-header paper-icon-button.off :disabled {
+				background-color: darkgray;
 			}
 			app-header paper-icon-button.on {
 				background-color: darkgreen;
@@ -116,15 +132,113 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				font-weight: bold;
 			}
 
-			.remotig {
-				position: absolute;
-				top: 350px;
+      ul {
+        list-style: none;
+      }
+      .card {
+        border-radius: 30px; 
+        background-color: #333;
+        min-height: 220px;
+        display: grid;
+      }
+      .knob-card {
+        display: flex;
+      }
+
+      div.controls {
+        display: grid;
+        margin-left: auto;
+        /* width: fit-content; */
+      }
+
+      paper-item.ctl {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        width: fit-content;
+        margin: auto;
+      }
+      paper-button {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        margin: 5px;
+        border-radius: 30px;
+        min-width: 2.0em;
+      }
+      paper-button.toggles[active] {
+        background-color: var(--paper-green-800);
+      }
+      paper-button.toggles[active]:hover {
+        background-color: var(--paper-green-600);
+      }
+      paper-button.toggles {
+        width: 90px;
+        /* margin-right: 30px; */
+        background-color: var(--paper-green-800);
+      }
+      paper-button.toggles:hover {
+        background-color: var(--paper-green-600);
+      }
+      paper-button.ctl {
+        background-color: var(--paper-indigo-600);
+        width: 58px;
+      }
+      paper-button.ctl:hover {
+        background-color: var(--paper-indigo-400);
+      }
+
+      .ctl-value {
+        padding: 5px;
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #50dd50;
+        min-width: 105px;
+        text-align: center;
+      }
+      .ctl-value:hover {
+        color: #a0fda0;
+      }
+      .ctl-name { font-size: 0.5em; }
+
+
+			input-knob {
+				width: 10rem;
+				height: 10rem;
+				margin: auto;
+				display: block;
+				border-radius: 100%;
+				box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
+				background: #777;
 			}
-			#remoteVideo {
-				height: 0px;
+			
+			input-knob::part(rotator) {
+				box-sizing: border-box;
+				width: 10rem;
+				height: 10rem;
+				background: #777;
+				border: 1rem double #aaa;
+				border-bottom: 1rem solid #aaa;
+				border-radius: 100%;
 			}
-			#localVideo {
-				height: 0px;
+
+			input-knob.fallback>span.fallback {
+				display: block;
+				box-sizing: border-box;
+				background: #777;
+				border: 1rem double #aaa;
+				border-bottom: 1rem solid #aaa;
+				border-radius: 100%;
+				width: 10rem;
+				height: 10rem;
+			}
+			
+			.mark {
+				display: inline-block;
+				width: 100%;
+				text-align: center;
+				font: bold 200% monospace;
+				color: #aaa;
 			}
 		</style>
 
@@ -172,9 +286,9 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 				<ul class="app-grid">
 					<li><div class="card knob-card">
-						<div id="knob" class="knob" on-wheel="rotateByWheel">
-							<div id="dimp" class="dimp"></div>
-						</div>
+						<input-knob value="[[freq]]" scale="[[step * 50]]" min="[[band.freqFrom]]" max="[[band.freqTo]]">
+							<div class="mark">▲</div>
+						</input-knob>
 						<div class="controls">
 							<paper-item>
 								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!powerState]]">
@@ -217,6 +331,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 		</app-drawer-layout>
 	</template>
 
+	<script src="https://unpkg.com/input-knob"></script>
 	<script src="utils/socket.io.js" async defer></script>
 	<script>
 class SmartceiverApp extends Polymer.Element {
@@ -240,7 +355,8 @@ class SmartceiverApp extends Polymer.Element {
 			mode: {type: String, notify: false, value: true},
 			gain: {type: Number, notify: false, value: true},
 			powerState: {type: Boolean, notify: false, value: true},
-			// band: {type: Object, notify: false},
+			band: {type: Object, notify: false, value: true},
+			freq: {type: Number, notify: false, value: true}
 		}
 	}
 
@@ -263,6 +379,12 @@ class SmartceiverApp extends Polymer.Element {
 		this.operator = ':::'
 		this.unackStateQueries = 0
 		setInterval(_ => this._fetchStatus(), 5000)
+
+		const knob = document.querySelector('input-knob')
+		ocument.addEventListener('knob-move-change', (evt) => {
+			const curValue = Number.parseFloat(knob.value).toFixed(0)
+			this.tcvr && (this.tcvr.freq = curValue)
+		})
 	}
 
 	async _initTcvr() {
@@ -282,6 +404,7 @@ class SmartceiverApp extends Polymer.Element {
 			filter: value => { this.filter = value; this.notifyPath('filter'); },
 			gain: value => { this.gain = value; this.notifyPath('gain'); },
 			step: value => { this.step = value; this.notifyPath('step'); },
+			band: value => { this.band = value; this.notifyPath('band'); },
 			freq: value => this._freqChanged(value),
 			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = value ? 'on' : 'off'; },
 		})
@@ -380,6 +503,7 @@ class SmartceiverApp extends Polymer.Element {
 			return this.operator
 		}
 
+		this.freq = freq // knob
 		let mhz = Math.floor(freq / 1000000)
 		let res = '' + mhz + '.'
 		let khz = (freq - mhz * 1000000) / 1000

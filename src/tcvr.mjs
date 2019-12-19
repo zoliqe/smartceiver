@@ -270,11 +270,12 @@ class Transceiver {
 			this.fire(new TcvrSignal(SignalType.agc, this.agc))
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
 		}, 2000) // wait for band change on tcvr
+		this.fire(new TcvrSignal(SignalType.band, this.band))
 	}
 
 	_outOfBand(f) {
 		const band = Band.byFreq(f)
-		return !band || !this.bands.includes(band)
+		return !band || band !== this.#state.band //!this.bands.includes(band)
 	}
 
 	get freq() {
