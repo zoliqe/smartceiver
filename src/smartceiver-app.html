@@ -219,256 +219,284 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 
 	<script src="utils/socket.io.js" async defer></script>
 	<script>
-		class SmartceiverApp extends Polymer.Element {
+class SmartceiverApp extends Polymer.Element {
 
-			static get is() { return 'smartceiver-app' }
+	static get is() { return 'smartceiver-app' }
 
-			static get properties() {
-				return {
-					page: {
-						type: String,
-						reflectToAttribute: true,
-						// observer: '_pageChanged',
-					},
-					freqDisplay: {
-						type: String,
-						computed: 'formatFreq(this._freq, operator)'
-					},
-          step: {type: Number, notify: false, value: true},
-          filter: {type: Number, notify: false, value: true},
-          wpm: {type: Number, notify: false, value: true},
-          mode: {type: String, notify: false, value: true},
-					gain: {type: Number, notify: false, value: true},
-					powerState: {type: Boolean, notify: false, value: true},
-					// band: {type: Object, notify: false},
-				}
+	static get properties() {
+		return {
+// 			page: {
+// 				type: String,
+// 				reflectToAttribute: true,
+// 				// observer: '_pageChanged',
+// 			},
+			freqDisplay: {
+				type: String,
+				computed: 'formatFreq(this._freq, operator)'
+			},
+			step: {type: Number, notify: false, value: true},
+			filter: {type: Number, notify: false, value: true},
+			wpm: {type: Number, notify: false, value: true},
+			mode: {type: String, notify: false, value: true},
+			gain: {type: Number, notify: false, value: true},
+			powerState: {type: Boolean, notify: false, value: true},
+			// band: {type: Object, notify: false},
+		}
+	}
+
+	static get observers() {
+		return [
+			// '_routePageChanged(routeData.page)',
+// 			'_urlParamsChanged(route.__queryParams)',
+		]
+	}
+
+	#params
+
+	constructor() {
+		super()
+		this.kredence = {}
+		this.remoddle
+		this.#params = new URLSearchParams(location.search)
+		this._initTcvr()
+
+		this.operator = ':::'
+		this.unackStateQueries = 0
+		setInterval(_ => this._fetchStatus(), 5000)
+	}
+
+	async _initTcvr() {
+		const tcvrModule = await import('./tcvr.mjs')
+		let transceiver
+		document.tcvr = transceiver = new tcvrModule.Transceiver()
+		window.Band = tcvrModule.Band
+		const signalsModule = await import('./utils/signals.mjs')
+		window.SignalType = signalsModule.SignalType
+		// window.TcvrSignal = signalsModule.TcvrSignal
+
+		this.signals = new signalsModule.SignalsBinder('ui', {
+			ptt: value => this.$.freq.style = value ? "color: #883333;" : '',
+			keyTx: value => this.$.freq.style = value ? "color: #883333;" : '',
+			wpm: value => { this.wpm = value; this.notifyPath('wpm'); },
+			mode: value => { this.mode = value; this.notifyPath('mode'); },
+			filter: value => { this.filter = value; this.notifyPath('filter'); },
+			gain: value => { this.gain = value; this.notifyPath('gain'); },
+			step: value => { this.step = value; this.notifyPath('step'); },
+			freq: value => this._freqChanged(value),
+			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = event.value ? 'on' : 'off'; },
+		})
+		this.signals.out.bind(transceiver)
+
+		const ctlrModule = await import('./controller.mjs')
+		this.tcvr = new ctlrModule.TcvrController('ui')
+		this.tcvr.registerTo(transceiver)
+		// this.tcvr.bind(SignalType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
+		// this.tcvr.bind(SignalType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+		// this.tcvr.bind(SignalType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+		// this.tcvr.bind(SignalType.pwrsw, 'ui', event => {
+		// 	this.notifyPath('tcvr.freq')
+		// 	this.notifyPath('tcvr.powerSwState')
+		// 	this.$.tune.notifyPath('freq')
+		// 	this.$.tune.notifyPath('power')
+		// 	this.$.pwrbtn.className = event.value ? 'on' : 'off'
+		// })
+		// this.tcvr.bind(SignalType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
+		// this.tcvr.bind(SignalType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
+		// this.tcvr.bind(SignalType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
+		// this.tcvr.bind(SignalType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
+		// this.tcvr.bind(SignalType.step, 'ui', event => this.notifyPath('tcvr.step'))
+		this.powerState = false
+		
+		await this._initConnector()
+	}
+		
+	async _initConnector() {
+		if (this.#params.get('token')) {
+			this.kredence.token = params.token.trim()
+		}
+		let connectorParams = undefined
+		if (this.#params.get('rig')) {
+			this.kredence.rig = this.#params.get('rig').trim().toLowerCase()
+			let connectorId
+			if (this.kredence.rig.includes('@')) {
+				connectorId = 'remotig'
+				[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
+				connectorParams = {kredence: this.kredence}
+			} else if (this.kredence.rig.includes('-')) {
+				connectorId = 'sercat' //'powron'
+				connectorParams = {tcvr: {}}
+				[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
 			}
 
-			static get observers() {
-				return [
-					// '_routePageChanged(routeData.page)',
-					'_urlParamsChanged(route.__queryParams)',
-				]
-			}
+			this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
+			this.$.pwrbtn.disabled = this.connector == null
+			const state = await this._fetchStatus()
+		}
+		if (this.#params.get('remoddle')) {
+			this.remoddle = this.#params.get('remoddle').trim()
+		}
+		this.tcvr.reversePaddle = this.#params.get('reverse') && (this.#params.get('reverse').trim() === '1')
+	}
 
-			constructor() {
-				super()
-				this.kredence = {}
-				this.remoddle
-				this._initTcvr()
+	async _fetchStatus() {
+		if (!this.kredence.rig || !this.connector) return
 
-				this.operator = ':::'
-				this.unackStateQueries = 0
-				setInterval(_ => this._fetchStatus(), 5000)
-			}
+		this.unackStateQueries++
+		const status = await this.connector.checkState(this.kredence)
+		if (status && status.id) {
+			console.debug('rtt:', status.rtt)
+			this.operator = status.op || 'ON'
+			this.unackStateQueries = 0
+		}
+		this.notifyPath('operator')
+		if (this.unackStateQueries > 2) this.operator = 'OFF'
+		return status
+	}
 
-			async _initTcvr() {
-				const tcvrModule = await import('./tcvr.mjs')
-				let transceiver
-				document.tcvr = transceiver = new tcvrModule.Transceiver()
-				window.Band = tcvrModule.Band
-				const signalsModule = await import('./utils/signals.mjs')
-				window.SignalType = signalsModule.SignalType
-				// window.TcvrSignal = signalsModule.TcvrSignal
+	_freqChanged(freq) {
+		if (freq == this._freq) {
+			return // stop propagate freq change when changed by tuning knob (already propagated)
+		}
+		this._freq = freq
+		this.notifyPath('this._freq')
+		// this.$.tune.notifyPath('freq')
 
-				this.signals = new signalsModule.SignalsBinder('ui', {
-					ptt: value => this.$.freq.style = value ? "color: #883333;" : '',
-					keyTx: value => this.$.freq.style = value ? "color: #883333;" : '',
-					wpm: value => { this.wpm = value; this.notifyPath('wpm'); },
-					mode: value => { this.mode = value; this.notifyPath('mode'); },
-					filter: value => { this.filter = value; this.notifyPath('filter'); },
-					gain: value => { this.gain = value; this.notifyPath('gain'); },
-					step: value => { this.step = value; this.notifyPath('step'); },
-					freq: value => this._freqChanged(value),
-					pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = event.value ? 'on' : 'off'; },
-				})
-				this.signals.out.bind(transceiver)
+		// if (this.tcvr.band == this._band) return
+		// this._band = this.tcvr.band
+		// this.notifyPath('tcvr.band')
+	}
 
-				const ctlrModule = await import('./controller.mjs')
-				this.tcvr = new ctlrModule.TcvrController('ui')
-				this.tcvr.registerTo(transceiver)
-				// this.tcvr.bind(SignalType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
-				// this.tcvr.bind(SignalType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
-				// this.tcvr.bind(SignalType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
-				// this.tcvr.bind(SignalType.pwrsw, 'ui', event => {
-				// 	this.notifyPath('tcvr.freq')
-				// 	this.notifyPath('tcvr.powerSwState')
-				// 	this.$.tune.notifyPath('freq')
-				// 	this.$.tune.notifyPath('power')
-				// 	this.$.pwrbtn.className = event.value ? 'on' : 'off'
-				// })
-				// this.tcvr.bind(SignalType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
-				// this.tcvr.bind(SignalType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
-				// this.tcvr.bind(SignalType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
-				// this.tcvr.bind(SignalType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
-				// this.tcvr.bind(SignalType.step, 'ui', event => this.notifyPath('tcvr.step'))
-				this.powerState = false
-			}
-
-			async _fetchStatus() {
-				if (!this.kredence.rig || !this.connector) return
-				
-				this.unackStateQueries++
-				const status = await this.connector.checkState(this.kredence)
-				if (status && status.id) {
-					console.debug('rtt:', status.rtt)
-					this.operator = status.op || 'ON'
-					this.unackStateQueries = 0
-				}
-				this.notifyPath('operator')
-				if (this.unackStateQueries > 2) this.operator = 'OFF'
-				return status
-			}
-
-			_freqChanged(freq) {
-				if (freq == this._freq) {
-					return // stop propagate freq change when changed by tuning knob (already propagated)
-				}
-				this._freq = freq
-				this.notifyPath('this._freq')
-				// this.$.tune.notifyPath('freq')
-
-				// if (this.tcvr.band == this._band) return
-				// this._band = this.tcvr.band
-				// this.notifyPath('tcvr.band')
-			}
-
-			formatFreq(freq) {
-				this._freq = freq // store value for change detect
-				if (freq === null || !this.tcvr || !this.powerState) {
-					return this.operator
-				}
-
-				let mhz = Math.floor(freq / 1000000)
-				let res = '' + mhz + '.'
-				let khz = (freq - mhz * 1000000) / 1000
-				if (khz < 10) {
-				 res += '0'
-				}
-				if (khz < 100) {
-				 res += '0'
-				}
-				res += khz
-				if (khz % 1 === 0) {
-				 res += '.00'
-				} else if (freq % 100 === 0) {
-				 res += '0'
-				}
-
-				return res
-			}
-
-			async switchPower() {
-				await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
-			}
-
-			// connectRemoddle() {
-			// 	this.tcvr.connectRemoddle()
-			// }
-
-			// restartAudio() {
-			// 	this.tcvr.fire(new TcvrSignal(SignalType.resetAudio, true))
-			// }
-
-			// mute() {
-				// this.tcvr.fire(new TcvrSignal(SignalType.audioMute, true))
-			// }
-
-			async _urlParamsChanged(params) {
-				if (params.token) {
-					this.kredence.token = params.token.trim()
-				}
-				this.autoPower = params.autopwr && (params.autopwr.trim() === '1')
-				let connectorParams = undefined
-				if (params.rig) {
-					this.kredence.rig = params.rig.trim().toLowerCase()
-					let connectorId
-					if (this.kredence.rig.includes('@')) {
-						connectorId = 'remotig'
-						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
-						connectorParams = {kredence: this.kredence}
-					} else if (this.kredence.rig.includes('-')) {
-						connectorId = 'sercat' //'powron'
-						connectorParams = {tcvr: {}}
-						[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
-					}
-
-					this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
-					this.$.pwrbtn.disabled = this.connector == null
-					const state = await this._fetchStatus()
-					// this not working due autoplay policy
-					// if (this.autoPower && state && state.id && !state.op) {
-					//   this.switchPower()
-					// }
-				}
-				if (params.remoddle) {
-					this.remoddle = params.remoddle.trim()
-				}
-				this.tcvr.reversePaddle = params.reverse && (params.reverse.trim() === '1')
-			}
-
-      decreaseWpm() {
-        this.tcvr.wpm = this.wpm - 2;
-      }
-      increaseWpm() {
-        this.tcvr.wpm = this.wpm + 2;
-      }
-
-      decFilter() {
-        this.tcvr.filter = this.filter - 200
-      }
-      incFilter() {
-        this.tcvr.filter = this.filter + 200
-      }
-
-      switchMode() {
-				const i = this.tcvr.modes.indexOf(this.mode)
-        this.tcvr.mode = this.tcvr.modes[i < (this.modes.length - 1) ? i + 1 : 0]
-      }
-
-      switchGain() {
-        const i = this.tcvr.gains.indexOf(this.gain)
-        this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.gains.length - 1]
-			}
-			
-			switchBand() {
-				const i = this.tcvr.bands.indexOf(Band.byFreq(this._freq))
-				this.tcvr.band = this.tcvr.bands[i < (this.bands.length - 1) ? i + 1 : 0]
-			}
-
-			// _routePageChanged(page) {
-			//   // Polymer 2.0 will call with `undefined` on initialization.
-			//   // Ignore until we are properly called with a string.
-			//   if (page === undefined) {
-			//     return;
-			//   }
-
-			//   // If no page was found in the route data, page will be an empty string.
-			//   // Deault to 'main' in that case.
-			//   console.log("page=" + page);
-			//   this.page = page || 'tune';
-
-			//   // Close a non-persistent drawer when the page & route are changed.
-			//   if (!this.$.drawer.persistent) {
-			//     this.$.drawer.close();
-			//   }
-			// }
-
-			// _pageChanged(page) {
-			//   // Load page import on demand. Show 404 page if fails
-			//   var resolvedPageUrl = this.resolveUrl(page + '-view.html');
-			//   Polymer.importHref(
-			//       resolvedPageUrl,
-			//       null,
-			//       this._showPage404.bind(this),
-			//       true);
-			// }
-
-			// _showPage404() {
-			//   this.page = 'error404';
-			// }
+	formatFreq(freq) {
+		this._freq = freq // store value for change detect
+		if (freq === null || !this.tcvr || !this.powerState) {
+			return this.operator
 		}
 
-		window.customElements.define(SmartceiverApp.is, SmartceiverApp)
-	</script>
+		let mhz = Math.floor(freq / 1000000)
+		let res = '' + mhz + '.'
+		let khz = (freq - mhz * 1000000) / 1000
+		if (khz < 10) {
+		 res += '0'
+		}
+		if (khz < 100) {
+		 res += '0'
+		}
+		res += khz
+		if (khz % 1 === 0) {
+		 res += '.00'
+		} else if (freq % 100 === 0) {
+		 res += '0'
+		}
+
+		return res
+	}
+
+	async switchPower() {
+		await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
+	}
+
+	// connectRemoddle() {
+	// 	this.tcvr.connectRemoddle()
+	// }
+
+	// restartAudio() {
+	// 	this.tcvr.fire(new TcvrSignal(SignalType.resetAudio, true))
+	// }
+
+	// mute() {
+		// this.tcvr.fire(new TcvrSignal(SignalType.audioMute, true))
+	// }
+
+// 			async _urlParamsChanged(params) {
+// 				if (params.token) {
+// 					this.kredence.token = params.token.trim()
+// 				}
+// 				let connectorParams = undefined
+// 				if (params.rig) {
+// 					this.kredence.rig = params.rig.trim().toLowerCase()
+// 					let connectorId
+// 					if (this.kredence.rig.includes('@')) {
+// 						connectorId = 'remotig'
+// 						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
+// 						connectorParams = {kredence: this.kredence}
+// 					} else if (this.kredence.rig.includes('-')) {
+// 						connectorId = 'sercat' //'powron'
+// 						connectorParams = {tcvr: {}}
+// 						[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
+// 					}
+
+// 					this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
+// 					this.$.pwrbtn.disabled = this.connector == null
+// 					const state = await this._fetchStatus()
+// 				}
+// 				if (params.remoddle) {
+// 					this.remoddle = params.remoddle.trim()
+// 				}
+// 				this.tcvr.reversePaddle = params.reverse && (params.reverse.trim() === '1')
+// 			}
+
+	decreaseWpm() {
+		this.tcvr.wpm = this.wpm - 2;
+	}
+	increaseWpm() {
+		this.tcvr.wpm = this.wpm + 2;
+	}
+
+	decFilter() {
+		this.tcvr.filter = this.filter - 200
+	}
+	incFilter() {
+		this.tcvr.filter = this.filter + 200
+	}
+
+	switchMode() {
+		const i = this.tcvr.modes.indexOf(this.mode)
+		this.tcvr.mode = this.tcvr.modes[i < (this.modes.length - 1) ? i + 1 : 0]
+	}
+
+	switchGain() {
+		const i = this.tcvr.gains.indexOf(this.gain)
+		this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.gains.length - 1]
+	}
+			
+	switchBand() {
+		const i = this.tcvr.bands.indexOf(Band.byFreq(this._freq))
+		this.tcvr.band = this.tcvr.bands[i < (this.bands.length - 1) ? i + 1 : 0]
+	}
+
+	// _routePageChanged(page) {
+	//   // Polymer 2.0 will call with `undefined` on initialization.
+	//   // Ignore until we are properly called with a string.
+	//   if (page === undefined) {
+	//     return;
+	//   }
+
+	//   // If no page was found in the route data, page will be an empty string.
+	//   // Deault to 'main' in that case.
+	//   console.log("page=" + page);
+	//   this.page = page || 'tune';
+
+	//   // Close a non-persistent drawer when the page & route are changed.
+	//   if (!this.$.drawer.persistent) {
+	//     this.$.drawer.close();
+	//   }
+	// }
+
+	// _pageChanged(page) {
+	//   // Load page import on demand. Show 404 page if fails
+	//   var resolvedPageUrl = this.resolveUrl(page + '-view.html');
+	//   Polymer.importHref(
+	//       resolvedPageUrl,
+	//       null,
+	//       this._showPage404.bind(this),
+	//       true);
+	// }
+
+	// _showPage404() {
+	//   this.page = 'error404';
+	// }
+}
+
+window.customElements.define(SmartceiverApp.is, SmartceiverApp)
+</script>
 </dom-module>
