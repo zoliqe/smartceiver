@@ -1,6 +1,6 @@
 import {Bands, Modes, AgcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
-import { tcvrOptions } from './utils.mjs'
+import { resolveAgc, tcvrOptions } from './utils.mjs'
 
 const myCivAddr = 224
 const modeValues = {}
@@ -107,8 +107,8 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async agc(agc) {
-		const value = agc == AgcTypes.SLOW ? 0x02 : 0x01
+	async agc({agc, mode}) {
+		const value = resolveAgc(agc, mode) == AgcTypes.SLOW ? 0x02 : 0x01
 		// log(`tcvrAgc: ${state}`)
 		const data = [0xFE, 0xFE,
 			this.civAddress, myCivAddr, 0x16, 0x12, value,

@@ -397,11 +397,6 @@ class Transceiver {
 		}
 	}
 
-// 	TODO find better place to resolve Auto AGC
-// 	get _resolvedAutoAgc() {
-// 		return this.mode == Modes.CW || this.mode == Modes.CWR ?
-// 			AgcTypes.FAST : AgcTypes.SLOW
-// 	}
 	get agcTypes() {
 		return this.#props && this.#props.agcTypes
 	}
@@ -413,7 +408,7 @@ class Transceiver {
 		if (this.agcTypes.includes(value)) {
 			this.#state.agc = value
 			this._d('agc', value)
-			this.fire(new TcvrSignal(SignalType.agc, value))
+			this.fire(new TcvrSignal(SignalType.agc, {agc: value, mode: this.mode}))
 		}
 	}
 

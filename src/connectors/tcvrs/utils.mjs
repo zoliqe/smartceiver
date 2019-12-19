@@ -1,3 +1,4 @@
+import { Bands, Modes, AgcTypes } from '../../tcvr.mjs'
 
 /**
  * Finds first wider filter (declared by supported values)
@@ -19,9 +20,15 @@ function selectFilter(values, valueRaw) {
 	return String(result)
 }
 
+function resolveAgc(agc, mode) {
+	if (agc !== AgcTypes.AUTO) return agc
+	return mode == Modes.CW || mode == Modes.CWR ?
+		AgcTypes.FAST : AgcTypes.SLOW
+}
+
 async function tcvrOptions(manufacturer, model, options) {
 	const defaults = await import(`${manufacturer}/${model}.mjs`)
 	return {...defaults, ...options}
 }
 
-export {selectFilter, tcvrOptions}
+export {selectFilter, resolveAgc, tcvrOptions}

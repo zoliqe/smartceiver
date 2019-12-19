@@ -16,7 +16,7 @@ export default {
 	props: new TransceiverProperties({
 		bands: bands,
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-		agcTypes: [AgcTypes.FAST, AgcTypes.MEDIUM, AgcTypes.SLOW, AgcTypes.OFF],
+		agcTypes: [AgcTypes.FAST, AgcTypes.MEDIUM, AgcTypes.SLOW, AgcTypes.AUTO, AgcTypes.OFF],
 		bandGains: gains,
 		modeFilters: filters
 	}),

@@ -1,6 +1,6 @@
 import {Bands, Modes, AgcTypes} from '../../tcvr.mjs'
 import {delay} from '../../utils/time.mjs'
-import {selectFilter, tcvrOptions} from './utils.mjs'
+import {selectFilter, resolveAgc, tcvrOptions} from './utils.mjs'
 
 
 const MD = {}
@@ -80,8 +80,9 @@ export class Adapter {
 		}
 	}
 
-	async agc(agc) { // 000=OFF, 001 (min.) ~ 020 (max.)
+	async agc({agc, mode}) { // 000=OFF, 001 (min.) ~ 020 (max.)
 		let v = '001'
+		agc = resolveAgc(agc, mode)
 		if (agc == AgcTypes.SLOW) v = '020'
 		else if (agc == AgcTypes.MEDIUM) v = '010'
 		else if (agc == AgcTypes.OFF) v = '000'

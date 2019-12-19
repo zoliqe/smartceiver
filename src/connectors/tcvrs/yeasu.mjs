@@ -98,7 +98,7 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async agc(agc) {
+	async agc({agc, mode}) {
 	}
 
 	async gain(gain) {
