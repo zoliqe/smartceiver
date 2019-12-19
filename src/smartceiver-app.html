@@ -283,7 +283,7 @@ class SmartceiverApp extends Polymer.Element {
 			gain: value => { this.gain = value; this.notifyPath('gain'); },
 			step: value => { this.step = value; this.notifyPath('step'); },
 			freq: value => this._freqChanged(value),
-			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = event.value ? 'on' : 'off'; },
+			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = value ? 'on' : 'off'; },
 		})
 		this.signals.out.bind(transceiver)
 
@@ -311,31 +311,39 @@ class SmartceiverApp extends Polymer.Element {
 	}
 		
 	async _initConnector() {
-		if (this.#params.get('token')) {
-			this.kredence.token = params.token.trim()
+		const token = this.#params.get('token')
+		if (token) {
+			this.kredence.token = token.trim()
 		}
-		let connectorParams = undefined
-		if (this.#params.get('rig')) {
-			this.kredence.rig = this.#params.get('rig').trim().toLowerCase()
-			let connectorId
-			if (this.kredence.rig.includes('@')) {
-				connectorId = 'remotig'
-				[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
-				connectorParams = {kredence: this.kredence}
-			} else if (this.kredence.rig.includes('-')) {
-				connectorId = 'sercat' //'powron'
-				connectorParams = {tcvr: {}}
-				[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
-			}
+		
+		let connectorId = undefined
+		let connectorParams = {tcvr: {}, kredence: this.kredence}
+		const remotig = this.#params.get('remote')
+		const powron = this.#params.get('usb')
+		const sercat = this.#params.get('serial')
+		if (remotig && remotig.includes('@')) {
+			connectorId = 'remotig'
+			[this.kredence.rig, this.kredence.qth] = 
+				remotig.trim().toLowerCase().split('@', 2)
+		} else if (powron && powron.includes('-')) {
+			connectorId = 'powron'
+			[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = 
+				powron.trim().toLowerCase().split('-', 2)
+		} else if (sercat && sercat.includes('-')) {
+			connectorId = 'sercat'
+			[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = 
+				sercat.trim().toLowerCase().split('-', 2)
+		} else {
+			throw new Error('No connector defined!')
+		}
 
-			this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
-			this.$.pwrbtn.disabled = this.connector == null
-			const state = await this._fetchStatus()
-		}
-		if (this.#params.get('remoddle')) {
-			this.remoddle = this.#params.get('remoddle').trim()
-		}
-		this.tcvr.reversePaddle = this.#params.get('reverse') && (this.#params.get('reverse').trim() === '1')
+		console.debug(`Resolved connector params: id=${connectorId} params=${connectorParams}`)
+		this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
+		this.$.pwrbtn.disabled = this.connector == null
+		const state = await this._fetchStatus()
+
+		this.remoddle = this.#params.get('remoddle')
+		this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
 	}
 
 	async _fetchStatus() {
