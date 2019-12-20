@@ -17,26 +17,39 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 <link rel="import" href="../bower_components/app-layout/app-toolbar/app-toolbar.html">
 <link rel="import" href="../bower_components/app-route/app-location.html">
 <link rel="import" href="../bower_components/app-route/app-route.html">
-<link rel="import" href="../bower_components/iron-pages/iron-pages.html">
-<link rel="import" href="../bower_components/iron-selector/iron-selector.html">
+<!-- <link rel="import" href="../bower_components/iron-pages/iron-pages.html"> -->
+<!-- <link rel="import" href="../bower_components/iron-selector/iron-selector.html"> -->
 <link rel="import" href="../bower_components/paper-icon-button/paper-icon-button.html">
 <link rel="import" href="../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../bower_components/paper-button/paper-button.html">
-<link rel="import" href="main-view.html">
+<link rel="import" href="../bower_components/paper-item/paper-item.html">
+<link rel="import" href="../bower_components/paper-listbox/paper-listbox.html">
+<link rel="import" href="../bower_components/app-layout/app-grid/app-grid-style.html">
+<link rel="import" href="shared-styles.html">
+<!-- <link rel="import" href="main-view.html"> -->
 <!-- <link rel="import" href="setuprx-view.html"> -->
 <!-- <link rel="import" href="setuptx-view.html"> -->
 <!-- <link rel="import" href="cwmem-view.html"> -->
-<link rel="import" href="error404-view.html">
+<!-- <link rel="import" href="error404-view.html"> -->
 
 <dom-module id="smartceiver-app">
 	<template>
-		<style>
+		<style includes="shared-styles app-grid-style">
 			:host {
 				--app-primary-color: #333;
 				--app-secondary-color: #95c029;
 
+        --app-grid-columns: 2;
+        --app-grid-gutter: 2px;
+
 				display: block;
 			}
+
+      @media (max-width: 680px) {
+        :host {
+          --app-grid-columns: 1;
+        }
+      }
 
 			app-drawer-layout:not([narrow]) [drawer-toggle] {
 				display: none;
@@ -61,9 +74,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			}
 			app-header paper-icon-button.off {
 				background-color: darkred;
+				color: white;
+			}
+			app-header paper-icon-button#pwrbtn:disabled {
+				background-color: black;
+				color: darkgray;
 			}
 			app-header paper-icon-button.on {
 				background-color: darkgreen;
+				color: white;
 			}
 
 			app-header div.freq-display {
@@ -116,15 +135,113 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				font-weight: bold;
 			}
 
-			.remotig {
-				position: absolute;
-				top: 350px;
+      ul {
+        list-style: none;
+      }
+      .card {
+        border-radius: 30px; 
+        background-color: #333;
+        min-height: 220px;
+        display: grid;
+      }
+      .knob-card {
+        display: flex;
+      }
+
+      div.controls {
+        display: grid;
+        margin-left: auto;
+        /* width: fit-content; */
+      }
+
+      paper-item.ctl {
+        padding-top: 10px;
+        padding-bottom: 10px;
+        width: fit-content;
+        margin: auto;
+      }
+      paper-button {
+        font-size: 1.5em;
+        font-weight: bold;
+        color: white;
+        text-align: center;
+        margin: 5px;
+        border-radius: 30px;
+        min-width: 2.0em;
+      }
+      paper-button.toggles[active] {
+        background-color: var(--paper-green-800);
+      }
+      paper-button.toggles[active]:hover {
+        background-color: var(--paper-green-600);
+      }
+      paper-button.toggles {
+        width: 90px;
+        /* margin-right: 30px; */
+        background-color: var(--paper-green-800);
+      }
+      paper-button.toggles:hover {
+        background-color: var(--paper-green-600);
+      }
+      paper-button.ctl {
+        background-color: var(--paper-indigo-600);
+        width: 58px;
+      }
+      paper-button.ctl:hover {
+        background-color: var(--paper-indigo-400);
+      }
+
+      .ctl-value {
+        padding: 5px;
+        font-size: 2.5em;
+        font-weight: bold;
+        color: #50dd50;
+        min-width: 105px;
+        text-align: center;
+      }
+      .ctl-value:hover {
+        color: #a0fda0;
+      }
+      .ctl-name { font-size: 0.5em; }
+
+
+			input-knob {
+				width: 10rem;
+				height: 10rem;
+				margin: auto;
+				display: block;
+				border-radius: 100%;
+				box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
+				background: #777;
 			}
-			#remoteVideo {
-				height: 0px;
+			
+			input-knob::part(rotator) {
+				box-sizing: border-box;
+				width: 10rem;
+				height: 10rem;
+				background: #777;
+				border: 1rem double #aaa;
+				border-bottom: 1rem solid #aaa;
+				border-radius: 100%;
 			}
-			#localVideo {
-				height: 0px;
+
+			input-knob.fallback>span.fallback {
+				display: block;
+				box-sizing: border-box;
+				background: #777;
+				border: 1rem double #aaa;
+				border-bottom: 1rem solid #aaa;
+				border-radius: 100%;
+				width: 10rem;
+				height: 10rem;
+			}
+			
+			.mark {
+				display: inline-block;
+				width: 100%;
+				text-align: center;
+				font: bold 200% monospace;
+				color: #aaa;
 			}
 		</style>
 
@@ -137,8 +254,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				tail="{{subroute}}"></app-route>
 
 		<app-drawer-layout fullbleed responsive-width="1024px">
-			<!-- Drawer content -->
-			<app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
+			<!-- <app-drawer id="drawer" name="drawer" slot="drawer" swipe-open>
 				<paper-button on-tap="mute" style="color: yellow">(Un)mute audio</paper-button>
 				<app-toolbar>Tune step</app-toolbar>
 				<iron-selector selected="{{tcvr.step}}" attr-for-selected="step" class="drawer-list">
@@ -148,21 +264,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				</iron-selector>
 
 				<app-toolbar>Band</app-toolbar>
-				<!--  role="navigation" -->
 				<iron-selector selected="{{tcvr.band}}" attr-for-selected="index" class="drawer-list">
 					<template is="dom-repeat" items="[[tcvr.bands]]">
 						<a index="[[index]]">{{item}} MHz</a>
-						<!-- <a index="[[index]]" drawer-toggle>{{item}} MHz</a> -->
 					</template>
-					<!-- <a name="setup-rx" href="/setup-rx">Setup RX</a>
-					<a name="settings" href="/smartceiver/settings">Settings</a>
-					<a name="cwmem" href="/smartceiver/cwmem">CW Memories</a> -->
 				</iron-selector>
-			</app-drawer>
+			</app-drawer> -->
 
-			<!-- Main content -->
-			<app-header-layout has-scrolling-region>
-
+			<!-- Main content has-scrolling-region-->
+			<app-header-layout>
 				<app-header slot="header" fixed effects="waterfall">
 					<app-toolbar>
 						<paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
@@ -173,11 +283,42 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						<!-- <div>2a</div> -->
 						<!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
 						<!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
-						<paper-icon-button id="pwrbtn" name="pwrbtn" class="off" icon="power-settings-new" on-tap="switchPower" disabled></paper-icon-button>
+						<paper-icon-button id="pwrbtn" name="pwrbtn" icon="power-settings-new" on-tap="switchPower" disabled></paper-icon-button>
 					</app-toolbar>
 				</app-header>
 
-				<iron-pages
+				<ul class="app-grid">
+					<li><div class="card knob-card">
+						<input-knob value="[[freq]]" scale="[[step * 50]]" min="[[band.freqFrom]]" max="[[band.freqTo]]">
+							<div class="mark">▲</div>
+						</input-knob>
+						<div class="controls">
+							<paper-item>
+								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!powerState]]">
+									MODE<br />[[mode]]
+								</paper-button>
+							</paper-item>
+							<paper-item>
+								<paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" disabled="[[!powerState]]">
+									GAIN<br />[[gain]]
+								</paper-button>
+							</paper-item>
+						</div>
+					</div></li>
+					<li><div class="card" role="listbox">
+						<paper-item class="ctl">
+							<paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!powerState]]">--</paper-button>
+							<span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
+							<paper-button raised on-tap="increaseWpm" class="ctl" disabled="[[!powerState]]">++</paper-button>
+						</paper-item>
+						<paper-item class="ctl">
+							<paper-button raised on-tap="decFilter" disabled="[[!powerState]]" class="ctl">--</paper-button>
+							<span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
+							<paper-button raised on-tap="incFilter" disabled="[[!powerState]]" class="ctl">++</paper-button>
+						</paper-item>
+					</div></li>
+					</ul>
+					<!-- <iron-pages
 						selected="[[page]]"
 						attr-for-selected="name"
 						fallback-selection="error404"
@@ -187,237 +328,318 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						filter="{{tcvr.filter}}" wpm="{{tcvr.wpm}}" gain="{{tcvr.gain}}" gains="[[tcvr.gains]]" 
 						ptt="{{tcvr.ptt}}" agc="{{tcvr.agc}}" power="[[tcvr.powerSwState]]">
 					</main-view>
-					<!--<setuprx-view name="setup-rx"></setuprx-view>-->
-					<!-- <setuptx-view name="settings" tx-enabled="{{tcvr.txEnabled}}" tx-keyed="{{tcvr.txKeyed}}" auto-space="{{tcvr.autoSpace}}" sidetone="{{tcvr.sidetone}}"></setuptx-view> -->
-					<!-- <cwmem-view name="cwmem"></cwmem-view> -->
 					<error404-view name="error404"></error404-view>
-				</iron-pages>
+				</iron-pages> -->
 			</app-header-layout>
 		</app-drawer-layout>
 	</template>
 
-	<!-- <script src="select-connector.js"></script> -->
-	<!-- <script src="tcvr.js"></script> -->
-	<!-- <script src="connector/connectors.js"></script> -->
-	<!-- <script defer src="controls.js"></script> -->
-	<!-- <script defer src="util/serial.js"></script> -->
-	<!-- <script defer src="util/BluetoothTerminal.js"></script> -->
-	<!-- <script defer src="remoddle/remoddle-usb.js"></script> -->
-	<!-- <script defer src="remoddle/remoddle-bt.js"></script> -->
-	<!-- <script defer src="https://simplewebrtc.com/latest-v2.js"></script> -->
-	<!-- <script defer src="k2-webrtc.js"></script> -->
-	<!-- <script defer src="wav-player.js"></script> -->
-	<!-- <script defer src="connector/usb-connector.js"></script> -->
-	<!-- <script defer src="3las/audio_player.js"></script> -->
-	<!-- <script defer src="3las/socket_client.js"></script> -->
-	<!-- <script defer src="3las/format_reader.js"></script> -->
-	<!-- <script defer src="3las/mpeg.js"></script> -->
-	<!-- <script defer src="3las/wav.js"></script> -->
-	<!-- <script defer src="3las-player.js"></script> -->
-	<script defer src="util/socket.io.js"></script>
-	<!-- <script defer src="rtc-player.js"></script> -->
-	<!-- <script defer src="util/audio.js"></script> -->
-	<!-- <script defer src="util/mic.js"></script> -->
-	<!-- <script defer src="remotig-ws.js"></script> -->
-	<!-- <script defer src="connector/remotig-rtc-connector.js"></script> -->
-
+	<script src="https://unpkg.com/input-knob"></script>
+	<script src="utils/socket.io.js" async defer></script>
 	<script>
-		// import {Transceiver} from './tcvr.mjs'
-		// import {EventType, TcvrEvent} from './util/events.mjs'
+class SmartceiverApp extends Polymer.Element {
 
-		class SmartceiverApp extends Polymer.Element {
+	static get is() { return 'smartceiver-app' }
 
-			static get is() { return 'smartceiver-app' }
+	static get properties() {
+		return {
+// 			page: {
+// 				type: String,
+// 				reflectToAttribute: true,
+// 				// observer: '_pageChanged',
+// 			},
+			freqDisplay: {
+				type: String,
+				computed: 'formatFreq(this._freq, operator)'
+			},
+			step: {type: Number, notify: false, value: true},
+			filter: {type: Number, notify: false, value: true},
+			wpm: {type: Number, notify: false, value: true},
+			mode: {type: String, notify: false, value: true},
+			gain: {type: Number, notify: false, value: true},
+			powerState: {type: Boolean, notify: false, value: true},
+			band: {type: Object, notify: false, value: true},
+			freq: {type: Number, notify: false, value: true}
+		}
+	}
 
-			static get properties() {
-				return {
-					page: {
-						type: String,
-						reflectToAttribute: true,
-						// observer: '_pageChanged',
-					},
-				 freqDisplay: {
-						type: String,
-						computed: 'formatFreq(tcvr.freq, operator)'
-					}
-				}
-			}
+	static get observers() {
+		return [
+			// '_routePageChanged(routeData.page)',
+// 			'_urlParamsChanged(route.__queryParams)',
+		]
+	}
 
-			static get observers() {
-				return [
-					// '_routePageChanged(routeData.page)',
-					'_urlParamsChanged(route.__queryParams)',
-				]
-			}
+	#params
 
-			constructor() {
-				super()
-				this.page = 'tune'
-				this.connectorId
-				this.kredence = {}
-				this.remoddle
-				this.reverse = false
-				this._initTcvr()
+	constructor() {
+		super()
+		this.kredence = {}
+		this.remoddle
+		this.#params = new URLSearchParams(location.search)
+		this._initTcvr()
 
-				this.operator = ':::'
-				this.unackStateQueries = 0
-				setInterval(_ => this._fetchStatus(), 5000)
-			}
+		this.operator = ':::'
+		this.unackStateQueries = 0
+		setInterval(_ => this._fetchStatus(), 5000)
 
-			async _initTcvr() {
-				const tcvrModule = await import('./tcvr.mjs')
-				document.tcvr = this.tcvr = new tcvrModule.Transceiver()
-				const evtModule = await import('./util/events.mjs')
-				window.EventType = evtModule.EventType
-				window.TcvrEvent = evtModule.TcvrEvent
+		const knob = document.querySelector('input-knob')
+		document.addEventListener('knob-move-change', (evt) => {
+			const curValue = Number.parseFloat(knob.value).toFixed(0)
+			this.tcvr && (this.tcvr.freq = curValue)
+		})
+	}
 
-				this.tcvr.bind(EventType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
-				this.tcvr.bind(EventType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
-				this.tcvr.bind(EventType.pwrsw, 'ui', event => {
-					this.notifyPath('tcvr.freq')
-					this.notifyPath('tcvr.powerSwState')
-					this.$.tune.notifyPath('freq')
-					this.$.tune.notifyPath('power')
-					this.$.pwrbtn.className = event.value ? 'on' : 'off'
-				})
-				this.tcvr.bind(EventType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
-				this.tcvr.bind(EventType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
-				this.tcvr.bind(EventType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
-				this.tcvr.bind(EventType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
-				this.tcvr.bind(EventType.step, 'ui', event => this.notifyPath('tcvr.step'))
-			}
+	async _initTcvr() {
+		const tcvrModule = await import('./tcvr.mjs')
+		let transceiver
+		document.tcvr = transceiver = new tcvrModule.Transceiver()
+		window.Band = tcvrModule.Band
+		const signalsModule = await import('./utils/signals.mjs')
+		window.SignalType = signalsModule.SignalType
+		// window.TcvrSignal = signalsModule.TcvrSignal
 
-			async _fetchStatus() {
-				if (!this.kredence.rig || !this.connector) return
-				
-				this.unackStateQueries++
-				const status = await this.connector.checkState(this.kredence)
-				if (status && status.id) {
-					console.debug('rtt:', status.rtt)
-					this.operator = status.op || 'ON'
-					this.unackStateQueries = 0
-				}
-				this.notifyPath('operator')
-				if (this.unackStateQueries > 2) this.operator = 'OFF'
-				return status
-			}
+		this.signals = new signalsModule.SignalsBinder('ui', {
+			ptt: value => this.$.freq.style = value ? "color: #883333;" : '',
+			keyTx: value => this.$.freq.style = value ? "color: #883333;" : '',
+			wpm: value => { this.wpm = value; this.notifyPath('wpm'); },
+			mode: value => { this.mode = value; this.notifyPath('mode'); },
+			filter: value => { this.filter = value; this.notifyPath('filter'); },
+			gain: value => { this.gain = value; this.notifyPath('gain'); },
+			step: value => { this.step = value; this.notifyPath('step'); },
+			band: value => { this.band = value; this.notifyPath('band'); },
+			freq: value => this._freqChanged(value),
+			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = value ? 'on' : 'off'; },
+		})
+		this.signals.out.bind(transceiver)
 
-			_freqChanged(freq) {
-				if (freq == this._freq) {
-					return // stop propagate freq change when changed by tuning knob (already propagated)
-				}
-				this.notifyPath('tcvr.freq')
-				this.$.tune.notifyPath('freq')
-
-				if (this.tcvr.band == this._band) return
-				this._band = this.tcvr.band
-				this.notifyPath('tcvr.band')
-			}
-
-			formatFreq(freq) {
-				this._freq = freq // store value for change detect
-				if (freq === null || !this.tcvr || !this.tcvr.powerSwState) {
-					return this.operator
-				}
-
-				let mhz = Math.floor(freq / 1000000)
-				let res = '' + mhz + '.'
-				let khz = (freq - mhz * 1000000) / 1000
-				if (khz < 10) {
-				 res += '0'
-				}
-				if (khz < 100) {
-				 res += '0'
-				}
-			 res += khz
-				if (khz % 1 === 0) {
-				 res += '.00'
-				} else if (freq % 100 === 0) {
-				 res += '0'
-				}
-
-				return res
-			}
-
-			switchPower() {
-				this.tcvr.switchPower(this.connector, this.kredence, this.remoddle, this.reverse)
-			}
-
-			// connectRemoddle() {
-			// 	this.tcvr.connectRemoddle()
-			// }
-
-			// restartAudio() {
-			// 	this.tcvr.fire(new TcvrEvent(EventType.resetAudio, true))
-			// }
-
-			mute() {
-				this.tcvr.fire(new TcvrEvent(EventType.audioMute, true))
-			}
-
-			async _urlParamsChanged(params) {
-				if (params.token) {
-					this.kredence.token = params.token.trim()
-				}
-				this.autoPower = params.autopwr && (params.autopwr.trim() === '1')
-				if (params.rig) {
-					this.kredence.rig = params.rig.trim()
-					let connectorId
-					if (this.kredence.rig.includes('@')) {
-						connectorId = 'RTC';
-						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
-					} else if (this.kredence.rig == 'usb' || this.kredence.rig == 'bt') {
-						connectorId = this.kredence.rig.toUpperCase()
-					}
-
-					const connectors = await import('./connector/connectors.mjs')
-					this.connector = await connectors.get(connectorId)
-					this.$.pwrbtn.disabled = this.connector == null
-					const state = await this._fetchStatus()
-					// this not working due autoplay policy
-					// if (this.autoPower && state && state.id && !state.op) {
-					//   this.switchPower()
-					// }
-				}
-				if (params.remoddle) {
-					this.remoddle = params.remoddle.trim()
-				}
-				this.reverse = params.reverse && (params.reverse.trim() === '1')
-			}
-
-			// _routePageChanged(page) {
-			//   // Polymer 2.0 will call with `undefined` on initialization.
-			//   // Ignore until we are properly called with a string.
-			//   if (page === undefined) {
-			//     return;
-			//   }
-
-			//   // If no page was found in the route data, page will be an empty string.
-			//   // Deault to 'main' in that case.
-			//   console.log("page=" + page);
-			//   this.page = page || 'tune';
-
-			//   // Close a non-persistent drawer when the page & route are changed.
-			//   if (!this.$.drawer.persistent) {
-			//     this.$.drawer.close();
-			//   }
-			// }
-
-			// _pageChanged(page) {
-			//   // Load page import on demand. Show 404 page if fails
-			//   var resolvedPageUrl = this.resolveUrl(page + '-view.html');
-			//   Polymer.importHref(
-			//       resolvedPageUrl,
-			//       null,
-			//       this._showPage404.bind(this),
-			//       true);
-			// }
-
-			// _showPage404() {
-			//   this.page = 'error404';
-			// }
+		const ctlrModule = await import('./controller.mjs')
+		this.tcvr = new ctlrModule.TcvrController('ui')
+		this.tcvr.registerTo(transceiver)
+		// this.tcvr.bind(SignalType.freq, 'ui', event => this._freqChanged(event.value)) // listen for freq changes on mode/band change
+		// this.tcvr.bind(SignalType.ptt, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+		// this.tcvr.bind(SignalType.keyTx, 'ui', event => this.$.freq.style = event.value ? "color: #883333;" : '')
+		// this.tcvr.bind(SignalType.pwrsw, 'ui', event => {
+		// 	this.notifyPath('tcvr.freq')
+		// 	this.notifyPath('tcvr.powerSwState')
+		// 	this.$.tune.notifyPath('freq')
+		// 	this.$.tune.notifyPath('power')
+		// 	this.$.pwrbtn.className = event.value ? 'on' : 'off'
+		// })
+		// this.tcvr.bind(SignalType.filter, 'ui', event => this.notifyPath('tcvr.filter'))
+		// this.tcvr.bind(SignalType.gain, 'ui', event => this.notifyPath('tcvr.gain'))
+		// this.tcvr.bind(SignalType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
+		// this.tcvr.bind(SignalType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
+		// this.tcvr.bind(SignalType.step, 'ui', event => this.notifyPath('tcvr.step'))
+		this.powerState = false
+		
+		await this._initConnector()
+	}
+		
+	async _initConnector() {
+		const token = this.#params.get('token')
+		if (token) {
+			this.kredence.token = token.trim()
+		}
+		
+		let connectorId = undefined
+		let connectorParams = {tcvr: {}, kredence: this.kredence}
+		const remotig = this.#params.get('remote')
+		const powron = this.#params.get('usb')
+		const sercat = this.#params.get('serial')
+		if (remotig && remotig.includes('@')) {
+			connectorId = 'remotig'
+			[this.kredence.rig, this.kredence.qth] = 
+				remotig.trim().toLowerCase().split('@', 2)
+		} else if (powron && powron.includes('-')) {
+			connectorId = 'powron'
+			this._parseTcvrName(powron, connectorParams)
+		} else if (sercat && sercat.includes('-')) {
+			connectorId = 'sercat'
+			this._parseTcvrName(sercat, connectorParams)
+		} else {
+			throw new Error('No connector defined!')
 		}
 
-		window.customElements.define(SmartceiverApp.is, SmartceiverApp)
-	</script>
+		console.debug(`Resolved connector params: id=${connectorId} params=${JSON.stringify(connectorParams)}`)
+		this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
+		// this.$.pwrbtn.disabled = this.connector == null
+		if (this.connector) {
+			this.$.pwrbtn.disabled = false
+			this.$.pwrbtn.className = 'off'
+		}
+		await this._fetchStatus()
+
+		this.remoddle = this.#params.get('remoddle')
+		this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
+	}
+
+	_parseTcvrName(value, connectorParams) {
+		const tcvrname = value.trim().toLowerCase().split('-', 2)
+		connectorParams.tcvr.manufacturer = tcvrname[0]
+		connectorParams.tcvr.model = tcvrname[1]
+	}
+
+	async _fetchStatus() {
+		if (!this.kredence.rig || !this.connector) return
+
+		this.unackStateQueries++
+		const status = await this.connector.checkState(this.kredence)
+		if (status && status.id) {
+			console.debug('rtt:', status.rtt)
+			this.operator = status.op || 'ON'
+			this.unackStateQueries = 0
+		}
+		this.notifyPath('operator')
+		if (this.unackStateQueries > 2) this.operator = 'OFF'
+		return status
+	}
+
+	_freqChanged(freq) {
+		if (freq == this._freq) {
+			return // stop propagate freq change when changed by tuning knob (already propagated)
+		}
+		this._freq = freq
+		this.notifyPath('this._freq')
+		// this.$.tune.notifyPath('freq')
+
+		// if (this.tcvr.band == this._band) return
+		// this._band = this.tcvr.band
+		// this.notifyPath('tcvr.band')
+	}
+
+	formatFreq(freq) {
+		this._freq = freq // store value for change detect
+		if (freq === null || !this.tcvr || !this.powerState) {
+			return this.operator
+		}
+
+		this.freq = freq // knob
+		let mhz = Math.floor(freq / 1000000)
+		let res = '' + mhz + '.'
+		let khz = (freq - mhz * 1000000) / 1000
+		if (khz < 10) {
+		 res += '0'
+		}
+		if (khz < 100) {
+		 res += '0'
+		}
+		res += khz
+		if (khz % 1 === 0) {
+		 res += '.00'
+		} else if (freq % 100 === 0) {
+		 res += '0'
+		}
+
+		return res
+	}
+
+	async switchPower() {
+		await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
+	}
+
+	// connectRemoddle() {
+	// 	this.tcvr.connectRemoddle()
+	// }
+
+	// restartAudio() {
+	// 	this.tcvr.fire(new TcvrSignal(SignalType.resetAudio, true))
+	// }
+
+	// mute() {
+		// this.tcvr.fire(new TcvrSignal(SignalType.audioMute, true))
+	// }
+
+// 			async _urlParamsChanged(params) {
+// 				if (params.token) {
+// 					this.kredence.token = params.token.trim()
+// 				}
+// 				let connectorParams = undefined
+// 				if (params.rig) {
+// 					this.kredence.rig = params.rig.trim().toLowerCase()
+// 					let connectorId
+// 					if (this.kredence.rig.includes('@')) {
+// 						connectorId = 'remotig'
+// 						[this.kredence.rig, this.kredence.qth] = this.kredence.rig.split('@', 2)
+// 						connectorParams = {kredence: this.kredence}
+// 					} else if (this.kredence.rig.includes('-')) {
+// 						connectorId = 'sercat' //'powron'
+// 						connectorParams = {tcvr: {}}
+// 						[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = this.kredence.rig.split('-', 2)
+// 					}
+
+// 					this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
+// 					this.$.pwrbtn.disabled = this.connector == null
+// 					const state = await this._fetchStatus()
+// 				}
+// 				if (params.remoddle) {
+// 					this.remoddle = params.remoddle.trim()
+// 				}
+// 				this.tcvr.reversePaddle = params.reverse && (params.reverse.trim() === '1')
+// 			}
+
+	decreaseWpm() {
+		this.tcvr.wpm = this.wpm - 2;
+	}
+	increaseWpm() {
+		this.tcvr.wpm = this.wpm + 2;
+	}
+
+	decFilter() {
+		this.tcvr.filter = this.filter - 200
+	}
+	incFilter() {
+		this.tcvr.filter = this.filter + 200
+	}
+
+	switchMode() {
+		const i = this.tcvr.modes.indexOf(this.mode)
+		this.tcvr.mode = this.tcvr.modes[i < (this.modes.length - 1) ? i + 1 : 0]
+	}
+
+	switchGain() {
+		const i = this.tcvr.gains.indexOf(this.gain)
+		this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.gains.length - 1]
+	}
+			
+	switchBand() {
+		const i = this.tcvr.bands.indexOf(Band.byFreq(this._freq))
+		this.tcvr.band = this.tcvr.bands[i < (this.bands.length - 1) ? i + 1 : 0]
+	}
+
+	// _routePageChanged(page) {
+	//   // Polymer 2.0 will call with `undefined` on initialization.
+	//   // Ignore until we are properly called with a string.
+	//   if (page === undefined) {
+	//     return;
+	//   }
+
+	//   // If no page was found in the route data, page will be an empty string.
+	//   // Deault to 'main' in that case.
+	//   console.log("page=" + page);
+	//   this.page = page || 'tune';
+
+	//   // Close a non-persistent drawer when the page & route are changed.
+	//   if (!this.$.drawer.persistent) {
+	//     this.$.drawer.close();
+	//   }
+	// }
+
+	// _pageChanged(page) {
+	//   // Load page import on demand. Show 404 page if fails
+	//   var resolvedPageUrl = this.resolveUrl(page + '-view.html');
+	//   Polymer.importHref(
+	//       resolvedPageUrl,
+	//       null,
+	//       this._showPage404.bind(this),
+	//       true);
+	// }
+
+	// _showPage404() {
+	//   this.page = 'error404';
+	// }
+}
+
+window.customElements.define(SmartceiverApp.is, SmartceiverApp)
+</script>
 </dom-module>
