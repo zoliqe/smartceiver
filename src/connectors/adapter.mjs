@@ -1,6 +1,6 @@
 
 const manufacturers = ['elecraft', 'icom', 'kenwood', 'yeasu']
-const tcvrs
+let tcvrs = null
 
 async function transceivers() {
 	if (tcvrs) return tcvrs

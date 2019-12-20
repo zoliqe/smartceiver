@@ -74,12 +74,15 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			}
 			app-header paper-icon-button.off {
 				background-color: darkred;
+				color: white;
 			}
-			app-header paper-icon-button.off :disabled {
-				background-color: darkgray;
+			app-header paper-icon-button#pwrbtn:disabled {
+				background-color: black;
+				color: darkgray;
 			}
 			app-header paper-icon-button.on {
 				background-color: darkgreen;
+				color: white;
 			}
 
 			app-header div.freq-display {
@@ -280,7 +283,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 						<!-- <div>2a</div> -->
 						<!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
 						<!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
-						<paper-icon-button id="pwrbtn" name="pwrbtn" class="off" icon="power-settings-new" on-tap="switchPower" disabled></paper-icon-button>
+						<paper-icon-button id="pwrbtn" name="pwrbtn" icon="power-settings-new" on-tap="switchPower" disabled></paper-icon-button>
 					</app-toolbar>
 				</app-header>
 
@@ -381,7 +384,7 @@ class SmartceiverApp extends Polymer.Element {
 		setInterval(_ => this._fetchStatus(), 5000)
 
 		const knob = document.querySelector('input-knob')
-		ocument.addEventListener('knob-move-change', (evt) => {
+		document.addEventListener('knob-move-change', (evt) => {
 			const curValue = Number.parseFloat(knob.value).toFixed(0)
 			this.tcvr && (this.tcvr.freq = curValue)
 		})
@@ -450,23 +453,31 @@ class SmartceiverApp extends Polymer.Element {
 				remotig.trim().toLowerCase().split('@', 2)
 		} else if (powron && powron.includes('-')) {
 			connectorId = 'powron'
-			[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = 
-				powron.trim().toLowerCase().split('-', 2)
+			this._parseTcvrName(powron, connectorParams)
 		} else if (sercat && sercat.includes('-')) {
 			connectorId = 'sercat'
-			[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = 
-				sercat.trim().toLowerCase().split('-', 2)
+			this._parseTcvrName(sercat, connectorParams)
 		} else {
 			throw new Error('No connector defined!')
 		}
 
-		console.debug(`Resolved connector params: id=${connectorId} params=${connectorParams}`)
+		console.debug(`Resolved connector params: id=${connectorId} params=${JSON.stringify(connectorParams)}`)
 		this.connector = await (await import('./connector.mjs')).get(connectorId, connectorParams)
-		this.$.pwrbtn.disabled = this.connector == null
-		const state = await this._fetchStatus()
+		// this.$.pwrbtn.disabled = this.connector == null
+		if (this.connector) {
+			this.$.pwrbtn.disabled = false
+			this.$.pwrbtn.className = 'off'
+		}
+		await this._fetchStatus()
 
 		this.remoddle = this.#params.get('remoddle')
 		this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
+	}
+
+	_parseTcvrName(value, connectorParams) {
+		const tcvrname = value.trim().toLowerCase().split('-', 2)
+		connectorParams.tcvr.manufacturer = tcvrname[0]
+		connectorParams.tcvr.model = tcvrname[1]
 	}
 
 	async _fetchStatus() {

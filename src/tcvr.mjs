@@ -12,6 +12,86 @@ const _filters = {
 // const defaultMode = Mode.CW
 const _sidetoneFreq = 650
 
+class Band {
+	#name
+	#id
+	#freqFrom
+	#freqTo
+
+	constructor(name, id, minFreq, maxFreq) {
+		this.#name = name
+		this.#id = id
+		this.#freqFrom = minFreq
+		this.#freqTo = maxFreq
+	}
+
+	static byId(id) {
+		// return _bands.find(band => band.id == id)
+		return Bands[id]
+	}
+
+	static byFreq(freq) {
+		const f = Number(freq)
+		return Object.values(Bands)
+			.find(band => band.freqFrom <= f && band.freqTo >= f)
+	}
+
+	toString() {
+		return JSON.stringify(this)
+	}
+
+	toJSON() {
+		return {id: this.#id, name: this.#name, freqFrom: this.#freqFrom, freqTo: this.#freqTo}
+	}
+
+	get name() {
+		return this.#name
+	}
+
+	get id() {
+		return this.#id
+	}
+
+	get freqFrom() {
+		return this.#freqFrom
+	}
+
+	get freqTo() {
+		return this.#freqTo
+	}
+}
+
+const _bands = {}
+// const addBand = ([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
+const __b = [
+	[1.8,   160,     1810,      2000],
+	[3.5,	  80,      3500,      3800],
+	[5,	    60,      5351,      5368],
+	[7,     40,	     7000,      7200],
+	[10.1,	30,			10100,		 10150],
+	[14,		20,			14000,		 14350],
+	[18,		17,			18068,		 18168],
+	[21,		15,			21000,		 21450],
+	[24,		12,			24890,		 24990],
+	[28,		10,	 		28000,		 29700],
+	[50,		6,			50000,		 54000],
+	[70,		4,			70000,		 70500],
+	[144,		2,		 144000,		146000],
+	[430,		70,		 430000,		440000],
+	[1296,	23,		1240000,	 1300000]]
+__b.forEach(([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000))
+const Bands = Object.freeze(_bands)
+
+const _modes = {}
+const __m = ['CW', 'CWR', 'LSB', 'USB', 'RTTY', 'RTTYR', 'NFM', 'WFM', 'AM']
+__m.forEach(id => _modes[id] = id)
+const Modes = Object.freeze(_modes)
+
+const _agcTypes = {}
+const __a = ['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'OFF']
+__a.forEach(agc => _agcTypes[agc] = agc)
+const AgcTypes = Object.freeze(_agcTypes)
+
 class Transceiver {
 
 	#props
@@ -447,85 +527,6 @@ class Transceiver {
 	}
 }
 
-
-class Band {
-
-	#name
-	#id
-	#freqFrom
-	#freqTo
-
-	constructor(name, id, minFreq, maxFreq) {
-		this.#name = name
-		this.#id = id
-		this.#freqFrom = minFreq
-		this.#freqTo = maxFreq
-	}
-
-	static byId(id) {
-		// return _bands.find(band => band.id == id)
-		return Bands[id]
-	}
-
-	static byFreq(freq) {
-		const f = Number(freq)
-		return Object.values(Bands)
-			.find(band => band.freqFrom <= f && band.freqTo >= f)
-	}
-
-	toString() {
-		return JSON.stringify(this)
-	}
-
-	toJSON() {
-		return {id: this.#id, name: this.#name, freqFrom: this.#freqFrom, freqTo: this.#freqTo}
-	}
-
-	get name() {
-		return this.#name
-	}
-
-	get id() {
-		return this.#id
-	}
-
-	get freqFrom() {
-		return this.#freqFrom
-	}
-
-	get freqTo() {
-		return this.#freqTo
-	}
-}
-
-const _bands = {}
-// const addBand = ([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000)
-[
-	[1.8,   160,     1810,      2000],
-	[3.5,	  80,      3500,      3800],
-	[5,	    60,      5351,      5368],
-	[7,     40,	     7000,      7200],
-	[10.1,	30,			10100,		 10150],
-	[14,		20,			14000,		 14350],
-	[18,		17,			18068,		 18168],
-	[21,		15,			21000,		 21450],
-	[24,		12,			24890,		 24990],
-	[28,		10,	 		28000,		 29700],
-	[50,		6,			50000,		 54000],
-	[70,		4,			70000,		 70500],
-	[144,		2,		 144000,		146000],
-	[430,		70,		 430000,		440000],
-	[1296,	23,		1240000,	 1300000]
-].forEach(([name, id, minFreq, maxFreq]) => _bands[id] = new Band(name, id, minFreq * 1000, maxFreq * 1000))
-const Bands = Object.freeze(_bands)
-
-const _modes = {}
-['CW', 'CWR', 'LSB', 'USB', 'RTTY', 'RTTYR', 'NFM', 'WFM', 'AM'].forEach(id => _modes[id] = id)
-const Modes = Object.freeze(_modes)
-
-const _agcTypes = {}
-['FAST', 'SLOW', 'MEDIUM', 'AUTO', 'OFF'].forEach(agc => _agcTypes[agc] = agc)
-const AgcTypes = Object.freeze(_agcTypes)
 
 class TransceiverProperties {
 

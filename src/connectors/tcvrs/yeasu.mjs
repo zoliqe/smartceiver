@@ -15,15 +15,15 @@ export class Adapter {
 		this.#options = options || {}
 	}
 
-	static FT1000MP(options) {
+	static async FT1000MP(options) {
 		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
 	}
 
-	static FT817(options) {
+	static async FT817(options) {
 		return new Adapter(await tcvrOptions('yeasu', 'ft817', options))
 	}
 
-	async static forTcvr(model, options) {
+	static async forTcvr(model, options) {
 		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
 	}
 

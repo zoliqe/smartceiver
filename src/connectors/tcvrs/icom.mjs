@@ -26,7 +26,7 @@ export class Adapter {
 		this.#options = options || {}
 	}
 
-	static IC706(options) {
+	async static IC706(options) {
 		return new Adapter(await tcvrOptions('icom', 'ic706', options))
 	}
 

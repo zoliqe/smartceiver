@@ -16,7 +16,7 @@ const SignalType = Object.freeze({
 })
 
 class SignalBus {
-	#listeners = []
+	#listeners = {}
 
 	constructor() {}
 
@@ -59,7 +59,7 @@ class SignalsBinder {
 	}
 
 	get out() {
-		return out
+		return this.#out
 	}
 }
 
