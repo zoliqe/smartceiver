@@ -32,15 +32,15 @@ export class TcvrController {
 	}
 
 	set ptt(value) {
-		this.#tcvr && this.#tcvr.ptt(this, value)
+		this.#tcvr && this.#tcvr.setPtt(this, value)
 	}
 
 	set wpm(value) {
-		this.#tcvr && this.#tcvr.wpm(this, value)
+		this.#tcvr && this.#tcvr.setWpm(this, value)
 	}
 
 	set reversePaddle(value) {
-		this.#tcvr && this.#tcvr.reversePaddle(this, value)
+		this.#tcvr && this.#tcvr.setReversePaddle(this, value)
 	}
 
 	get bands() {
@@ -50,35 +50,35 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.band
 	// }
 	set band(value) {
-		this.#tcvr && this.#tcvr.band(this, value)
+		this.#tcvr && this.#tcvr.setBand(this, value)
 	}
 
 	// get freq() {
 	// 	return this.#tcvr && this.#tcvr.freq
 	// }
 	set freq(value) {
-		this.#tcvr && this.#tcvr.freq(this, value)
+		this.#tcvr && this.#tcvr.setFreq(this, value)
 	}
 
 	// get split() {
 	// 	return this.#tcvr && this.#tcvr.split
 	// }
 	set split(value) {
-		this.#tcvr && this.#tcvr.split(this, value)
+		this.#tcvr && this.#tcvr.setSplit(this, value)
 	}
 
 	// get rit() {
 	// 	return this.#tcvr && this.#tcvr.rit
 	// }
 	set rit(value) {
-		this.#tcvr && this.#tcvr.rit(this, value)
+		this.#tcvr && this.#tcvr.setRit(this, value)
 	}
 
 	// get xit() {
 	// 	return this.#tcvr && this.#tcvr.xit
 	// }
 	set xit(value) {
-		this.#tcvr && this.#tcvr.xit(this, value)
+		this.#tcvr && this.#tcvr.setXit(this, value)
 	}
 
 	get steps() {
@@ -88,7 +88,7 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.step
 	// }
 	set step(value) {
-		this.#tcvr && this.#tcvr.step(this, value)
+		this.#tcvr && this.#tcvr.setStep(this, value)
 	}
 
 	get modes() {
@@ -98,7 +98,7 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.mode
 	// }
 	set mode(value) {
-		this.#tcvr && this.#tcvr.mode(this, value)
+		this.#tcvr && this.#tcvr.setMode(this, value)
 	}
 
 	get filters() {
@@ -108,7 +108,7 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.filter
 	// }
 	set filter(value) {
-		this.#tcvr && this.#tcvr.filter(this, value)
+		this.#tcvr && this.#tcvr.setFilter(this, value)
 	}
 
 	get gains() {
@@ -118,7 +118,7 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.gain
 	// }
 	set gain(value) {
-		this.#tcvr && this.#tcvr.gain(this, value)
+		this.#tcvr && this.#tcvr.setGain(this, value)
 	}
 
 	get agcTypes() {
@@ -128,6 +128,6 @@ export class TcvrController {
 	// 	return this.#tcvr && this.#tcvr.agc
 	// }
 	set agc(value) {
-		this.#tcvr && this.#tcvr.agc(this, value)
+		this.#tcvr && this.#tcvr.setAgc(this, value)
 	}
 }

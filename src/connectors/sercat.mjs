@@ -88,14 +88,14 @@ class SercatConnector {
 	}
 
 	async _on() {
-		this.#adapter.init && (await this.#adapter.init(this._send))
+		this.#adapter.init && (await this.#adapter.init(async (data) => await this._send(data)))
 	}
 
 	async _keepAlive() {
 	}
 
 	async _off() {
-		this.#adapter.close && this.#adapter.close()
+		this.#adapter.close && (await this.#adapter.close())
 	}
 
 	get connected() {
@@ -115,14 +115,15 @@ class SercatConnector {
 	}
 
 	async _send(data) {
-		console.debug(`SERCAT <= ${ data.trim() } `)
+		console.debug(`SERCAT <= ${data}`)
 		if (this.connected && this.#device.writable) {
 			const writer = this.#device.writable.getWriter()
-			writer.write(encoder.encode(data))
+			const bytes = typeof data === 'string' ? encoder.encode(data) : data
+			writer.write(bytes)
 			writer.releaseLock()
 			return true
 		} else {
-			console.error(`SERCAT: data not sent ${ data } `)
+			console.error(`SERCAT: data not sent ${data}`)
 			return false
 		}
 	}
@@ -146,7 +147,7 @@ class SercatConnector {
 			filter: async (value) => await this.#adapter.filter(value),
 			gain: async (value) => await this.#adapter.gain(value),
 			agc: async (value) => await this.#adapter.agc(value),
-			freq: async (value) => await this.#adapter.freqency(value),
+			freq: async (value) => await this.#adapter.frequency(value),
 			split: async (value) => await this.#adapter.split(value),
 			rit: async (value) => await this.#adapter.rit(value),
 			xit: async (value) => await this.#adapter.xit(value),

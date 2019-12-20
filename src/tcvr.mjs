@@ -98,7 +98,7 @@ class Transceiver {
 	#state = {}
 	#defaults = { rit: 0, xit: 0, step: 20, wpm: 28, paddleReverse: false }
 	#bus = new SignalBus()
-	#acl = []
+	#acl = [this]
 
 	constructor() {
 		// this._band = 2
@@ -133,6 +133,10 @@ class Transceiver {
 		// this._d("tcvr-init", "done")
 	}
 
+	get id() {
+		return 'tcvr'
+	}
+
 	async switchPower(connector, remoddleOptions) {
 		if (this._port) {
 			this._d('disconnect', this._port && this._port.constructor.id)
@@ -147,15 +151,13 @@ class Transceiver {
 			this.#props = null
 		} else if (connector) {
 			this._d('connect connector', connector.id)
-			this.connectRemoddle(remoddleOptions)
+			// this.connectRemoddle(remoddleOptions)
 			this._port = await connector.connect(this)
 			this._bindSignals()
 			this._port.signals.out.bind(this.#bus)
 			
 			await this._initState(connector)
 			this.fire(new TcvrSignal(SignalType.pwrsw, this._port != null), true)
-			// const ctlModule = await import('./remoddle/controls.mjs')
-			// this._controls = new ctlModule.TcvrControls(this)
 
 			window.onbeforeunload = _ => {
 				this.disconnectRemoddle()
@@ -166,7 +168,7 @@ class Transceiver {
 
 	async _initState(connector) {
 		this.#state = {} // TODO load state from KV storage
-		Object.keys(this.#defaults).forEach(this._mergeDefault)
+		Object.keys(this.#defaults).forEach(prop => this._mergeDefault(prop))
 		this.#state.ptt = false
 		this.#state.keyed = false
 
@@ -175,8 +177,9 @@ class Transceiver {
 		this._mergePropsToState(props, defaults)
 
 		// reset tcvr configuration
-		this.band = this.#state.band
-		this.wpm = this.#state.wpm
+		this.setBand(this, this.#state.band)
+		this.setWpm(this, this.#state.wpm)
+		this.setStep(this, this.#state.step)
 	}
 
 	_mergeDefault(prop) {
@@ -203,13 +206,12 @@ class Transceiver {
 		this.#state.freq = this.#state.freq || {}
 		this.#state.split = this.#state.split || {}
 		for (let band of props.bands) {
-			this.#state.freq[band.id] = this.#state.freq[band.id] || {}
-			this.#state.split[band.id] = this.#state.split[band.id] || {}
+			this.#state.freq[band] = this.#state.freq[band] || {}
+			this.#state.split[band] = this.#state.split[band] || {}
 			for (let mode of props.modes) {
-				this.#state.freq[band.id][mode] = this.#state.freq[band.id][mode] || band.freqFrom
-				this.#state.split[band.id][mode] = this.#state.split[band.id][mode] || 0
+				this.#state.freq[band][mode] = this.#state.freq[band][mode] || Bands[band].freqFrom
+				this.#state.split[band][mode] = this.#state.split[band][mode] || 0
 			}
-			this.#state.gains[band.id] = 0
 		}
 	}
 		
@@ -292,7 +294,7 @@ class Transceiver {
 	get ptt() {
 		return this.#state.ptt
 	}
-	ptt(controller, state) {
+	setPtt(controller, state) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
 		this.#state.ptt = state
@@ -303,7 +305,7 @@ class Transceiver {
 	get wpm() {
 		return this.#state.wpm
 	}
-	wpm(controller, wpm) {
+	setWpm(controller, wpm) {
 		if (!this.online || this._denieded(controller)) return
 		if (wpm < 16 || wpm > 40) return
 		this._d("wpm", wpm)
@@ -314,7 +316,7 @@ class Transceiver {
 	get reversePaddle() {
 		return this.#state.paddleReverse
 	}
-	reversePaddle(controller, value) {
+	setReversePaddle(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this.#state.paddleReverse = value
 		this._d('reverse', value)
@@ -336,13 +338,13 @@ class Transceiver {
 	get band() {
 		return this.#state.band
 	}
-	band(controller, band) {
+	setBand(controller, band) {
 		if (!this.online || this._denieded(controller)) return
 		if (!this.#props.bands.includes(band)) return
 
 		this._d("band", band)
 		this.#state.band = band
-		this.freq = this.#state.freq[this.#state.band][this.#state.mode] // call setter
+		this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode]) // call setter
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
 			this.fire(new TcvrSignal(SignalType.mode, this.mode))
@@ -355,13 +357,13 @@ class Transceiver {
 
 	_outOfBand(f) {
 		const band = Band.byFreq(f)
-		return !band || band !== this.#state.band //!this.bands.includes(band)
+		return !band || band.id !== this.#state.band //!this.bands.includes(band)
 	}
 
 	get freq() {
 		return this.#state.freq[this.#state.band][this.#state.mode]
 	}
-	freq(controller, freq) {
+	setFreq(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (this._outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
@@ -374,7 +376,7 @@ class Transceiver {
 	get split() {
 		return this.#state.split[this.#state.band][this.#state.mode]
 	}
-	split(controller, freq) {
+	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq)) return
 		this.#state.split[this.#state.band][this.#state.mode] = freq
@@ -388,7 +390,7 @@ class Transceiver {
 	get rit() {
 		return this.#state.rit
 	}
-	rit(controller, value) {
+	setRit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('rit', value)
 		if (Math.abs(value) < 10000) {
@@ -403,7 +405,7 @@ class Transceiver {
 	get xit() {
 		return this.#state.xit
 	}
-	xit(controller, value) {
+	setXit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('xit', value)
 		if (Math.abs(value) < 10000) {
@@ -421,7 +423,7 @@ class Transceiver {
 	get step() {
 		return this.#state.step
 	}
-	step(controller, value) {
+	setStep(controller, value) {
 		if (this._denieded(controller)) return
 		this._d('step', value)
 		if (this.steps.includes(value)) {
@@ -436,10 +438,10 @@ class Transceiver {
 	get mode() {
 		return this.#state.mode
 	}
-	mode(controller, value) {
+	setMode(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d("mode", value)
-		if (this.modes.includes(mode)) {
+		if (this.modes.includes(value)) {
 			this.#state.mode = value
 			this.fire(new TcvrSignal(SignalType.mode, this.#state.mode))
 			this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.mode]))
@@ -451,14 +453,14 @@ class Transceiver {
 		return this.#props && this.#props.filters(this.mode)
 	}
 	get filter() {
-		return this.#state.filter[this.mode]
+		return this.#state.filters[this.mode]
 	}
-	filter(controller, bw) {
+	setFilter(controller, bw) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('filter', bw)
 		const filterRange = _filters[this.mode]
 		if (filterRange.min <= bw && filterRange.max >= bw) {
-			this.#state.filter[this.mode] = bw
+			this.#state.filters[this.mode] = bw
 			this.fire(new TcvrSignal(SignalType.filter, {filter: bw, mode: this.mode}))
 		}
 	}
@@ -468,12 +470,12 @@ class Transceiver {
 	}
 
 	get gain() {
-		return this.#state.gain[this.band]
+		return this.#state.gains[this.band]
 	}
-	gain(controller, value) {
+	setGain(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.gains.includes(value)) {
-			this.#state.gain[this.band] = value
+			this.#state.gains[this.band] = value
 			this.fire(new TcvrSignal(SignalType.gain, value))
 		}
 	}
@@ -484,17 +486,13 @@ class Transceiver {
 	get agc() {
 		return this.#state.agc
 	}
-	agc(controller, value) {
+	setAgc(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.agcTypes.includes(value)) {
 			this.#state.agc = value
 			this._d('agc', value)
 			this.fire(new TcvrSignal(SignalType.agc, {agc: value, mode: this.mode}))
 		}
-	}
-
-	toggleFast() {
-		this.#state.step = this.#state.step == 20 ? 200 : 20
 	}
 
 	bind(type, owner, callback) {
@@ -512,8 +510,10 @@ class Transceiver {
 
 	register(controller) {
 		if (controller.exclusive) {
-			this.#acl.forEach(ctlr => ctlr.unregister())
-			this.#acl = []
+			this.#acl
+				.filter(ctlr => ctlr.id !== this.id)
+				.forEach(ctlr => ctlr.unregister())
+			this.#acl = [this]
 		}
 		this.#acl.push(controller)
 	}

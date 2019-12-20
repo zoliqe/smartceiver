@@ -36,11 +36,11 @@ export class Adapter {
 	}
 
 	async init(dataSender) {
-		this._uart = dataSender
+		this._uart = async (data) => await dataSender(new Uint8Array(data))
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
-	close() {
+	async close() {
 		this._uart = _ => {} // do nothing
 	}
 

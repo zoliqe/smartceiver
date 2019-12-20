@@ -28,7 +28,7 @@ function resolveAgc(agc, mode) {
 
 async function tcvrOptions(manufacturer, model, options) {
 	const defaults = await import(`./${manufacturer}/${model}.mjs`)
-	return {...defaults, ...options}
+	return {...defaults.default, ...options}
 }
 
 export {selectFilter, resolveAgc, tcvrOptions}
