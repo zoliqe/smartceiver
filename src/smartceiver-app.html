@@ -289,32 +289,40 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				<ul class="app-grid">
 					<li><div class="card knob-card">
 						<input-knob id="freq-knob" name="freq-knob">
-						<!-- <input-knob value="[[freq]]" scale="[[step]]" min="[[bandMin]]" max="[[bandMax]]"> -->
 							<div class="mark">▲</div>
 						</input-knob>
 						<div class="controls">
-							<paper-item hidden="[[!powerState]]">
-								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" hidden="[[!powerState]]">
-									MODE<br />[[mode]]
-								</paper-button>
+							<paper-item>
+								<button onclick="switchMode" class="toggles toggle-btn" hidden="[[!powerState]]">
+									[[mode]]
+								</button>
 							</paper-item>
-							<paper-item hidden="[[!powerState]]">
-								<paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" hidden="[[!powerState]]">
-									GAIN<br />[[gain]]
-								</paper-button>
+							<paper-item>
+								<button onclick="switchGain" class="toggles toggle-btn" hidden="[[!powerState]]">
+									[[gain]]
+								</button>
+							</paper-item>
+							<paper-item>
+								<button onclick="switchAgc" class="toggles toggle-btn" hidden="[[!powerState]]">
+									[[agc]]
+								</button>
 							</paper-item>
 						</div>
 					</div></li>
-					<li><div class="card" role="listbox" hidden="[[!powerState]]">
-						<paper-item class="ctl" hidden="[[!powerState]]">
-							<paper-button raised on-tap="decreaseWpm" class="ctl" hidden="[[!powerState]]">--</paper-button>
-							<span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
-							<paper-button raised on-tap="increaseWpm" class="ctl" hidden="[[!powerState]]">++</paper-button>
+					<li><div class="card" role="listbox">
+						<paper-item class="ctl">
+							<button onclick="decreaseWpm" class="ctl" hidden="[[!powerState]]">--</button>
+							<span class="ctl-value" hidden="[[!powerState]]">[[wpm]] 
+								<span class="ctl-name" hidden="[[!powerState]]">WPM</span>
+							</span>
+							<button onclick="increaseWpm" class="ctl" hidden="[[!powerState]]">++</button>
 						</paper-item>
-						<paper-item class="ctl" hidden="[[!powerState]]">
-							<paper-button raised on-tap="decFilter" hidden="[[!powerState]]" class="ctl">--</paper-button>
-							<span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
-							<paper-button raised on-tap="incFilter" hidden="[[!powerState]]" class="ctl">++</paper-button>
+						<paper-item class="ctl">
+							<button onclick="decFilter" hidden="[[!powerState]]" class="ctl">--</button>
+							<span class="ctl-value" hidden="[[!powerState]]">[[filter]]
+								<span class="ctl-name" hidden="[[!powerState]]">Hz</span>
+							</span>
+							<button onclick="incFilter" hidden="[[!powerState]]" class="ctl">++</button>
 						</paper-item>
 					</div></li>
 					</ul>
@@ -352,14 +360,12 @@ class SmartceiverApp extends Polymer.Element {
 				type: String,
 				computed: 'formatFreq(freq, operator)'
 			},
-			bandName: { type: Number, value: true}, // computed: 'bandNameOf(band)'
-			// bandMin: { type: Number, computed: 'minFreqOf(band)'},
-			// bandMax: { type: Number, computed: 'maxFreqOf(band)'},
-			// step: {type: Number, notify: false, value: true},
+			bandName: { type: Number, value: true},
 			filter: {type: Number, notify: false, value: true},
 			wpm: {type: Number, notify: false, value: true},
 			mode: {type: String, notify: false, value: true},
 			gain: {type: Number, notify: false, value: true},
+			agc: {type: String, notify: false, value: true},
 			powerState: {type: Boolean, notify: false, value: true},
 			band: {type: Number, notify: false, value: true},
 			freq: {type: Number, notify: false, value: true}
@@ -382,15 +388,20 @@ class SmartceiverApp extends Polymer.Element {
 		this.#params = new URLSearchParams(location.search)
 		this._initTcvr()
 
+		this.powerState = true
 		this.operator = ':::'
 		this.bandName = null
+		this.wpm = 0
+		this.filter = 0
+		this.agc = 'AGC'
+		this.mode = 'MODE'
+		this.gain = 0
 		this.unackStateQueries = 0
 		setInterval(_ => this._fetchStatus(), 5000)
-
 	}
 
 	async _initTcvr() {
-		const tcvrModule = await import('./tcvr.mjs')
+		const tcvrModule = await import('./tcvr.js')
 		let transceiver
 		document.tcvr = transceiver = new tcvrModule.Transceiver()
 		window.Bands = tcvrModule.Bands
@@ -442,8 +453,6 @@ class SmartceiverApp extends Polymer.Element {
 		// this.tcvr.bind(SignalType.wpm, 'ui', event => this.notifyPath('tcvr.wpm'))
 		// this.tcvr.bind(SignalType.mode, 'ui', event => this.notifyPath('tcvr.mode'))
 		// this.tcvr.bind(SignalType.step, 'ui', event => this.notifyPath('tcvr.step'))
-		this.powerState = false
-		
 		await this._initConnector()
 
 		// const knob = document.querySelector('#freq-knob')
