@@ -1,4 +1,4 @@
-import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.mjs'
+import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.js'
 
 const filters = {}
 filters[Modes.CW]  = filters[Modes.CWR] = [6000, 2400, 2000, 500, 250]

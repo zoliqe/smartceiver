@@ -1,1 +1,0 @@
-polymer serve --hostname 0.0.0.0 --proxy-path 'smartceiver/' --proxy-target 'http://penguin:8081/'

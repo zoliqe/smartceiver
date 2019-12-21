@@ -1,4 +1,4 @@
-import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.mjs'
+import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.js'
 
 const bands = [
 	Bands[160], Bands[80], Bands[40], Bands[30],

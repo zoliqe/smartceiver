@@ -1,5 +1,5 @@
-import {TcvrSignal, SignalType} from './utils/signals.mjs'
-import { SignalBus } from './utils/signals.mjs'
+import {TcvrSignal, SignalType, SignalBus } from './utils/signals.mjs'
+
 
 // const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']
 // const _bandLowEdges = [1810, 3500, 7000, /* 10100, */ 14000, /* 18068, */ 21000, /* 24890, */ 28000]
@@ -14,8 +14,11 @@ const _sidetoneFreq = 650
 
 class Band {
 	#name
+
 	#id
+
 	#freqFrom
+
 	#freqTo
 
 	constructor(name, id, minFreq, maxFreq) {
@@ -95,9 +98,13 @@ const AgcTypes = Object.freeze(_agcTypes)
 class Transceiver {
 
 	#props
+
 	#state = {}
+
 	#defaults = { rit: 0, xit: 0, step: 20, wpm: 28, paddleReverse: false }
+
 	#bus = new SignalBus()
+
 	#acl = [this]
 
 	constructor() {
@@ -205,10 +212,10 @@ class Transceiver {
 	_buildFreqTable(props) {
 		this.#state.freq = this.#state.freq || {}
 		this.#state.split = this.#state.split || {}
-		for (let band of props.bands) {
+		for (const band of props.bands) {
 			this.#state.freq[band] = this.#state.freq[band] || {}
 			this.#state.split[band] = this.#state.split[band] || {}
-			for (let mode of props.modes) {
+			for (const mode of props.modes) {
 				this.#state.freq[band][mode] = this.#state.freq[band][mode] || Bands[band].freqFrom
 				this.#state.split[band][mode] = this.#state.split[band][mode] || 0
 			}
@@ -294,6 +301,7 @@ class Transceiver {
 	get ptt() {
 		return this.#state.ptt
 	}
+
 	setPtt(controller, state) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
@@ -305,6 +313,7 @@ class Transceiver {
 	get wpm() {
 		return this.#state.wpm
 	}
+
 	setWpm(controller, wpm) {
 		if (!this.online || this._denieded(controller)) return
 		if (wpm < 16 || wpm > 40) return
@@ -316,6 +325,7 @@ class Transceiver {
 	get reversePaddle() {
 		return this.#state.paddleReverse
 	}
+
 	setReversePaddle(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this.#state.paddleReverse = value
@@ -338,6 +348,7 @@ class Transceiver {
 	get band() {
 		return this.#state.band
 	}
+
 	setBand(controller, band) {
 		if (!this.online || this._denieded(controller)) return
 		if (!this.#props.bands.includes(band)) return
@@ -357,12 +368,13 @@ class Transceiver {
 
 	_outOfBand(f) {
 		const band = Band.byFreq(f)
-		return !band || band.id !== this.#state.band //!this.bands.includes(band)
+		return !band || band.id !== this.#state.band //! this.bands.includes(band)
 	}
 
 	get freq() {
 		return this.#state.freq[this.#state.band][this.#state.mode]
 	}
+
 	setFreq(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (this._outOfBand(freq)) return
@@ -376,6 +388,7 @@ class Transceiver {
 	get split() {
 		return this.#state.split[this.#state.band][this.#state.mode]
 	}
+
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq)) return
@@ -383,6 +396,7 @@ class Transceiver {
 		this._d('split', freq)
 		this.fire(new TcvrSignal(SignalType.split, freq))
 	}
+
 	clearSplit() {
 		this.split = 0
 	}
@@ -390,6 +404,7 @@ class Transceiver {
 	get rit() {
 		return this.#state.rit
 	}
+
 	setRit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('rit', value)
@@ -398,6 +413,7 @@ class Transceiver {
 			this.fire(new TcvrSignal(SignalType.rit, value))
 		}
 	}
+
 	clearRit() {
 		this.rit = 0
 	}
@@ -405,6 +421,7 @@ class Transceiver {
 	get xit() {
 		return this.#state.xit
 	}
+
 	setXit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('xit', value)
@@ -413,6 +430,7 @@ class Transceiver {
 			this.fire(new TcvrSignal(SignalType.xit, value))
 		}
 	}
+
 	clearXit() {
 		this.xit = 0
 	}
@@ -420,9 +438,11 @@ class Transceiver {
 	get steps() {
 		return [20, 200]
 	}
+
 	get step() {
 		return this.#state.step
 	}
+
 	setStep(controller, value) {
 		if (this._denieded(controller)) return
 		this._d('step', value)
@@ -435,9 +455,11 @@ class Transceiver {
 	get modes() {
 		return this.#props && this.#props.modes
 	}
+
 	get mode() {
 		return this.#state.mode
 	}
+
 	setMode(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		this._d("mode", value)
@@ -452,9 +474,11 @@ class Transceiver {
 	get filters() {
 		return this.#props && this.#props.filters(this.mode)
 	}
+
 	get filter() {
 		return this.#state.filters[this.mode]
 	}
+
 	setFilter(controller, bw) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('filter', bw)
@@ -472,6 +496,7 @@ class Transceiver {
 	get gain() {
 		return this.#state.gains[this.band]
 	}
+
 	setGain(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.gains.includes(value)) {
@@ -483,9 +508,11 @@ class Transceiver {
 	get agcTypes() {
 		return this.#props && this.#props.agcTypes
 	}
+
 	get agc() {
 		return this.#state.agc
 	}
+
 	setAgc(controller, value) {
 		if (!this.online || this._denieded(controller)) return
 		if (this.agcTypes.includes(value)) {
@@ -531,9 +558,13 @@ class Transceiver {
 class TransceiverProperties {
 
 	#bands
+
 	#modes
+
 	#agcTypes
+
 	#bandGains
+
 	#modeFilters
 
 	constructor({ bands, modes, agcTypes, bandGains, modeFilters }) {

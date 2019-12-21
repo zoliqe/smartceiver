@@ -1,4 +1,4 @@
-import { Bands, Modes, AgcTypes } from '../../tcvr.mjs'
+import { Bands, Modes, AgcTypes } from '../../tcvr.js'
 
 /**
  * Finds first wider filter (declared by supported values)
