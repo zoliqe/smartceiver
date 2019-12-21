@@ -143,7 +143,7 @@ export class SmartceiverApp extends LitElement {
         font-weight: bold;
         color: white;
         text-align: center;
-        margin: 0.3em;
+        margin: 0.4em;
         border-radius: 30px;
         min-width: 3.0em;
       }
@@ -154,7 +154,7 @@ export class SmartceiverApp extends LitElement {
         background-color: lightblue;
       }
       button.toggles {
-        width: 90px;
+        width: 100px;
         /* margin-right: 30px; */
         background-color: darkblue;
       }
@@ -204,6 +204,7 @@ export class SmartceiverApp extends LitElement {
 				height: 10rem;
         margin: 1.5em;
 				margin-top: 4em;
+				margin-left: 0;
 				display: block;
 				border-radius: 100%;
 				box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
@@ -293,7 +294,9 @@ export class SmartceiverApp extends LitElement {
               </button>
 					</li>
 					<li class="card knob-card">
-						<span id="band" name="band" class="freq-display band" ?hidden=${!this.powerState}>${this.bandMHz}</span>
+						<span id="band" name="band" class="freq-display band"
+							@click=${this.switchBand}
+							?hidden=${!this.powerState}>${this.bandMHz}</span>
 						<span id="freq" name="freq" class="freq-display" ?hidden=${!this.powerState}>${this.freqDisplay}</span>
 						<input-knob id="freq-knob" name="freq-knob" ?hidden=${!this.powerState}>
 							<div class="mark">▲</div>
@@ -325,7 +328,7 @@ export class SmartceiverApp extends LitElement {
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', (evt) => {
 			const curValue = Number.parseFloat(this.knob.value) / 10
-			this.tcvr && (this.tcvr.freq = curValue.toFixed(0) * 10)
+			this.tcvr && (this.tcvr.freq = Math.floor(curValue) * 10)
 		})
 	}
 
@@ -335,15 +338,16 @@ export class SmartceiverApp extends LitElement {
 		this.signals = new SignalsBinder('ui', {
 			ptt: value => this.freqDisplay.style = value ? "color: #883333;" : '',
 			keyTx: value => this.freqDisplay.style = value ? "color: #883333;" : '',
-			wpm: value => { this.wpm = value; },
-			mode: value => { this.mode = value; },
-			filter: value => { this.filter = value.filter; },
-			gain: value => { this.gain = value; },
-			step: value => { this.knob.scale = value * 200; },
+			wpm: value => this.wpm = value,
+			mode: value => this.mode = value,
+			filter: value => this.filter = value.filter,
+			gain: value => this.gain = value,
+			agc: value => this.agc = value,
+			step: value => this.knob.scale = value * 200,
 			band: value => { 
 				this.band = value
 				const b = Bands[value]
-				this.bandMHz = b.name.toFixed(0)
+				this.bandMHz = Math.floor(b.name)
 				this.knob.min = b.freqFrom
 				this.knob.max = b.freqTo
 			},
