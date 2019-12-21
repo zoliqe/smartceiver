@@ -11,7 +11,7 @@ export class SmartceiverApp extends LitElement {
     return {
       // title: { type: String },
       // page: { type: String },
-			bandMHz: { type: Number},
+			bandMHz: { type: String},
 			filter: {type: Number},
 			wpm: {type: Number},
 			mode: {type: String},
@@ -154,7 +154,7 @@ export class SmartceiverApp extends LitElement {
         background-color: lightblue;
       }
       button.toggles {
-        width: 100px;
+        width: 110px;
         /* margin-right: 30px; */
         background-color: darkblue;
       }
@@ -297,7 +297,9 @@ export class SmartceiverApp extends LitElement {
 						<span id="band" name="band" class="freq-display band"
 							@click=${this.switchBand}
 							?hidden=${!this.powerState}>${this.bandMHz}</span>
-						<span id="freq" name="freq" class="freq-display" ?hidden=${!this.powerState}>${this.freqDisplay}</span>
+						<span id="freq" name="freq" class="freq-display" 
+							@click=${this.switchStep}
+							?hidden=${!this.powerState}>${this.freqDisplay}</span>
 						<input-knob id="freq-knob" name="freq-knob" ?hidden=${!this.powerState}>
 							<div class="mark">▲</div>
 						</input-knob>
@@ -343,11 +345,14 @@ export class SmartceiverApp extends LitElement {
 			filter: value => this.filter = value.filter,
 			gain: value => this.gain = value,
 			agc: value => this.agc = value,
-			step: value => this.knob.scale = value * 200,
+			step: value => {
+				this.knob.scale = value * 400
+				this._displayFreq(this.knob.value)
+			},
 			band: value => { 
 				this.band = value
 				const b = Bands[value]
-				this.bandMHz = Math.floor(b.name)
+				this.bandMHz = Math.floor(b.name).toString().padStart(2, '_')
 				this.knob.min = b.freqFrom
 				this.knob.max = b.freqTo
 			},
@@ -422,28 +427,32 @@ export class SmartceiverApp extends LitElement {
 		return status
 	}
 
+	#fmt = new Intl.NumberFormat('en-US', {minimumIntegerDigits: 6})
 	_displayFreq(freq) {
 		if (freq === null || !this.tcvr || isNaN(freq)) {
 			this.freqDisplay = this.operator
 		}
 
-		const mhz = Math.floor(freq / 1000000)
-		let res = '.' // + mhz + '.'
-		const khz = (freq - mhz * 1000000) / 1000
-		if (khz < 10) {
-		 res += '0'
-		}
-		if (khz < 100) {
-		 res += '0'
-		}
-		res += khz
-		if (khz % 1 === 0) {
-		 res += '.00'
-		} else if (freq % 100 === 0) {
-		 res += '0'
-		}
+		// const mhz = Math.floor(freq / 1000000)
+		// let res = '.' + mhz + '.'
+		// const khz = (freq - mhz * 1000000) / 1000
+		const khz_hz = (freq - Math.floor(freq / 1000000) * 1000000)
+		let frq = '.' + this.#fmt.format(khz_hz).replace(',', '.')
+		// if (khz < 10) {
+		//  res += '0'
+		// }
+		// if (khz < 100) {
+		//  res += '0'
+		// }
+		// res += khz//.toString().padStart(3, '0')
+		// if (khz % 1 === 0) {
+		//  res += '.00'
+		// } else if (freq % 100 === 0) {
+		//  res += '0'
+		// }
 
-		this.freqDisplay = res
+		const lastDigit = (this.knob && this.knob.scale >= 40000) ? 2 : 1
+		this.freqDisplay = frq.substring(0, frq.length - lastDigit)
 	}
 
 	async switchPower() {
@@ -458,13 +467,13 @@ export class SmartceiverApp extends LitElement {
 		this.tcvr.wpm = this.wpm + 2;
 	}
 
-	decFilter() {
-		this.tcvr.filter = this.filter - 200
-	}
+	// decFilter() {
+	// 	this.tcvr.filter = this.filter - 200
+	// }
 
-	incFilter() {
-		this.tcvr.filter = this.filter + 200
-	}
+	// incFilter() {
+	// 	this.tcvr.filter = this.filter + 200
+	// }
 
 	switchMode() {
 		const i = this.tcvr.modes.indexOf(this.mode)
@@ -479,6 +488,11 @@ export class SmartceiverApp extends LitElement {
 	switchBand() {
 		const i = this.tcvr.bands.indexOf(this.band)
 		this.tcvr.band = this.tcvr.bands[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
+	}
+
+	switchStep() {
+		const i = this.tcvr.steps.indexOf(this.knob.scale / 400)
+		this.tcvr.step = this.tcvr.steps[i < (this.tcvr.steps.length - 1) ? i + 1 : 0]
 	}
 
 	switchFilter() {

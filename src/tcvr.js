@@ -101,7 +101,7 @@ class Transceiver {
 
 	#state = {}
 
-	#defaults = { rit: 0, xit: 0, step: 20, wpm: 28, paddleReverse: false }
+	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
 
 	#bus = new SignalBus()
 
@@ -436,7 +436,7 @@ class Transceiver {
 	}
 
 	get steps() {
-		return [20, 200]
+		return [10, 100]
 	}
 
 	get step() {
