@@ -79,7 +79,10 @@ class Signals {
 
 	_bind(bus, type) {
 		const binding = this.#bindings[type]
-		binding && bus.bind(type, this.#id, event => binding(event.value))
+		binding && bus.bind(type, this.#id, event => { 
+			console.debug(`fired ${type} value=${JSON.stringify(event.value)}`); 
+			binding(event.value)
+		})
 	}
 
 	unbind(bus) {

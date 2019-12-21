@@ -161,7 +161,7 @@ class PowronConnector {
 
 	async _on() {
 		await this.#powr.on()
-		this.#adapter.init && (await this.#adapter.init(this.serialData))
+		this.#adapter.init && (await this.#adapter.init(async (data) => await this.serialData(data)))
 	}
 
 	async _keepAlive() {
@@ -169,7 +169,7 @@ class PowronConnector {
 	}
 
 	async _off() {
-		this.#adapter.close && this.#adapter.close()
+		this.#adapter.close && (await this.#adapter.close())
 		await this.#powr.off()
 	}
 
@@ -235,7 +235,8 @@ class PowronConnector {
 	async _send(data) {
 		//console.debug(`POWRON <= ${ data.trim() } `)
 		if (this.connected) {
-			await this.#device.transferOut(this.#endpointOut, encoder.encode(data + '\n'))
+			const bytes = typeof data === 'string' ? encoder.encode(data + '\n') : data
+			await this.#device.transferOut(this.#endpointOut, bytes)
 			return true
 		} else {
 			console.error(`POWRON: data not sent ${ data } `)
@@ -262,7 +263,7 @@ class PowronConnector {
 			filter: async (value) => await this.#adapter.filter(value),
 			gain: async (value) => await this.#adapter.gain(value),
 			agc: async (value) => await this.#adapter.agc(value),
-			freq: async (value) => await this.#adapter.freqency(value),
+			freq: async (value) => await this.#adapter.frequency(value),
 			split: async (value) => await this.#adapter.split(value),
 			rit: async (value) => await this.#adapter.rit(value),
 			xit: async (value) => await this.#adapter.xit(value),

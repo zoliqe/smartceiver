@@ -48,8 +48,8 @@ export class Adapter {
 		await this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 
-	close() {
-		this.#options.powerViaCat && this._uart('PS0')
+	async close() {
+		this.#options.powerViaCat && (await this._uart('PS0'))
 		this._uart = _ => {} // do nothing
 	}
 

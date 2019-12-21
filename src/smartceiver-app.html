@@ -72,22 +72,22 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				width: 64px;
 				height: 64px;
 			}
-			app-header paper-icon-button.off {
+			button#pwrbtn.off {
 				background-color: darkred;
 				color: white;
 			}
-			app-header paper-icon-button#pwrbtn:disabled {
+			button#pwrbtn:disabled {
 				background-color: black;
 				color: darkgray;
 			}
-			app-header paper-icon-button.on {
+			button#pwrbtn.on {
 				background-color: darkgreen;
 				color: white;
 			}
 
-			app-header div.freq-display {
+			div.freq-display {
 				/*text-align: right;*/
-				display: block;
+				display: flexbox;
 				font-size: 5em;
 				font-weight: bold;
 				font-family: Courier New, Courier, monospace;
@@ -97,7 +97,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 				text-align: left;
 			}
 
-			app-header div.freq-display div.tx {
+			div.freq-display div.tx {
 				color: #dd6b88;
 			}
 
@@ -160,7 +160,7 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         width: fit-content;
         margin: auto;
       }
-      paper-button {
+      button {
         font-size: 1.5em;
         font-weight: bold;
         color: white;
@@ -169,25 +169,25 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
         border-radius: 30px;
         min-width: 2.0em;
       }
-      paper-button.toggles[active] {
+      button.toggles[active] {
         background-color: var(--paper-green-800);
       }
-      paper-button.toggles[active]:hover {
+      button.toggles[active]:hover {
         background-color: var(--paper-green-600);
       }
-      paper-button.toggles {
+      button.toggles {
         width: 90px;
         /* margin-right: 30px; */
         background-color: var(--paper-green-800);
       }
-      paper-button.toggles:hover {
+      button.toggles:hover {
         background-color: var(--paper-green-600);
       }
-      paper-button.ctl {
+      button.ctl {
         background-color: var(--paper-indigo-600);
         width: 58px;
       }
-      paper-button.ctl:hover {
+      button.ctl:hover {
         background-color: var(--paper-indigo-400);
       }
 
@@ -275,46 +275,46 @@ subject to an additional IP rights grant found at http://polymer.github.io/PATEN
 			<app-header-layout>
 				<app-header slot="header" fixed effects="waterfall">
 					<app-toolbar>
-						<paper-icon-button icon="menu" drawer-toggle></paper-icon-button>
-						<div main-title id="freq" name="freq" class="freq-display">
-							[[freqDisplay]]
-						</div>
-						<!-- <span class="operated" id="who" on-tap="switchPower">[[operator]]</span> -->
-						<!-- <div>2a</div> -->
-						<!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
-						<!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
-						<paper-icon-button id="pwrbtn" name="pwrbtn" icon="power-settings-new" on-tap="switchPower" disabled></paper-icon-button>
+						<!-- <paper-icon-button icon="menu" drawer-toggle></paper-icon-button> -->
+							<div main-title id="band" name="band" class="freq-display">[[bandName]]</div>
+							<div main-title id="freq" name="freq" class="freq-display">[[freqDisplay]]</div>
+							<!-- <span class="operated" id="who" on-tap="switchPower">[[operator]]</span> -->
+							<!-- <div>2a</div> -->
+							<!-- <paper-icon-button icon="restore" on-tap="restartAudio"></paper-icon-button> -->
+							<!-- <paper-icon-button icon="gavel" on-tap="connectRemoddle"></paper-icon-button> -->
+						<button id="pwrbtn" name="pwrbtn" onclick="this.switchPower()" disabled="[[!powerState]]">PWR</button>
 					</app-toolbar>
 				</app-header>
 
 				<ul class="app-grid">
 					<li><div class="card knob-card">
-						<input-knob value="[[freq]]" scale="[[step * 50]]" min="[[band.freqFrom]]" max="[[band.freqTo]]">
+						<input-knob id="freq-knob" name="freq-knob">
+						<!-- <input-knob value="[[freq]]" scale="[[step]]" min="[[bandMin]]" max="[[bandMax]]"> -->
 							<div class="mark">▲</div>
 						</input-knob>
 						<div class="controls">
-							<paper-item>
-								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" disabled="[[!powerState]]">
+							<paper-item hidden="[[!powerState]]">
+								<paper-button toggles raised on-tap="switchMode" class="toggles toggle-btn" hidden="[[!powerState]]">
 									MODE<br />[[mode]]
 								</paper-button>
 							</paper-item>
-							<paper-item>
-								<paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" disabled="[[!powerState]]">
+							<paper-item hidden="[[!powerState]]">
+								<paper-button toggles raised on-tap="switchGain" class="toggles toggle-btn" hidden="[[!powerState]]">
 									GAIN<br />[[gain]]
 								</paper-button>
 							</paper-item>
 						</div>
 					</div></li>
-					<li><div class="card" role="listbox">
-						<paper-item class="ctl">
-							<paper-button raised on-tap="decreaseWpm" class="ctl" disabled="[[!powerState]]">--</paper-button>
+					<li><div class="card" role="listbox" hidden="[[!powerState]]">
+						<paper-item class="ctl" hidden="[[!powerState]]">
+							<paper-button raised on-tap="decreaseWpm" class="ctl" hidden="[[!powerState]]">--</paper-button>
 							<span class="ctl-value">[[wpm]] <span class="ctl-name">WPM</span></span>
-							<paper-button raised on-tap="increaseWpm" class="ctl" disabled="[[!powerState]]">++</paper-button>
+							<paper-button raised on-tap="increaseWpm" class="ctl" hidden="[[!powerState]]">++</paper-button>
 						</paper-item>
-						<paper-item class="ctl">
-							<paper-button raised on-tap="decFilter" disabled="[[!powerState]]" class="ctl">--</paper-button>
+						<paper-item class="ctl" hidden="[[!powerState]]">
+							<paper-button raised on-tap="decFilter" hidden="[[!powerState]]" class="ctl">--</paper-button>
 							<span class="ctl-value">[[filter]]<br/><span class="ctl-name">Hz</span></span>
-							<paper-button raised on-tap="incFilter" disabled="[[!powerState]]" class="ctl">++</paper-button>
+							<paper-button raised on-tap="incFilter" hidden="[[!powerState]]" class="ctl">++</paper-button>
 						</paper-item>
 					</div></li>
 					</ul>
@@ -350,15 +350,18 @@ class SmartceiverApp extends Polymer.Element {
 // 			},
 			freqDisplay: {
 				type: String,
-				computed: 'formatFreq(this._freq, operator)'
+				computed: 'formatFreq(freq, operator)'
 			},
-			step: {type: Number, notify: false, value: true},
+			bandName: { type: Number, value: true}, // computed: 'bandNameOf(band)'
+			// bandMin: { type: Number, computed: 'minFreqOf(band)'},
+			// bandMax: { type: Number, computed: 'maxFreqOf(band)'},
+			// step: {type: Number, notify: false, value: true},
 			filter: {type: Number, notify: false, value: true},
 			wpm: {type: Number, notify: false, value: true},
 			mode: {type: String, notify: false, value: true},
 			gain: {type: Number, notify: false, value: true},
 			powerState: {type: Boolean, notify: false, value: true},
-			band: {type: Object, notify: false, value: true},
+			band: {type: Number, notify: false, value: true},
 			freq: {type: Number, notify: false, value: true}
 		}
 	}
@@ -380,21 +383,17 @@ class SmartceiverApp extends Polymer.Element {
 		this._initTcvr()
 
 		this.operator = ':::'
+		this.bandName = null
 		this.unackStateQueries = 0
 		setInterval(_ => this._fetchStatus(), 5000)
 
-		const knob = document.querySelector('input-knob')
-		document.addEventListener('knob-move-change', (evt) => {
-			const curValue = Number.parseFloat(knob.value).toFixed(0)
-			this.tcvr && (this.tcvr.freq = curValue)
-		})
 	}
 
 	async _initTcvr() {
 		const tcvrModule = await import('./tcvr.mjs')
 		let transceiver
 		document.tcvr = transceiver = new tcvrModule.Transceiver()
-		window.Band = tcvrModule.Band
+		window.Bands = tcvrModule.Bands
 		const signalsModule = await import('./utils/signals.mjs')
 		window.SignalType = signalsModule.SignalType
 		// window.TcvrSignal = signalsModule.TcvrSignal
@@ -402,14 +401,26 @@ class SmartceiverApp extends Polymer.Element {
 		this.signals = new signalsModule.SignalsBinder('ui', {
 			ptt: value => this.$.freq.style = value ? "color: #883333;" : '',
 			keyTx: value => this.$.freq.style = value ? "color: #883333;" : '',
-			wpm: value => { this.wpm = value; this.notifyPath('wpm'); },
-			mode: value => { this.mode = value; this.notifyPath('mode'); },
-			filter: value => { this.filter = value; this.notifyPath('filter'); },
-			gain: value => { this.gain = value; this.notifyPath('gain'); },
-			step: value => { this.step = value; this.notifyPath('step'); },
-			band: value => { this.band = value; this.notifyPath('band'); },
-			freq: value => this._freqChanged(value),
-			pwrsw: value => { this.powerState = value; this.$.pwrbtn.className = value ? 'on' : 'off'; },
+			wpm: value => { this.wpm = value; },
+			mode: value => { this.mode = value; },
+			filter: value => { this.filter = value.filter; },
+			gain: value => { this.gain = value; },
+			step: value => { this.knob.scale = value * 50; },
+			band: value => { 
+				this.band = value
+				const b = Bands[value]
+				this.bandName = b.name.toFixed(0)
+				this.knob.min = b.freqFrom
+				this.knob.max = b.freqTo
+			},
+			freq: value => { 
+				this.freq = value
+				this.knob.value = value
+			},
+			pwrsw: value => { 
+				this.powerState = value
+				this.$.pwrbtn.className = value ? 'on' : 'off'
+			},
 		})
 		this.signals.out.bind(transceiver)
 
@@ -434,6 +445,13 @@ class SmartceiverApp extends Polymer.Element {
 		this.powerState = false
 		
 		await this._initConnector()
+
+		// const knob = document.querySelector('#freq-knob')
+		this.knob = this.$['freq-knob']
+		document.addEventListener('knob-move-change', (evt) => {
+			const curValue = Number.parseFloat(this.knob.value).toFixed(0)
+			this.tcvr && (this.tcvr.freq = curValue)
+		})
 	}
 		
 	async _initConnector() {
@@ -495,28 +513,28 @@ class SmartceiverApp extends Polymer.Element {
 		return status
 	}
 
-	_freqChanged(freq) {
-		if (freq == this._freq) {
-			return // stop propagate freq change when changed by tuning knob (already propagated)
-		}
-		this._freq = freq
-		this.notifyPath('this._freq')
-		// this.$.tune.notifyPath('freq')
+	// _freqChanged(freq) {
+	// 	if (freq == this.freq) {
+	// 		return // stop propagate freq change when changed by tuning knob (already propagated)
+	// 	}
+	// 	this.freq = freq
+	// 	this.notifyPath('freq')
+	// 	// this.$.tune.notifyPath('freq')
 
-		// if (this.tcvr.band == this._band) return
-		// this._band = this.tcvr.band
-		// this.notifyPath('tcvr.band')
-	}
+	// 	// if (this.tcvr.band == this._band) return
+	// 	// this._band = this.tcvr.band
+	// 	// this.notifyPath('tcvr.band')
+	// }
 
 	formatFreq(freq) {
-		this._freq = freq // store value for change detect
-		if (freq === null || !this.tcvr || !this.powerState) {
+		// this._freq = freq // store value for change detect
+		if (freq === null || !this.tcvr || isNaN(freq)/*!this.powerState*/) {
 			return this.operator
 		}
 
-		this.freq = freq // knob
+		// this.freq = freq // knob
 		let mhz = Math.floor(freq / 1000000)
-		let res = '' + mhz + '.'
+		let res = '.' //+ mhz + '.'
 		let khz = (freq - mhz * 1000000) / 1000
 		if (khz < 10) {
 		 res += '0'
@@ -533,6 +551,18 @@ class SmartceiverApp extends Polymer.Element {
 
 		return res
 	}
+
+	// bandNameOf(band) {
+	// 	return window.Bands && typeof band === 'number' && Bands[band].name.toFixed(0)
+	// }
+
+	// minFreqOf(band) {
+	// 	return window.Bands && typeof band === 'number' && Bands[band].freqFrom
+	// }
+
+	// maxFreqOf(band) {
+	// 	return window.Bands && typeof band === 'number' && Bands[band].freqTo
+	// }
 
 	async switchPower() {
 		await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
@@ -594,17 +624,17 @@ class SmartceiverApp extends Polymer.Element {
 
 	switchMode() {
 		const i = this.tcvr.modes.indexOf(this.mode)
-		this.tcvr.mode = this.tcvr.modes[i < (this.modes.length - 1) ? i + 1 : 0]
+		this.tcvr.mode = this.tcvr.modes[i < (this.tcvr.modes.length - 1) ? i + 1 : 0]
 	}
 
 	switchGain() {
 		const i = this.tcvr.gains.indexOf(this.gain)
-		this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.gains.length - 1]
+		this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.tcvr.gains.length - 1]
 	}
 			
 	switchBand() {
-		const i = this.tcvr.bands.indexOf(Band.byFreq(this._freq))
-		this.tcvr.band = this.tcvr.bands[i < (this.bands.length - 1) ? i + 1 : 0]
+		const i = this.tcvr.bands.indexOf(this.band)
+		this.tcvr.band = this.tcvr.bands[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
 	}
 
 	// _routePageChanged(page) {
