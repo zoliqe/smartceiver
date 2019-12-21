@@ -30,11 +30,6 @@
     ]
   },
   "prettier": "@open-wc/prettier-config",
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged"
-    }
-  },
   "lint-staged": {
     "*.js": [
       "eslint --fix",
@@ -43,10 +38,10 @@
     ]
   },
   "name": "smartceiver-app",
-  "version": "0.0.0",
+  "version": "0.9.0",
   "description": "Webcomponent smartceiver-app following open-wc recommendations",
   "author": "smartceiver-app",
-  "license": "MIT",
+  "license": "",
   "dependencies": {
     "lit-html": "^1.0.0",
     "lit-element": "^2.0.1"

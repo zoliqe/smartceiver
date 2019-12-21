@@ -1,4 +1,4 @@
-import { LitElement, html, css } from 'https://cdn.pika.dev/lit-element/' //'lit-element'
+import { LitElement, html, css } from 'https://cdn.pika.dev/lit-element/' // 'lit-element'
 // import { classMap } from 'lit-html/directives/class-map.js'
 import { Transceiver, Bands, } from '../../tcvr.js'
 import { SignalsBinder } from '../../utils/signals.mjs'
@@ -86,7 +86,7 @@ export class SmartceiverApp extends LitElement {
 			.freq-display {
 				/*text-align: right;*/
 				display: flexbox;
-				font-size: 3em;
+				font-size: 4em;
 				font-weight: bold;
 				font-family: Courier New, Courier, monospace;
 				/*padding-right: 20px;*/
@@ -109,7 +109,7 @@ export class SmartceiverApp extends LitElement {
       ul {
         list-style: none;
 				display: flex;
-				padding: 40px;
+				padding: 10px;
 				margin: 0;
       }
       .card {
@@ -143,7 +143,7 @@ export class SmartceiverApp extends LitElement {
         font-weight: bold;
         color: white;
         text-align: center;
-        margin: 0.2em;
+        margin: 0.3em;
         border-radius: 30px;
         min-width: 3.0em;
       }
@@ -246,7 +246,7 @@ export class SmartceiverApp extends LitElement {
     super()
     // this.page = 'main';
 		this.kredence = {}
-		this.remoddle
+		this.remoddle = null
 		this.#params = new URLSearchParams(location.search)
 		this._initTcvr()
 
@@ -260,7 +260,7 @@ export class SmartceiverApp extends LitElement {
 		this.mode = 'MODE'
 		this.gain = 0
 		this.unackStateQueries = 0
-		setInterval(_ => this._fetchStatus(), 5000)
+		setInterval(() => this._fetchStatus(), 5000)
   }
 
   render() {
@@ -369,8 +369,8 @@ export class SmartceiverApp extends LitElement {
 			this.kredence.token = token.trim()
 		}
 		
-		let connectorId = undefined
-		let connectorParams = {tcvr: {}, kredence: this.kredence}
+		let connectorId
+		const connectorParams = {tcvr: {}, kredence: this.kredence}
 		const remotig = this.#params.get('remote')
 		const powron = this.#params.get('usb')
 		const sercat = this.#params.get('serial')
@@ -423,9 +423,9 @@ export class SmartceiverApp extends LitElement {
 			this.freqDisplay = this.operator
 		}
 
-		let mhz = Math.floor(freq / 1000000)
-		let res = '.' //+ mhz + '.'
-		let khz = (freq - mhz * 1000000) / 1000
+		const mhz = Math.floor(freq / 1000000)
+		let res = '.' // + mhz + '.'
+		const khz = (freq - mhz * 1000000) / 1000
 		if (khz < 10) {
 		 res += '0'
 		}
@@ -449,6 +449,7 @@ export class SmartceiverApp extends LitElement {
 	decreaseWpm() {
 		this.tcvr.wpm = this.wpm - 2;
 	}
+
 	increaseWpm() {
 		this.tcvr.wpm = this.wpm + 2;
 	}
@@ -456,6 +457,7 @@ export class SmartceiverApp extends LitElement {
 	decFilter() {
 		this.tcvr.filter = this.filter - 200
 	}
+
 	incFilter() {
 		this.tcvr.filter = this.filter + 200
 	}
