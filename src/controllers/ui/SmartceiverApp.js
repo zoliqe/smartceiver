@@ -20,7 +20,7 @@ export class SmartceiverApp extends LitElement {
 			powerState: {type: Boolean},
 			band: {type: Number},
 			freqDisplay: {type: String},
-			connector: {type: Object},
+			connectors: {type: Array},
     }
   }
 
@@ -91,7 +91,7 @@ export class SmartceiverApp extends LitElement {
 				font-family: Courier New, Courier, monospace;
 				/*padding-right: 20px;*/
 				padding-left: 10px;
-				padding-top: 30px;
+				padding-top: 10px;
 				text-align: left;
 				color: darkviolet;
 				flex-grow: 100;
@@ -245,7 +245,8 @@ export class SmartceiverApp extends LitElement {
 
   constructor() {
     super()
-    // this.page = 'main';
+		// this.page = 'main';
+		this.connectors = []
 		this.kredence = {}
 		this.remoddle = null
 		this.#params = new URLSearchParams(location.search)
@@ -274,7 +275,7 @@ export class SmartceiverApp extends LitElement {
 					<li class="card controls-card">
 							<button id="pwrbtn" name="pwrbtn" class="off" 
 								@click=${this.switchPower} 
-								?disabled=${this.connector == null}>
+								?disabled=${this.connectors.length == 0}>
 								PWR
 							</button>
               <button @click=${this.switchMode} class="toggles toggle-btn" ?hidden=${!this.powerState}>
@@ -378,28 +379,37 @@ export class SmartceiverApp extends LitElement {
 			this.kredence.token = token.trim()
 		}
 		
-		let connectorId
+		const connectorsId = []
 		const connectorParams = {tcvr: {}, kredence: this.kredence}
 		const remotig = this.#params.get('remote')
 		const powron = this.#params.get('usb')
 		const sercat = this.#params.get('serial')
 		if (remotig && remotig.includes('@')) {
-			connectorId = 'remotig'
+			connectorsId.push('remotig')
 			[this.kredence.rig, this.kredence.qth] = 
 				remotig.trim().toLowerCase().split('@', 2)
-		} else if (powron && powron.includes('-')) {
-			connectorId = 'powron'
+		}
+		if (powron && powron.includes('-')) {
+			connectorsId.push('powron')
 			this._parseTcvrName(powron, connectorParams)
-		} else if (sercat && sercat.includes('-')) {
-			connectorId = 'sercat'
+		}
+		if (sercat && sercat.includes('-')) {
+			connectorsId.push('sercat')
 			this._parseTcvrName(sercat, connectorParams)
-		} else {
+		}
+		if (connectorsId.length == 0) {
 			throw new Error('No connector defined!')
 		}
 
-		console.debug(`Resolved connector params: id=${connectorId} params=${JSON.stringify(connectorParams)}`)
-		this.connector = await (await import('./../../connector.mjs')).get(connectorId, connectorParams)
+		const connectorSelector = await import('./../../connector.mjs')
+		for (let i = 0; i < connectorsId.length; i++) {
+			const connectorId = connectorsId[i]
+			console.debug(`Resolved connector params: id=${connectorId} params=${JSON.stringify(connectorParams)}`)
+			const connector = await connectorSelector.get(connectorId, connectorParams)
+			this.connectors.push(connector)
+		}
 		await this._fetchStatus()
+		this.requestUpdate()
 
 		this.remoddle = this.#params.get('remoddle')
 		this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
@@ -412,10 +422,10 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	async _fetchStatus() {
-		if (!this.kredence.rig || !this.connector || this.powerState) return
+		if (!this.kredence.rig || !this.connectors[0] || this.powerState) return
 
 		this.unackStateQueries++
-		const status = await this.connector.checkState(this.kredence)
+		const status = await this.connectors[0].checkState(this.kredence)
 		if (status && status.id) {
 			console.debug('rtt:', status.rtt)
 			this.operator = status.op || 'ON'
@@ -456,7 +466,7 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	async switchPower() {
-		await this.tcvr.switchPower(this.connector, this.kredence, this.remoddle)
+		await this.tcvr.switchPower(this.connectors, this.kredence, this.remoddle)
 	}
 
 	decreaseWpm() {

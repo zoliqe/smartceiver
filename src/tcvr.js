@@ -98,13 +98,10 @@ const AgcTypes = Object.freeze(_agcTypes)
 class Transceiver {
 
 	#props
-
 	#state = {}
-
 	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
-
+	#ports = []
 	#bus = new SignalBus()
-
 	#acl = [this]
 
 	constructor() {
@@ -144,31 +141,43 @@ class Transceiver {
 		return 'tcvr'
 	}
 
-	async switchPower(connector, remoddleOptions) {
-		if (this._port) {
-			this._d('disconnect', this._port && this._port.constructor.id)
+	async switchPower(connectors, remoddleOptions) {
+		if (this.#ports.length) {
 			this.controller = null
 			this.disconnectRemoddle()
-			this._port.disconnect()
-			this._port.signals.out.unbind(this)
-			this._port = null
+			this.#ports.forEach(port => {
+				this._d('disconnect', port.id)
+				port.disconnect()
+				port.signals.out.unbind(this)
+			})
+			this.#ports = []
 			
 			this.fire(new TcvrSignal(SignalType.pwrsw, false), true)
 			this._unbindSignals()
 			this.#props = null
-		} else if (connector) {
-			this._d('connect connector', connector.id)
-			// this.connectRemoddle(remoddleOptions)
-			this._port = await connector.connect(this)
-			this._bindSignals()
-			this._port.signals.out.bind(this.#bus)
+		} else if (connectors.length) {
+			let firstConn = null
+			for (let i = 0; i < connectors.length; i++) {
+				const connector = connectors[i]
+				if (connector) {
+					this._d('connect connector', connector.id)
+					const port = await connector.connect(this)
+					port.signals.out.bind(this.#bus)
+					this.#ports.push(port)
+					if (!firstConn) {
+						firstConn = connector
+					}
+				}
+			}
 			
-			await this._initState(connector)
-			this.fire(new TcvrSignal(SignalType.pwrsw, this._port != null), true)
+			this._bindSignals()
+			await this._initState(firstConn)
+			// this.connectRemoddle(remoddleOptions)
+			this.fire(new TcvrSignal(SignalType.pwrsw, this.online), true)
 
 			window.onbeforeunload = _ => {
 				this.disconnectRemoddle()
-				this._port && this._port.disconnect()
+				this.#ports.forEach(port => port.disconnect())
 			}
 		}
 	}
@@ -206,7 +215,7 @@ class Transceiver {
 		if (!this.#state.agc || !props.agcTypes.includes(this.#state.agc))
 			this.#state.agc = defaults.agc
 		
-		this.#props = props // set field after everything is set
+		this.#props = props // set field after everything is done
 	}
 
 	_buildFreqTable(props) {
@@ -338,7 +347,7 @@ class Transceiver {
 	}
 
 	get online() {
-		return this._port && this._port.connected && this.#props
+		return this.#props && this.#ports.some(port => port.connected)
 	}
 
 	get bands() {
@@ -356,6 +365,9 @@ class Transceiver {
 		this._d("band", band)
 		this.#state.band = band
 		this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode]) // call setter
+		this.fire(new TcvrSignal(SignalType.band, this.band))
+
+		if (controller.ignoreSubsignals) return
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
 			this.fire(new TcvrSignal(SignalType.mode, this.mode))
@@ -363,7 +375,6 @@ class Transceiver {
 			this.fire(new TcvrSignal(SignalType.agc, this.agc))
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
 		}, 2000) // wait for band change on tcvr
-		this.fire(new TcvrSignal(SignalType.band, this.band))
 	}
 
 	_outOfBand(f) {
@@ -466,6 +477,7 @@ class Transceiver {
 		if (this.modes.includes(value)) {
 			this.#state.mode = value
 			this.fire(new TcvrSignal(SignalType.mode, this.#state.mode))
+			if (controller.ignoreSubsignals) return
 			this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.mode]))
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
 		}

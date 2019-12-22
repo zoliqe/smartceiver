@@ -42,7 +42,7 @@ class SignalBus {
 
 	fire(signal) {
 		let stack = this.#listeners[signal.type]
-		stack && stack.forEach(listener => listener.callback.call(this, signal)) // TODO made async?
+		stack && stack.forEach(listener => listener.callback.call(this, signal))
 		return true //!event.defaultPrevented;
 	}
 }
