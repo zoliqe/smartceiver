@@ -1,8 +1,6 @@
 import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.js'
 
-const bands = [
-	Bands[160], Bands[80], Bands[40], Bands[30],
-	Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]]
+const bands = [160, 80, 40, 30, 20, 17, 15, 12, 10]
 const filters = {}
 filters[Modes.CW]  = filters[Modes.CWR] = [2000, 1800, 1500, 600, 300, 200, 100]
 filters[Modes.LSB] = filters[Modes.USB] = [2700, 2300, 2100, 1800, 1500, 1200, 1000, 800, 600]
@@ -20,5 +18,5 @@ export default {
 		bandGains: gains,
 		modeFilters: filters
 	}),
-	defaults: {band: Bands[20], mode: Modes.CW, agc: AgcTypes.FAST}
+	defaults: {band: 20, mode: Modes.CW, agc: AgcTypes.FAST}
 }

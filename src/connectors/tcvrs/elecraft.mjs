@@ -11,6 +11,26 @@ MD[Modes.RTTY] = 6
 
 export class Adapter {
 
+	static async K2(options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, 'k2', options))
+	}
+
+	static async KX3(options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, 'kx3', options))
+	}
+
+	static async forTcvr(model, options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
+	}
+
+	static get manufacturer() {
+		return 'elecraft'
+	}
+
+	static get models() {
+		return ['k2', 'kx3']
+	}
+
 	_splitState = false
 	_rit = 0
 	_xit = 0
@@ -21,26 +41,6 @@ export class Adapter {
 		this._uart = _ => { } // do nothing
 		this.#options = options || {}
 		this.#model = options.model || ''
-	}
-
-	async static K2(options) {
-		return new Adapter(await tcvrOptions(this.manufacturer, 'k2', options))
-	}
-
-	async static KX3(options) {
-		return new Adapter(await tcvrOptions(this.manufacturer, 'kx3', options))
-	}
-
-	async static forTcvr(model, options) {
-		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
-	}
-
-	static get manufacturer() {
-		return 'elecraft'
-	}
-
-	static get models() {
-		return ['k2', 'kx3']
 	}
 
 	async init(dataSender) {

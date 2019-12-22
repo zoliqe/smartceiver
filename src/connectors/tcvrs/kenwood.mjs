@@ -12,21 +12,11 @@ MD[Modes.RTTY] = 6
 
 export class Adapter {
 
-	_splitState = false
-	_rit = 0
-    _xit = 0
-    #options
-
-	constructor(options = {powerViaCat, baudrate, props}) {
-		this._uart = _ => {} // do nothing
-		this.#options = options || {}
-	}
-
-	async static TS2000(options) {
+	static async TS2000(options) {
 		return new Adapter(await tcvrOptions('kenwood', 'ts2000', options))
 	}
 
-	async static forTcvr(model, options) {
+	static async forTcvr(model, options) {
 		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
 	}
 
@@ -36,6 +26,16 @@ export class Adapter {
 
 	static get models() {
 		return ['ts2000']
+	}
+
+	_splitState = false
+	_rit = 0
+	_xit = 0
+	#options
+
+	constructor(options = {powerViaCat, baudrate, props}) {
+		this._uart = _ => {} // do nothing
+		this.#options = options || {}
 	}
 
 	async init(dataSender) {

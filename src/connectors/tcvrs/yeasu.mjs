@@ -8,13 +8,6 @@ const hex2dec = (h) => {
 
 export class Adapter {
 
-	#options
-
-	constructor(options = {baudrate}) {
-		this._uart = _ => {} // do nothing
-		this.#options = options || {}
-	}
-
 	static async FT1000MP(options) {
 		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
 	}
@@ -33,6 +26,13 @@ export class Adapter {
 
 	static get models() {
 		return ['ft1000', 'ft817']
+	}
+
+	#options
+
+	constructor(options = {baudrate}) {
+		this._uart = _ => {} // do nothing
+		this.#options = options || {}
 	}
 
 	async init(dataSender) {

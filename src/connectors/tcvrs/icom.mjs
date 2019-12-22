@@ -19,18 +19,11 @@ const hex2dec = (h) => {
 
 export class Adapter {
 
-	#options
-
-	constructor(options = {address, baudrate, props}) {
-		this._uart = _ => {} // do nothing
-		this.#options = options || {}
-	}
-
-	async static IC706(options) {
+	static async IC706(options) {
 		return new Adapter(await tcvrOptions('icom', 'ic706', options))
 	}
 
-	async static forTcvr(model, options) {
+	static async forTcvr(model, options) {
 		return new Adapter(await tcvrOptions(this.manufacturer, model, options))
 	}
 
@@ -40,6 +33,13 @@ export class Adapter {
 
 	static get models() {
 		return ['ic706']
+	}
+
+	#options
+
+	constructor(options = {address, baudrate, props}) {
+		this._uart = _ => {} // do nothing
+		this.#options = options || {}
 	}
 
 	async init(dataSender) {

@@ -29,11 +29,9 @@ export default {
 	modedata: mode => modeValues[mode] && [0, 0, 0, modeValues[mode], 0x0C],
 	filterdata: filter => filterValues[filter] && [0, 0, 0, filterValues[filter], 0x8C],
 	props: new TransceiverProperties({
-		bands: [
-			Bands[160], Bands[80], Bands[40], Bands[30],
-			Bands[20], Bands[17], Bands[15], Bands[12], Bands[10]],
+		bands: [160, 80, 40, 30, 20, 17, 15, 12, 10],
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
 		modeFilters: filters
 	}),
-	defaults: {band: Bands[20], mode: Modes.CW, agc: AgcTypes.AUTO}
+	defaults: {band: 20, mode: Modes.CW, agc: AgcTypes.AUTO}
 }
