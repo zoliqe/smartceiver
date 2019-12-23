@@ -104,7 +104,7 @@ export class Adapter {
 	}
 
 	async _filterK2(filter, mode) {
-		const index = this.#options.filters[mode].indexOf(Number(filter))
+		const index = this.properties.filters(mode).indexOf(Number(filter))
 		if (index < 0) return
 		await this._uart('K22')
 		await this._uart(`FW0000${index + 1}`)

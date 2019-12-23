@@ -55,7 +55,7 @@ export class Keyer {
 		}, timeout)
 	}
 
-	async wpm(value) {
+	async setwpm(value) {
 		this.#wpm = Number(value)
 		if (this.disabled) return // check after setting value, to allow disable/enable keyer
 		await this.#connector.speed(this.#wpm)

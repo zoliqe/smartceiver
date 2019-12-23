@@ -88,7 +88,7 @@ class PowronConnector {
 			await delay(startSeqDelay)
 			this._send(startSeq)
 			await delay(serialInitDelay)
-			this.serial(this.#adapter.baudrate)
+			this._serialBaudrate(this.#adapter.baudrate)
 			// setTimeout(() => {
 			// 	this._send(startSeq)
 			// 	setTimeout(() => this.serial(serialBaudRate), 1000)
@@ -257,7 +257,7 @@ class PowronConnector {
 			keyDit: async () => await this.#keyer.send('.'),
 			keyDah: async () => await this.#keyer.send('-'),
 			keySpace: async () => await this.#keyer.send('_'),
-			wpm: async (value) => await this.#keyer.wpm(value),
+			wpm: async (value) => await this.#keyer.setwpm(value),
 			ptt: async (value) => await this.#keyer.ptt(value),
 			mode: async (value) => await this.#adapter.mode(value),
 			filter: async (value) => await this.#adapter.filter(value),
