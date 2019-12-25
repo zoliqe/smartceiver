@@ -1,9 +1,12 @@
+/* eslint-disable max-classes-per-file */
 class TcvrSignal {
 	constructor(type, value) {
 		this._type = type
 		this._value = value
 	}
+	
 	get type() { return this._type }
+
 	get value() { return this._value }
 }
 
@@ -15,10 +18,23 @@ const SignalType = Object.freeze({
 	resetAudio: 'resetAudio', audioMute: 'audioMute',
 })
 
+class SignalListener {
+	#owner
+
+	#callback
+
+	constructor(owner, callback) {
+		this.#owner = owner
+		this.#callback = callback
+	}
+
+	get owner() { return this.#owner }
+
+	get callback() { return this.#callback }
+}
+
 class SignalBus {
 	#listeners = {}
-
-	constructor() {}
 
 	bind(type, owner, callback) {
 		if (!(type in this.#listeners)) {
@@ -41,32 +57,19 @@ class SignalBus {
 	}
 
 	fire(signal) {
-		let stack = this.#listeners[signal.type]
+		const stack = this.#listeners[signal.type]
 		stack && stack.forEach(listener => listener.callback.call(this, signal))
-		return true //!event.defaultPrevented;
-	}
-}
-
-class SignalsBinder {
-	#out
-
-	constructor(listenerId, outSignals) {
-		this.#out = new Signals([
-				SignalType.keyDit, SignalType.keyDah, SignalType.keySpace, SignalType.wpm, SignalType.ptt,
-				SignalType.mode, SignalType.filter, SignalType.gain, SignalType.agc, SignalType.pwrsw,
-				SignalType.freq, SignalType.band, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
-			], outSignals, listenerId)
-	}
-
-	get out() {
-		return this.#out
+		return true // !event.defaultPrevented;
 	}
 }
 
 class Signals {
 	#bindings
+
 	#types
+
 	#id
+
 	constructor(types, bindings, listenerId) {
 		this.#types = types || []
 		this.#bindings = bindings || {}
@@ -90,16 +93,21 @@ class Signals {
 	}
 }
 
-class SignalListener {
-	#owner
-	#callback
-	constructor(owner, callback) {
-		this.#owner = owner
-		this.#callback = callback
-	}
-	get owner() { return this.#owner }
-	get callback() { return this.#callback }
-}
+class SignalsBinder {
+	#out
 
+	constructor(listenerId, outSignals) {
+		this.#out = new Signals([
+				SignalType.keyDit, SignalType.keyDah, SignalType.keySpace, SignalType.wpm, SignalType.reverse, SignalType.ptt,
+				SignalType.mode, SignalType.filter, SignalType.gain, SignalType.agc, 
+				SignalType.pwrsw, SignalType.keepAlive,
+				SignalType.freq, SignalType.band, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
+			], outSignals, listenerId)
+	}
+
+	get out() {
+		return this.#out
+	}
+}
 
 export {TcvrSignal, SignalType, SignalsBinder, SignalBus}

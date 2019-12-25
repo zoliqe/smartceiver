@@ -1,16 +1,22 @@
-import {TcvrSignal, SignalType} from '../utils/signals.mjs'
+import {TcvrSignal, SignalType} from '../../utils/signals.mjs'
+import {nextValue, prevValue} from '../../utils/lists.js'
 
-class RemoddleController {
+class RemoddleMapper {
 
 	up = '+'
+
 	dn = '-'
 
 	_encoderAvailableFunctions = {
 		1: [dir => this.changeFreq(dir)],
-		2: [dir => this.changeWpm(dir), dir => this.changeFilter(dir)],
+		2: [dir => this.changeWpm(dir), dir => this.switchFilter(dir)],
 		3: [dir => this.changeRit(dir)]
 	}
-	_encoderFunction = { 1: 0, 2: 0, 3: 0 }
+
+	_encoderFunction = { 
+		1: this._encoderAvailableFunctions[1][0], 
+		2: this._encoderAvailableFunctions[2][0], 
+		3: this._encoderAvailableFunctions[3][0] }
 	
 	/**
 	 * button functions execution:
@@ -29,6 +35,7 @@ class RemoddleController {
 		5: { tap: _ => this.buttonCwSelectFunctions(), hold: null }, // e
 		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
 	}
+
 	_buttonCwSelectFunctions = {
 		1: _ => this.buttonCwCancelFunction(1), 
 		2: _ => this.buttonCwCancelFunction(2), 
@@ -37,15 +44,12 @@ class RemoddleController {
 		9: _ => this.buttonCwFunction(5), 
 		4: _ => this.buttonCwFunction(6),
 		5: _ => this.buttonCwCancelFunction(7), 
-		//8: _ => this.buttonCwCancelFunction(8)
+		// 8: _ => this.buttonCwCancelFunction(8)
 	}
 
-	buttonCwFunction = btn => {
-		return { tap: _ => this.cwmem(btn), hold: _ => this.cwmem(btn, { repeat: true }) }
-	}
-	buttonCwCancelFunction = btn => {
-		return { release: _ => this.buttonMainFunctions() }
-	}
+	buttonCwFunction = btn => ({ tap: _ => this.cwmem(btn), hold: _ => this.cwmem(btn, { repeat: true }) })
+	
+	buttonCwCancelFunction = () => ({ release: _ => this.buttonMainFunctions() })
 
 	// buttonTimeout = 2000
 
@@ -58,9 +62,9 @@ class RemoddleController {
 		const code = c.charCodeAt(0);
 		if (code <= 32) return // whitespace
 		// console.log('remoddle:', c)
-		if (c === '-') this._tcvr.fire(new TcvrSignal(SignalType.keyDah, 1))
-		else if (c === '.') this._tcvr.fire(new TcvrSignal(SignalType.keyDit, 1))
-		else if (c === '_') this._tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
+		if (c === '-') this._tcvr.keyDah()
+		else if (c === '.') this._tcvr.keyDit()
+		else if (c === '_') this._tcvr.keySpace()
 		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
 		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
 		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up
@@ -88,10 +92,14 @@ class RemoddleController {
 		else console.error('Remoddle sent unknown command:', c)
 	}
 
-	switchEncoderFunction = enc => this._encoderFunction[enc] = this._shiftIndex(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
+	switchEncoderFunction = enc => {
+		// this._encoderFunction[enc] = this._shiftIndex(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
+		this._encoderFunction[enc] = nextValue(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
+	}
 
 	rotateEncoder = (enc, dir) => {
-		const fnc = this._encoderAvailableFunctions[enc][this._encoderFunction[enc]]
+		// const fnc = this._encoderAvailableFunctions[enc][this._encoderFunction[enc]]
+		const fnc = this._encoderFunction[enc]
 		fnc && fnc(dir)
 	}
 
@@ -132,34 +140,68 @@ class RemoddleController {
 		this._buttonFunctions = this._buttonMainFunctions
 	}
 
-	changeFreq = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
-	changeRit = dir => this._tcvr.freq = dir === '+' ? (this._tcvr.freq + 10) : (this._tcvr.freq - 10)
-	changeWpm = dir => this._tcvr.wpm += (dir === '+' ? 1 : -1)
-	changeFilter = dir => this._tcvr.filter = dir === '+' ? (this._tcvr.filter + 50) : (this._tcvr.filter - 50)
+	changeFreq = dir => {
+		this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
+	}
+	
+	changeRit = dir => { 
+		this._tcvr.freq = dir === '+' ? (this._tcvr.freq + 10) : (this._tcvr.freq - 10) 
+	}
+	
+	changeWpm = dir => { this._tcvr.wpm += (dir === '+' ? 1 : -1) }
+	
+	// changeFilter = dir => this._tcvr.filter = dir === '+' ? (this._tcvr.filter + 50) : (this._tcvr.filter - 50)
 	// this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
-	setPtt = state => this._tcvr.ptt = state
-	switchStep = _ => this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
-	switchBandUp = _ => this._tcvr.band = this._shiftIndex(this._tcvr.bands, this._tcvr.band)
-	switchBandDown = _ => this._tcvr.band = this._unshiftIndex(this._tcvr.bands, this._tcvr.band)
-	switchGain = _ => this._tcvr.gain = this._tcvr.gains[this._unshiftIndex(this._tcvr.gains, this._tcvr.gains.indexOf(this._tcvr.gain))]
-	switchMode = _ => this._tcvr.mode = this._shiftIndex(this._tcvr.modes, this._tcvr.mode)
-	switchFilter = _ => this._tcvr.filter = this._tcvr.filters[this._shiftIndex(this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
+	
+	setPtt = state => { this._tcvr.ptt = state }
+	
+	switchStep = _ => {
+		// this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
+		this._tcvr.step = nextValue(this._tcvr.steps, this._tcvr.step)
+	}
+	
+	switchBandUp = _ => {
+		// this._tcvr.band = this._tcvr.bands[this._shiftIndex(this._tcvr.bands, this._tcvr.band)]
+		this._tcvr.band = nextValue(this._tcvr.bands, this._tcvr.band)
+	}
+	
+	switchBandDown = _ => {
+		// this._tcvr.band = this._unshiftIndex(this._tcvr.bands, this._tcvr.band)
+		this._tcvr.band = prevValue(this._tcvr.bands, this._tcvr.band)
+	}
+	
+	switchGain = _ => {
+		// this._tcvr.gain = this._tcvr.gains[this._shiftIndex(this._tcvr.gains, this._tcvr.gains.indexOf(this._tcvr.gain))]
+		this._tcvr.gain = nextValue(this._tcvr.gains, this._tcvr.gain)
+	}
+	
+	switchMode = _ => {
+		// this._tcvr.mode = this._tcvr.modes[this._shiftIndex(this._tcvr.modes, this._tcvr.mode)]
+		this._tcvr.mode = nextValue(this._tcvr.modes, this._tcvr.mode)
+	}
+	
+	switchFilter = _ => {
+		// this._tcvr.filter = this._tcvr.filters[
+		// 	this._shiftIndex(this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
+		this._tcvr.filter = nextValue(this._tcvr.filters, this._tcvr.filter)
+	}
+	
 	cwmem = (mem, { repeat = false }) => {
 		// TODO
 	}
 	
-	_rotateByDir(dir, list, index) {
-		return dir === '+' ? this._shiftIndex(list, index) : this._unshiftIndex(list, index)
-	}
+	// _rotateByDir(dir, list, index) {
+	// 	return dir === '+' ? this._shiftIndex(list, index) : prevValue(list, index)
+	// }
 
-	_shiftIndex(list, index) {
-		return (index + 1) < list.length ? (index + 1) : 0
-	}
+	// _shiftIndex(list, index) {
+	// 	return (index + 1) < list.length ? (index + 1) : 0
+	// }
 
-	_unshiftIndex(list, index) {
-		return (index == 0 ? list.length : index) - 1
-	}
+	// _unshiftIndex(list, index) {
+	// 	return (index == 0 ? list.length : index) - 1
+	// }
 
 }
 
-export {RemoddleController}
+export {RemoddleMapper}

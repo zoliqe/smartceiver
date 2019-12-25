@@ -2,6 +2,7 @@ import { LitElement, html, css } from 'https://cdn.pika.dev/lit-element/' // 'li
 // import { classMap } from 'lit-html/directives/class-map.js'
 import { Transceiver, Bands, } from '../../tcvr.js'
 import { SignalsBinder } from '../../utils/signals.mjs'
+import { nextValue } from '../../utils/lists.js'
 import { TcvrController } from '../../controller.mjs'
 
 // import { template } from './templateMain.js';
@@ -20,7 +21,8 @@ export class SmartceiverApp extends LitElement {
 			powerState: {type: Boolean},
 			band: {type: Number},
 			freqDisplay: {type: String},
-			connectors: {type: Array},
+			pwrbtnDisable: {type: Boolean},
+			// connectors: {type: Array},
     }
   }
 
@@ -172,17 +174,17 @@ export class SmartceiverApp extends LitElement {
 			button#pwrbtn {
 				height: 2.5em;
 			}
-			button#pwrbtn.off {
+			button.on {
+				background-color: darkgreen;
+				color: white;
+			}
+			button.off {
 				background-color: darkred;
 				color: white;
 			}
 			button#pwrbtn:disabled {
 				background-color: black;
 				color: darkgray;
-			}
-			button#pwrbtn.on {
-				background-color: darkgreen;
-				color: white;
 			}
 
       .ctl-value {
@@ -253,6 +255,7 @@ export class SmartceiverApp extends LitElement {
 		this._initTcvr()
 
 		this.powerState = false
+		this.pwrbtnDisable = true
     this.operator = ':::'
     this.band = 20
 		this.bandMHz = 14
@@ -275,7 +278,7 @@ export class SmartceiverApp extends LitElement {
 					<li class="card controls-card">
 							<button id="pwrbtn" name="pwrbtn" class="off" 
 								@click=${this.switchPower} 
-								?disabled=${this.connectors.length === 0}>
+								?disabled=${this.pwrbtnDisable}>
 								PWR
 							</button>
               <button @click=${this.switchMode} class="toggles toggle-btn" ?hidden=${!this.powerState}>
@@ -346,7 +349,7 @@ export class SmartceiverApp extends LitElement {
 			mode: value => {this.mode = value},
 			filter: value => {this.filter = value.filter},
 			gain: value => {this.gain = value},
-			agc: value => {this.agc = value},
+			agc: value => {this.agc = value.agc},
 			step: value => {
 				this.knob.scale = value * 400
 				this._displayFreq(this.knob.value)
@@ -364,6 +367,7 @@ export class SmartceiverApp extends LitElement {
 			},
 			pwrsw: value => { 
 				this.powerState = value
+				this.pwrbtnDisable = false
 				this.pwrbtn.className = value ? 'on' : 'off'
 			},
 		})
@@ -372,6 +376,7 @@ export class SmartceiverApp extends LitElement {
 		this.tcvr = new TcvrController('ui')
 		this.tcvr.registerTo(transceiver)
 		await this._initConnector()
+		setInterval(() => transceiver.keepAlive(), 5000)
 	}
 		
 	async _initConnector() {
@@ -392,11 +397,11 @@ export class SmartceiverApp extends LitElement {
 		}
 		if (powron && powron.includes('-')) {
 			connectorsId.push('powron')
-			this._parseTcvrName(powron, connectorParams)
+			this._parseTcvrName({value: powron, connectorParams})
 		}
 		if (sercat && sercat.includes('-')) {
 			connectorsId.push('sercat')
-			this._parseTcvrName(sercat, connectorParams)
+			this._parseTcvrName({value: sercat, connectorParams})
 		}
 		if (connectorsId.length === 0) {
 			throw new Error('No connector defined!')
@@ -411,6 +416,7 @@ export class SmartceiverApp extends LitElement {
 			this.connectors.push(connector)
 		}
 		await this._fetchStatus()
+		this.pwrbtnDisable = this.connectors.length === 0
 		this.requestUpdate()
 
 		this.remoddle = this.#params.get('remoddle')
@@ -455,6 +461,7 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	async switchPower() {
+		this.pwrbtnDisable = true
 		await this.tcvr.switchPower(this.connectors, this.kredence, this.remoddle)
 	}
 
@@ -467,28 +474,37 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	switchMode() {
-		const i = this.tcvr.modes.indexOf(this.mode)
-		this.tcvr.mode = this.tcvr.modes[i < (this.tcvr.modes.length - 1) ? i + 1 : 0]
+		// const i = this.tcvr.modes.indexOf(this.mode)
+		// this.tcvr.mode = this.tcvr.modes[i < (this.tcvr.modes.length - 1) ? i + 1 : 0]
+		this.tcvr.mode = nextValue(this.tcvr.modes, this.mode)
 	}
 
 	switchGain() {
-		const i = this.tcvr.gains.indexOf(this.gain)
-		this.tcvr.gain = this.tcvr.gains[i > 0 ? i - 1 : this.tcvr.gains.length - 1]
+		// const i = this.tcvr.gains.indexOf(this.gain)
+		// this.tcvr.gain = this.tcvr.gains[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
+		this.tcvr.gain = nextValue(this.tcvr.gains, this.gain)
 	}
 			
 	switchBand() {
-		const i = this.tcvr.bands.indexOf(this.band)
-		this.tcvr.band = this.tcvr.bands[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
+		// const i = this.tcvr.bands.indexOf(this.band)
+		// this.tcvr.band = this.tcvr.bands[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
+		this.tcvr.band = nextValue(this.tcvr.bands, this.band)
 	}
 
 	switchStep() {
-		const i = this.tcvr.steps.indexOf(this.knob.scale / 400)
-		this.tcvr.step = this.tcvr.steps[i < (this.tcvr.steps.length - 1) ? i + 1 : 0]
+		// const i = this.tcvr.steps.indexOf(this.knob.scale / 400)
+		// this.tcvr.step = this.tcvr.steps[i < (this.tcvr.steps.length - 1) ? i + 1 : 0]
+		this.tcvr.step = nextValue(this.tcvr.steps, this.knob.scale / 400)
 	}
 
 	switchFilter() {
-		const i = this.tcvr.filters.indexOf(this.filter)
-		this.tcvr.filter = this.tcvr.filters[i < (this.tcvr.filters.length - 1) ? i + 1 : 0]
+		// const i = this.tcvr.filters.indexOf(this.filter)
+		// this.tcvr.filter = this.tcvr.filters[i < (this.tcvr.filters.length - 1) ? i + 1 : 0]
+		this.tcvr.filter = nextValue(this.tcvr.filters, this.filter)
+	}
+
+	switchAgc() {
+		this.tcvr.agc = nextValue(this.tcvr.agcTypes, this.agc)
 	}
 
   // __navClass(page) {

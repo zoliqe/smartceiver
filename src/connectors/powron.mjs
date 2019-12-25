@@ -25,16 +25,28 @@ const decoder = new TextDecoder()
 class PowronConnector {
 
 	#interfaceNumber = 2  // original interface number of WebUSB Arduino demo
+	
 	#endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
+	
 	#endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
+	
 	#device
+	
 	#powerPins
+	
 	#pttPins
+	
 	#keyerPin
+	
 	#adapter
+	
 	#powr
+	
 	#keyer
+	
 	#signals
+
+	#timeout
 
 	constructor(tcvrAdapter, {
 		options = {
@@ -44,18 +56,18 @@ class PowronConnector {
 		},
 		keyerConfig = { pttTimeout: 5000 }}) 
 	{
-		options = options || {}
-		this.#keyerPin = options.keyerPin
-		this.#pttPins = options.pttPins || []
-		this.#powerPins = options.powerPins || []
-		const timeout = this._powerTimeout(options.powerTimeout)
+		const opts = options || {}
+		this.#keyerPin = opts.keyerPin
+		this.#pttPins = opts.pttPins || []
+		this.#powerPins = opts.powerPins || []
+		this.#timeout = opts.powerTimeout || 0
 		// this.keyerState(true)
 		// this.pttState(false)
 
 		this.#adapter = tcvrAdapter
 		this.#powr = new PowrSwitch({
-			state: async (state) => await this._pinState(this.#pttPins, state),
-			timeout: timeout
+			state: async (state) => await this._pinState(this.#powerPins, state),
+			timeout: this.#timeout
 		})
 		this.#keyer = new Keyer({
 			send: async (cmd) => await this._send(cmd),
@@ -78,7 +90,12 @@ class PowronConnector {
 			throw new Error('POWRON: WebUSB is not supported!')
 		}
 		try {
-			this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
+			const paired = await navigator.usb.getDevices()
+			if (paired.length === 1) {
+				[this.#device] = paired
+			} else {
+				this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
+			}
 			// .then(device => {
 			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 			await this._open()
@@ -88,6 +105,7 @@ class PowronConnector {
 			await delay(startSeqDelay)
 			this._send(startSeq)
 			await delay(serialInitDelay)
+			await this._powerTimeout(this.#timeout)
 			this._serialBaudrate(this.#adapter.baudrate)
 			// setTimeout(() => {
 			// 	this._send(startSeq)
@@ -141,13 +159,14 @@ class PowronConnector {
         'value': 0x01,
         'index': this.#interfaceNumber
       }))
-      .then(() => readLoop())
+      // .then(() => readLoop())
   }
 
 	async disconnect() {
 		if (!this.#device) return
 
 		await this._off()
+		await delay(2000)
 		await this.#device.controlTransferOut({
 			'requestType': 'class',
 			'recipient': 'interface',
@@ -165,7 +184,7 @@ class PowronConnector {
 	}
 
 	async _keepAlive() {
-		this.#powr.resetWatchdog()
+		await this.#powr.resetWatchdog()
 	}
 
 	async _off() {
@@ -201,10 +220,8 @@ class PowronConnector {
 			console.error(`POWRON: serial baudrate = ${ baudrate } not in range, value not set`)
 	}
 
-	async _powerTimeout(value) {
-		const timeout = value || 0
-		this._send('T' + timeout > 0 ? timeout + 30 : 0)
-		return timeout
+	async _powerTimeout(timeout) {
+		await this._send(`T${timeout > 0 ? timeout + 30 : 0}`)
 	}
 
 	async _keyerPin(pin) {
@@ -233,7 +250,7 @@ class PowronConnector {
 	}
 
 	async _send(data) {
-		//console.debug(`POWRON <= ${ data.trim() } `)
+		console.debug(`POWRON <= ${data} `)
 		if (this.connected) {
 			const bytes = typeof data === 'string' ? encoder.encode(data + '\n') : data
 			await this.#device.transferOut(this.#endpointOut, bytes)
@@ -267,6 +284,7 @@ class PowronConnector {
 			split: async (value) => await this.#adapter.split(value),
 			rit: async (value) => await this.#adapter.rit(value),
 			xit: async (value) => await this.#adapter.xit(value),
+			keepAlive: async () => {await this._keepAlive()}
 		})
 	}
 

@@ -1,7 +1,11 @@
+/* eslint-disable no-unused-expressions */
+import {SignalType, TcvrSignal} from './utils/signals.mjs'
 
 export class TcvrController {
 	#id
+
 	#registered
+	
 	#tcvr
 
 	constructor(controllerId) {
@@ -35,8 +39,16 @@ export class TcvrController {
 		this.#tcvr && this.#tcvr.setPtt(this, value)
 	}
 
+	get wpm() {
+		return this.#tcvr && this.#tcvr.wpm
+	}
+
 	set wpm(value) {
 		this.#tcvr && this.#tcvr.setWpm(this, value)
+	}
+
+	get reversePaddle() {
+		return this.#tcvr && this.#tcvr.reversePaddle
 	}
 
 	set reversePaddle(value) {
@@ -46,30 +58,35 @@ export class TcvrController {
 	get bands() {
 		return this.#tcvr && this.#tcvr.bands
 	}
-	// get band() {
-	// 	return this.#tcvr && this.#tcvr.band
-	// }
+
+	get band() {
+		return this.#tcvr && this.#tcvr.band
+	}
+
 	set band(value) {
 		this.#tcvr && this.#tcvr.setBand(this, value)
 	}
 
-	// get freq() {
-	// 	return this.#tcvr && this.#tcvr.freq
-	// }
+	get freq() {
+		return this.#tcvr && this.#tcvr.freq
+	}
+
 	set freq(value) {
 		this.#tcvr && this.#tcvr.setFreq(this, value)
 	}
 
-	// get split() {
-	// 	return this.#tcvr && this.#tcvr.split
-	// }
+	get split() {
+		return this.#tcvr && this.#tcvr.split
+	}
+
 	set split(value) {
 		this.#tcvr && this.#tcvr.setSplit(this, value)
 	}
 
-	// get rit() {
-	// 	return this.#tcvr && this.#tcvr.rit
-	// }
+	get rit() {
+		return this.#tcvr && this.#tcvr.rit
+	}
+
 	set rit(value) {
 		this.#tcvr && this.#tcvr.setRit(this, value)
 	}
@@ -84,9 +101,11 @@ export class TcvrController {
 	get steps() {
 		return this.#tcvr && this.#tcvr.steps
 	}
-	// get step() {
-	// 	return this.#tcvr && this.#tcvr.step
-	// }
+
+	get step() {
+		return this.#tcvr && this.#tcvr.step
+	}
+
 	set step(value) {
 		this.#tcvr && this.#tcvr.setStep(this, value)
 	}
@@ -94,9 +113,11 @@ export class TcvrController {
 	get modes() {
 		return this.#tcvr && this.#tcvr.modes
 	}
-	// get mode() {
-	// 	return this.#tcvr && this.#tcvr.mode
-	// }
+
+	get mode() {
+		return this.#tcvr && this.#tcvr.mode
+	}
+
 	set mode(value) {
 		this.#tcvr && this.#tcvr.setMode(this, value)
 	}
@@ -104,9 +125,11 @@ export class TcvrController {
 	get filters() {
 		return this.#tcvr && this.#tcvr.filters
 	}
-	// get filter() {
-	// 	return this.#tcvr && this.#tcvr.filter
-	// }
+
+	get filter() {
+		return this.#tcvr && this.#tcvr.filter
+	}
+
 	set filter(value) {
 		this.#tcvr && this.#tcvr.setFilter(this, value)
 	}
@@ -114,9 +137,11 @@ export class TcvrController {
 	get gains() {
 		return this.#tcvr && this.#tcvr.gains
 	}
-	// get gain() {
-	// 	return this.#tcvr && this.#tcvr.gain
-	// }
+
+	get gain() {
+		return this.#tcvr && this.#tcvr.gain
+	}
+
 	set gain(value) {
 		this.#tcvr && this.#tcvr.setGain(this, value)
 	}
@@ -124,10 +149,25 @@ export class TcvrController {
 	get agcTypes() {
 		return this.#tcvr && this.#tcvr.agcTypes
 	}
-	// get agc() {
-	// 	return this.#tcvr && this.#tcvr.agc
-	// }
+
+	get agc() {
+		return this.#tcvr && this.#tcvr.agc
+	}
+
 	set agc(value) {
 		this.#tcvr && this.#tcvr.setAgc(this, value)
 	}
+
+	keyDit() {
+		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keyDit, 1))
+	}
+
+	keyDah() {
+		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keyDah, 1))
+	}
+
+	keySpace() {
+		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
+	}
+
 }

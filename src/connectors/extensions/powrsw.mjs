@@ -4,7 +4,9 @@ const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'
 export class PowrSwitch {
 
 	#state = State.off
+
 	#connector
+	
 	#watchdog
 
 	constructor(powerConnector = {state, timeout}) {
@@ -33,10 +35,10 @@ export class PowrSwitch {
 		this.#state = State.stoping
 		console.info(`powerOff`)
 		this._watchdogStop()
-		await this.#connector.state(false)
 		await delay(500)
 		await this.#connector.state(false)
 		await delay(1000)
+		await this.#connector.state(false)
 
 		this.#state = State.off
 	}
@@ -49,15 +51,16 @@ export class PowrSwitch {
 	_watchdogStart({reset = false} = {}) {
 		if (!this.#connector.timeout || this.#state !== State.on) return
 		if (reset && this.#watchdog == null) return
-		if (!reset) {
-			if (this.#watchdog != null) clearTimeout(this.#watchdog)
-			console.info('PowrSW watchdog active, timeout:', this.#connector.timeout)
-		}
 
+		if (this.#watchdog != null) clearTimeout(this.#watchdog)
 		this.#watchdog = setTimeout(() => {
 			console.info('PowrSW watchdog timedout')
 			this.off()
 		}, this.#connector.timeout * 1000);
+
+		if (!reset) {
+			console.info('PowrSW watchdog active, timeout:', this.#connector.timeout)
+		}
 	}
 
 	_watchdogStop() {

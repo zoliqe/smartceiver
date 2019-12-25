@@ -1,10 +1,15 @@
 import {BluetoothTerminal} from '../utils/BluetoothTerminal.mjs'
-import {EventType} from '../utils/events.mjs'
+import {SignalType, SignalsBinder} from '../utils/signals.mjs'
+import {TcvrController} from '../controller.mjs'
+import { RemoddleMapper } from './remoddle/mapper.mjs'
 
 class RemoddleBluetooth {
 	constructor(tcvr) {
 		this._port = null
-		this._tcvr = tcvr
+		const ctlr = new TcvrController(RemoddleBluetooth.id)
+		ctlr.registerTo(tcvr)
+		this._tcvr = new RemoddleMapper(ctlr)
+		this._bindSignals(tcvr)
 	}
 
 	static get id() { return 'remoddle' }
@@ -32,8 +37,6 @@ class RemoddleBluetooth {
 			return
 		}
 		console.info(`Remoddle device ${this._port.getDeviceName()} connected :-)`)
-		this._tcvr.bind(EventType.wpm, RemoddleBluetooth.id, event => this.wpm = event.value)
-		this._tcvr.bind(EventType.reverse, RemoddleBluetooth.id, event => this.reverse = event.value)
 		this._port.receive = data => this._evaluate(data)
 		resolve(this)
 	}
@@ -43,16 +46,24 @@ class RemoddleBluetooth {
 		this._port = null
 	}
 
+	_bindSignals(tcvr) {
+		this.signals = new SignalsBinder(this.id, {
+			wpm: value => {this.wpm = value},
+			reverse: value => {this.reverse = value},
+		})
+		this.signals.out.bind(tcvr)
+	}
+
 	set wpm(value) {
-		this._send('S' + value)
+		this._send(`S${value}`)
 	}
 
 	set sidetone(value) {
-		this._send('T' + value)
+		this._send(`T${value}`)
 	}
 
 	set reverse(value) {
-		this._send('R' + (value ? '1' : '0'))
+		this._send(`R${value ? '1' : '0'}`)
 	}
 
 	_send(data) {

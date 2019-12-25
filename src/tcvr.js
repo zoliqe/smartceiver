@@ -1,3 +1,6 @@
+/* eslint-disable no-await-in-loop */
+/* eslint-disable no-return-assign */
+/* eslint-disable max-classes-per-file */
 import {TcvrSignal, SignalType, SignalBus } from './utils/signals.mjs'
 
 
@@ -9,8 +12,6 @@ const _filters = {
 	'CW': {min: 200, max: 2000}, 'CWR': {min: 200, max: 2000},
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
-// const defaultMode = Mode.CW
-const _sidetoneFreq = 650
 
 class Band {
 	#name
@@ -98,70 +99,42 @@ const AgcTypes = Object.freeze(_agcTypes)
 class Transceiver {
 
 	#props
+
 	#state = {}
+
 	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
+
 	#ports = []
+
 	#bus = new SignalBus()
+
 	#acl = [this]
 
-	constructor() {
-		// this._band = 2
-		// this._mode = 2
-		// this._freq = {}
-		// this._split = {}
-		// this._gain = {}
-		// for (let band in _bands) {
-		// 	this._freq[band] = {}
-		// 	this._split[band] = {}
-		// 	for (let mode in _modes) {
-		// 		this._freq[band][mode] = (_bandLowEdges[band] + _startFreqFromLowEdge) * 1000
-		// 		this._split[band][mode] = 0
-		// 	}
-		// 	this._gain[band] = 0
-		// }
-		// console.log(`freqs=${this._freq}`)
-
-		// this._filter = []
-		// for (let mode in _modes) {
-		// 	this._filter[mode] = _filters[_modes[mode]].max
-		// }
-
-		// this._wpm = 28
-		// this._ptt = false
-		// this._agc = true
-		// this._step = 20
-		// this._rit = 0
-		// this._xit = 0
-		// this._reversePaddle = false
-		// this._listeners = {}
-		// this._d("tcvr-init", "done")
-	}
-
-	get id() {
+	static get id() {
 		return 'tcvr'
 	}
 
 	async switchPower(connectors, remoddleOptions) {
 		if (this.#ports.length) {
+			this.#props = null
 			this.controller = null
 			this.disconnectRemoddle()
-			this.#ports.forEach(port => {
-				this._d('disconnect', port.id)
-				port.disconnect()
-				port.signals.out.unbind(this)
-			})
-			this.#ports = []
-			
-			this.fire(new TcvrSignal(SignalType.pwrsw, false), true)
 			this._unbindSignals()
-			this.#props = null
+			for (const port of this.#ports) {
+				this._d('disconnect', port.constructor.id)
+				await port.disconnect()
+				port.signals.out.unbind(this)
+			}
+			this.#ports = []
+			this.fire(new TcvrSignal(SignalType.pwrsw, false), true)
 		} else if (connectors.length) {
+			await this.connectRemoddle(remoddleOptions)
 			let firstConn = null
-			for (let i = 0; i < connectors.length; i++) {
-				const connector = connectors[i]
+			for (const connector of connectors) {
 				if (connector) {
-					this._d('connect connector', connector.id)
+					this._d('connect connector', connector.constructor.id)
 					const port = await connector.connect(this)
+					this._d('connected', connector.constructor.id)
 					port.signals.out.bind(this.#bus)
 					this.#ports.push(port)
 					if (!firstConn) {
@@ -257,24 +230,26 @@ class Transceiver {
 
 	keepAlive() {
 		this.online && this.fire(new TcvrSignal(SignalType.keepAlive, Date.now()))
+		// TODO persist state to KV storage
 	}
 
 	async connectRemoddle(options) {
 		this.disconnectRemoddle() // remove previous instance
+		if (!options) return
 
 		try {
-			const module = await import('./remoddle/connector.mjs')
+			const module = await import('./controllers/remoddle.mjs')
 			this._remoddle = await new module.RemoddleBluetooth(this).connect()
+			// this._remoddle.reverse = this.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
+			throw error
 		}
 
-		if (this._remoddle) {
-			this._remoddle.wpm = this.wpm // sync with current wpm state
-			this._remoddle.reverse = this.reversePaddle
-			const ctlModule = await import('./remoddle/controller.mjs')
-			this.controller = new ctlModule.RemoddleController(this)
-		}
+		// if (this._remoddle) {
+			// const ctlModule = await import('./controllers/remoddle/mapper.mjs')
+			// this.controller = new ctlModule.RemoddleController(this)
+		// }
 	}
 
 	disconnectRemoddle() {
@@ -283,10 +258,6 @@ class Transceiver {
 			this._remoddle.disconnect()
 			this._remoddle = null
 		}
-	}
-
-	remoddleCommand(c) {
-		this.controller && this.controller.remoddleCommand(c)
 	}
 
 	_keyTx() {
@@ -372,7 +343,7 @@ class Transceiver {
 		setTimeout(_ => {
 			this.fire(new TcvrSignal(SignalType.mode, this.mode))
 			this.fire(new TcvrSignal(SignalType.gain, this.gain))
-			this.fire(new TcvrSignal(SignalType.agc, this.agc))
+			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}))
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
 		}, 2000) // wait for band change on tcvr
 	}
@@ -502,7 +473,7 @@ class Transceiver {
 	}
 
 	get gains() {
-		return this.#props && this.#props.bandGains[this.band]
+		return this.#props && this.#props.gains(this.band)
 	}
 
 	get gain() {
@@ -585,14 +556,14 @@ class TransceiverProperties {
 		this.#modes = modes && modes.length ? modes : [Modes.LSB]
 		this.#agcTypes = agcTypes && agcTypes.length ? agcTypes : [AgcTypes.NONE]
 
-			this.#bandGains = {}
-		if (bandGains && bandGains.length) {
-			Object.keys(bandGains).forEach(b => this.#bandGains[b] = [0, ...bandGains[b]]) // 0 is mandatory
+		this.#bandGains = {}
+		if (bandGains && Object.keys(bandGains).length) {
+			Object.entries(bandGains).forEach(([band, gains]) => {this.#bandGains[band] = [0, ...gains]}) // 0 is mandatory
 		} else {
 			bands.forEach(b => this.#bandGains[b] = [0])
 		}
 
-		if (modeFilters && modeFilters.length) {
+		if (modeFilters && Object.keys(modeFilters).length) {
 			this.#modeFilters = modeFilters
 		} else {
 			this.#modeFilters = {}
