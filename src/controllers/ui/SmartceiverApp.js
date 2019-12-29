@@ -431,7 +431,6 @@ export class SmartceiverApp extends LitElement {
 			[this.kredence.rig, this.kredence.qth] = 
 				remotig.trim().toLowerCase().split('@', 2)
 			await this._resolveConnector('remotig', connectorParams, 'pwr')
-			this.remoddle = null // disable remoddle
 		}
 		if (sercat === '1') {
 			await this._resolveConnector('sercat', connectorParams, 'cat')
@@ -451,6 +450,7 @@ export class SmartceiverApp extends LitElement {
 			this.remote = new TcvrController('remotig')
 			const ctlModule = await import('../../controllers/remotig.js')
 			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence, this.connectors)
+			this.remoddle = null // disable remoddle controller
 		}
 
 
@@ -549,7 +549,7 @@ export class SmartceiverApp extends LitElement {
 			this.tcvr.poweron()
 		} else if (this.remote) {
 			this.remote.connect({ cat: this.connectors.cat })
-			this.remote.poweron()
+			// this.remote.poweron()
 		}
 	}
 

@@ -244,7 +244,7 @@ class PowronConnector {
 			rit: async (value) => this.#adapter.rit(value),
 			xit: async (value) => this.#adapter.xit(value),
 			keepAlive: async () => this._keepAlive(),
-			powrsw: async (value) => value ? this._on() : this._off(),
+			pwrsw: async (value) => value ? this._on() : this._off(),
 		})
 	}
 

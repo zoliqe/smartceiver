@@ -132,7 +132,7 @@ class SercatConnector {
 	}
 	
 	_initSignals() {
-		this.#signals = new SignalsBinder(this.constructor.id, {
+		this.#signals = new SignalsBinder(this.id, {
 			// keyDit: async () => await this.#keyer.send('.'),
 			// keyDah: async () => await this.#keyer.send('-'),
 			// keySpace: async () => await this.#keyer.send('_'),

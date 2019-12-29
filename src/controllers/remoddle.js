@@ -72,8 +72,10 @@ class RemoddleBluetooth {
 		this._send(`R${value ? '1' : '0'}`)
 	}
 
-	_send(data) {
-		this._port && this._port.send(data) && console.debug(`Remoddle sent: ${data}`)
+	async _send(data) {
+		if (!this._port) return
+		await this._port.send(data)
+		console.debug(`Remoddle sent: ${data}`)
 	}
 
 	_evaluate(cmd) {

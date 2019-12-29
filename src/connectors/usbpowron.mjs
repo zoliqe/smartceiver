@@ -206,6 +206,7 @@ class PowronConnector {
 	}
 	
 	async _on() {
+		console.debug('POWRON: poweron')
 		await this.#powr.on()
 		this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
 	}
@@ -215,6 +216,7 @@ class PowronConnector {
 	}
 
 	async _off() {
+		console.debug('POWRON: poweroff')
 		this.#adapter.close && (await this.#adapter.close())
 		await this.#powr.off()
 	}
@@ -282,7 +284,7 @@ class PowronConnector {
 			rit: async (value) => this.#adapter.rit(value),
 			xit: async (value) => this.#adapter.xit(value),
 			keepAlive: async () => this._keepAlive(),
-			powrsw: async (value) => value ? this._on() : this._off(),
+			pwrsw: async (value) => value ? this._on() : this._off(),
 		})
 	}
 
