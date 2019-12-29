@@ -1,17 +1,33 @@
 import { adapterFor } from './connectors/adapter.mjs'
 
+function requireTcvr(params) {
+	// options.tcvr = { manufacturer, model, options }
+	if (!params || !params.tcvr)
+		throw new Error("Transceiver not specified");
+	if (!params.tcvr.manufacturer)
+		throw new Error('Transceiver manufacturer not specified');
+	if (!params.tcvr.model)
+		throw new Error('Transceiver model not specified');
+}
+
 export const get = async (connector, params) => {
 	if (!connector) return null
 	if (connector === 'remotig') {
 		if (!params || !params.kredence)
 			throw new Error('Remote connection credentials required')
-		const conn = await import('./connector/remotig.mjs')
+		const conn = await import('./connectors/remotig.mjs')
 		return new conn.RemotigConnector(params.kredence, params)
 	}
-	if (connector === 'powron') {
+	if (connector === 'usbpowron') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connectors/powron.mjs')
+		const conn = await import('./connectors/usbpowron.mjs')
+		return new conn.PowronConnector(adapter, params)
+	}
+	if (connector === 'serpowron') {
+		requireTcvr(params)
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connectors/serpowron.mjs')
 		return new conn.PowronConnector(adapter, params)
 	}
 	if (connector === 'sercat') {
@@ -28,15 +44,5 @@ export const get = async (connector, params) => {
 	}
 
 	throw new Error(`Unknown connector=${connector}`)
-}
-
-function requireTcvr(params) {
-	// options.tcvr = { manufacturer, model, options }
-	if (!params || !params.tcvr)
-		throw new Error("Transceiver not specified");
-	if (!params.tcvr.manufacturer)
-		throw new Error('Transceiver manufacturer not specified');
-	if (!params.tcvr.model)
-		throw new Error('Transceiver model not specified');
 }
 

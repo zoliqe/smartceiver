@@ -1,18 +1,21 @@
+/* eslint-disable no-unused-expressions */
+/* eslint-disable class-methods-use-this */
 import {BluetoothTerminal} from '../utils/BluetoothTerminal.mjs'
-import {SignalType, SignalsBinder} from '../utils/signals.mjs'
+import {SignalsBinder} from '../utils/signals.mjs'
+import {delay} from '../utils/time.mjs'
 import {TcvrController} from '../controller.mjs'
 import { RemoddleMapper } from './remoddle/mapper.mjs'
 
 class RemoddleBluetooth {
 	constructor(tcvr) {
 		this._port = null
-		const ctlr = new TcvrController(RemoddleBluetooth.id)
-		ctlr.registerTo(tcvr)
+		const ctlr = new TcvrController(this.id)
+		ctlr.attachTo(tcvr)
 		this._tcvr = new RemoddleMapper(ctlr)
 		this._bindSignals(tcvr)
 	}
 
-	static get id() { return 'remoddle' }
+	get id() { return 'remoddle' }
 
 	async connect() {
 		if (!BluetoothTerminal || !navigator.bluetooth) {
@@ -41,9 +44,12 @@ class RemoddleBluetooth {
 		resolve(this)
 	}
 
-	disconnect() {
-		this._port && this._port.disconnect()
+	async disconnect() {
+		if (!this._port) return
+		this.signals.out.unbind()
+		this._port.disconnect()
 		this._port = null
+		await delay(1000)
 	}
 
 	_bindSignals(tcvr) {

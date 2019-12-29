@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-expressions */
 /* eslint-disable max-classes-per-file */
 class TcvrSignal {
 	constructor(type, value) {
@@ -37,18 +38,19 @@ class SignalBus {
 	#listeners = {}
 
 	bind(type, owner, callback) {
-		if (!(type in this.#listeners)) {
-			this.#listeners[type] = []
-		}
+		this.#listeners[type] = this.#listeners[type] || []
+		// if (!Object.keys(this.#listeners).includes(type)) {
+		// 	this.#listeners[type] = []
+		// }
 		this.#listeners[type].push(new SignalListener(owner, callback))
 		console.debug(`bind: ${type} for ${owner}, callbacks`, this.#listeners[type].length)
 	}
 
 	unbind(owner) {
-		for (let type in this.#listeners) {
-			let stack = this.#listeners[type]
-			for (let i = 0, l = stack.length; i < l; i++) {
-				if (stack[i] && stack[i].owner == owner) {
+		for (const [type, stack] of Object.entries(this.#listeners)) {
+			// let stack = this.#listeners[type]
+			for (let i = 0, l = stack.length; i < l; i += 1) {
+				if (stack[i] && stack[i].owner === owner) {
 					console.debug(`unbind ${type} for ${owner}`)
 					stack.splice(i, 1)
 				}
@@ -70,6 +72,8 @@ class Signals {
 
 	#id
 
+	#bus
+
 	constructor(types, bindings, listenerId) {
 		this.#types = types || []
 		this.#bindings = bindings || {}
@@ -77,19 +81,20 @@ class Signals {
 	}
 
 	bind(bus) {
-		this.#types.forEach(type => this._bind(bus, type))
+		this.#bus = bus
+		this.#types.forEach(type => this._bind(type))
 	}
 
-	_bind(bus, type) {
+	_bind(type) {
 		const binding = this.#bindings[type]
-		binding && bus.bind(type, this.#id, event => { 
+		binding && this.#bus.bind(type, this.#id, event => { 
 			console.debug(`fired ${type} value=${JSON.stringify(event.value)}`); 
 			binding(event.value)
 		})
 	}
 
-	unbind(bus) {
-		bus.unbind(this.#id)
+	unbind() {
+		this.#bus && this.#bus.unbind(this.#id)
 	}
 }
 
@@ -100,7 +105,7 @@ class SignalsBinder {
 		this.#out = new Signals([
 				SignalType.keyDit, SignalType.keyDah, SignalType.keySpace, SignalType.wpm, SignalType.reverse, SignalType.ptt,
 				SignalType.mode, SignalType.filter, SignalType.gain, SignalType.agc, 
-				SignalType.pwrsw, SignalType.keepAlive,
+				SignalType.pwrsw, SignalType.keepAlive, SignalType.audioMute,
 				SignalType.freq, SignalType.band, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
 			], outSignals, listenerId)
 	}

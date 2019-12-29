@@ -1,5 +1,5 @@
-import {TcvrSignal, SignalType} from '../../utils/signals.mjs'
-import {nextValue, prevValue} from '../../utils/lists.js'
+/* eslint-disable no-unused-expressions */
+import {nextValue, prevValue, nextValueBounds} from '../../utils/lists.js'
 
 class RemoddleMapper {
 
@@ -183,7 +183,7 @@ class RemoddleMapper {
 	switchFilter = _ => {
 		// this._tcvr.filter = this._tcvr.filters[
 		// 	this._shiftIndex(this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
-		this._tcvr.filter = nextValue(this._tcvr.filters, this._tcvr.filter)
+		this._tcvr.filter = nextValueBounds(this._tcvr.filters, this._tcvr.filter)
 	}
 	
 	cwmem = (mem, { repeat = false }) => {

@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-expressions */
 import { LitElement, html, css } from 'https://cdn.pika.dev/lit-element/' // 'lit-element'
 // import { classMap } from 'lit-html/directives/class-map.js'
 import { Transceiver, Bands, } from '../../tcvr.js'
 import { SignalsBinder } from '../../utils/signals.mjs'
+import { get as resolveConnector } from '../../connector.js'
 import { nextValue } from '../../utils/lists.js'
 import { TcvrController } from '../../controller.mjs'
 
@@ -97,6 +99,7 @@ export class SmartceiverApp extends LitElement {
 				text-align: left;
 				color: darkviolet;
 				flex-grow: 100;
+				height: fit-content;
 			}
 
 			.tx {
@@ -125,13 +128,17 @@ export class SmartceiverApp extends LitElement {
       .knob-card {
         display: flex;
 				flex-grow: 1;
+				flex-wrap: wrap;
 				justify-content: flex-end;
+				align-content: flex-start;
       }
 
       .controls-card {
 				margin: auto;
 				display: flex;
 				flex-direction: column;
+				justify-content: space-between;
+				align-content: space-between;
 			}
       .ctl {
         padding-top: 10px;
@@ -145,7 +152,7 @@ export class SmartceiverApp extends LitElement {
         font-weight: bold;
         color: white;
         text-align: center;
-        margin: 0.4em;
+        /* margin: 0.2em; */
         border-radius: 30px;
         min-width: 3.0em;
       }
@@ -171,8 +178,8 @@ export class SmartceiverApp extends LitElement {
         background-color: magenta;
       }
 
-			button#pwrbtn {
-				height: 2.5em;
+			button#conbtn {
+				/* height: 2.5em; */
 			}
 			button.on {
 				background-color: darkgreen;
@@ -182,7 +189,7 @@ export class SmartceiverApp extends LitElement {
 				background-color: darkred;
 				color: white;
 			}
-			button#pwrbtn:disabled {
+			button#conbtn:disabled {
 				background-color: black;
 				color: darkgray;
 			}
@@ -205,12 +212,13 @@ export class SmartceiverApp extends LitElement {
 				width: 10rem;
 				height: 10rem;
         margin: 1.5em;
-				margin-top: 4em;
+				/* margin-top: 4em; */
 				margin-left: 0;
 				display: block;
 				border-radius: 100%;
 				box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
 				background: #777;
+				align-self: flex-end;
 			}
 			
 			input-knob::part(rotator) {
@@ -248,7 +256,7 @@ export class SmartceiverApp extends LitElement {
   constructor() {
     super()
 		// this.page = 'main';
-		this.connectors = []
+		this.connectors = {}
 		this.kredence = {}
 		this.remoddle = null
 		this.#params = new URLSearchParams(window.location.search)
@@ -276,10 +284,22 @@ export class SmartceiverApp extends LitElement {
       <main>
       <ul class="app-grid">
 					<li class="card controls-card">
-							<button id="pwrbtn" name="pwrbtn" class="off" 
-								@click=${this.switchPower} 
+							<button id="conbtn" name="pwrbtn" class="off" 
+								@click=${this.connectPower} 
 								?disabled=${this.pwrbtnDisable}>
 								PWR
+							</button>
+							<button id="conbtn" name="catbtn" class="off"
+								@click=${this.connectCat}
+								?disabled=${this.tcvr == null && this.remote == null}
+								?hidden=${this.connectorPwrWithCat()}>
+								CAT
+							</button>
+							<button id="conbtn" name="pdlbtn" class="off"
+								@click=${this.connectRemoddle}
+								?disabled=${this.pwrbtnDisable}
+								?hidden=${!this.powerState || !this.remoddle}>
+								PDL
 							</button>
               <button @click=${this.switchMode} class="toggles toggle-btn" ?hidden=${!this.powerState}>
                 ${this.mode}
@@ -329,7 +349,7 @@ export class SmartceiverApp extends LitElement {
 	}
 	
 	firstUpdated() {
-		this.pwrbtn = this.shadowRoot.getElementById('pwrbtn')
+		this.pwrbtn = this.shadowRoot.getElementById('conbtn')
 		this.knob = this.shadowRoot.getElementById('freq-knob')
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', () => {
@@ -337,10 +357,16 @@ export class SmartceiverApp extends LitElement {
 			if (this.tcvr) 
 				this.tcvr.freq = Math.floor(curValue) * 10
 		})
+
+		window.onbeforeunload = _ => {
+			this.powerState = true
+			this.connectPower()
+		}
 	}
 
 	async _initTcvr() {
 		const transceiver = new Transceiver()
+		this.transceiver = transceiver
 
 		this.signals = new SignalsBinder('ui', {
 			ptt: value => {this.freqDisplay.style = value ? "color: #883333;" : ''},
@@ -368,15 +394,21 @@ export class SmartceiverApp extends LitElement {
 			pwrsw: value => { 
 				this.powerState = value
 				this.pwrbtnDisable = false
-				this.pwrbtn.className = value ? 'on' : 'off'
+				// this.pwrbtn.className = value ? 'on' : 'off' TODO
 			},
 		})
 		this.signals.out.bind(transceiver)
 
-		this.tcvr = new TcvrController('ui')
-		this.tcvr.registerTo(transceiver)
 		await this._initConnector()
-		setInterval(() => transceiver.keepAlive(), 5000)
+		if (this.remote && this.remoteController) {
+			this.remote.attachTo(transceiver)
+		} else {
+			this.tcvr = new TcvrController('ui')
+			this.tcvr.attachTo(transceiver)
+	
+			this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
+			setInterval(() => this.tcvr.keepAlive(), 5000)
+		}
 	}
 		
 	async _initConnector() {
@@ -385,50 +417,69 @@ export class SmartceiverApp extends LitElement {
 			this.kredence.token = token.trim()
 		}
 		
-		const connectorsId = []
 		const connectorParams = {tcvr: {}, kredence: this.kredence}
-		const remotig = this.#params.get('remote')
-		const powron = this.#params.get('usb')
-		const sercat = this.#params.get('serial')
+		this._parseTcvrName({value: this.#params.get('tcvr'), connectorParams})
+
+		this.remoddle = this.#params.get('remoddle')
+
+		const remotig = this.#params.get('remotig')
+		const usbpowron = this.#params.get('usbpowron')
+		const serpowron = this.#params.get('serpowron')
+		const sercat = this.#params.get('sercat')
+		const remote = this.#params.get('remote')
 		if (remotig && remotig.includes('@')) {
-			connectorsId.push('remotig')
 			[this.kredence.rig, this.kredence.qth] = 
 				remotig.trim().toLowerCase().split('@', 2)
+			await this._resolveConnector('remotig', connectorParams, 'pwr')
+			this.remoddle = null // disable remoddle
 		}
-		if (powron && powron.includes('-')) {
-			connectorsId.push('powron')
-			this._parseTcvrName({value: powron, connectorParams})
+		if (sercat === '1') {
+			await this._resolveConnector('sercat', connectorParams, 'cat')
 		}
-		if (sercat && sercat.includes('-')) {
-			connectorsId.push('sercat')
-			this._parseTcvrName({value: sercat, connectorParams})
+		if (serpowron === '1') {
+			await this._resolveConnector('serpowron', connectorParams, 'pwr')
+		} else if (usbpowron === '1') {
+			await this._resolveConnector('usbpowron', connectorParams, 'pwr')
 		}
-		if (connectorsId.length === 0) {
+		if (!this.connectors.cat) {
+			this.connectors.cat = this.connectors.pwr
+		}
+
+
+		if (remote && !remotig && remote.includes('@')) {
+			[this.kredence.rig, this.kredence.qth] = remote.trim().toLowerCase().split('@', 2)
+			this.remote = new TcvrController('remotig')
+			const ctlModule = await import('../../controllers/remotig.js')
+			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence, this.connectors)
+		}
+
+
+		if (!this.connectors.cat && !this.remote) {
 			throw new Error('No connector defined!')
 		}
 
-		const connectorSelector = await import('./../../connector.mjs')
-		for (let i = 0; i < connectorsId.length; i += 1) {
-			const connectorId = connectorsId[i]
-			console.debug(`Resolved connector params: id=${connectorId} params=${JSON.stringify(connectorParams)}`)
-			// eslint-disable-next-line no-await-in-loop
-			const connector = await connectorSelector.get(connectorId, connectorParams)
-			this.connectors.push(connector)
-		}
 		await this._fetchStatus()
-		this.pwrbtnDisable = this.connectors.length === 0
+		this.pwrbtnDisable = false
 		this.requestUpdate()
-
-		this.remoddle = this.#params.get('remoddle')
-		this.tcvr.reversePaddle = this.#params.get('reverse') === '1'
 	}
 
 	// eslint-disable-next-line class-methods-use-this
 	_parseTcvrName({value, connectorParams}) {
-		const v = value.trim().toLowerCase()
-		if (!v) return
-		// eslint-disable-next-line no-param-reassign
-		[connectorParams.tcvr.manufacturer, connectorParams.tcvr.model] = v.split('-', 2)
+		const p = connectorParams
+		const v = value && value.trim().toLowerCase()
+		if (v && v.includes('-'))
+			[p.tcvr.manufacturer, p.tcvr.model] = v.split('-', 2)
+	}
+
+	async _resolveConnector(id, params, type) {
+		try {
+			const connector = await resolveConnector(id, params)
+			console.debug(`Resolved connector params: id=${connector.id} params=${JSON.stringify(params)}`)
+			this.connectors[type] = connector
+		} catch (e) {
+			console.error(e)
+			throw e
+		}
 	}
 
 	async _fetchStatus() {
@@ -460,9 +511,69 @@ export class SmartceiverApp extends LitElement {
 		this.freqDisplay = val.substring(0, val.length - lastDigit)
 	}
 
-	async switchPower() {
+	async connectPower() {
 		this.pwrbtnDisable = true
-		await this.tcvr.switchPower(this.connectors, this.kredence, this.remoddle)
+		if (this.powerState) {
+			if (this.tcvr) {
+				await this.disconnectRemoddle()
+				this.tcvr.poweroff()
+				await this.tcvr.disconnect()
+			} else if (this.remote) {
+				this.remote.poweroff()
+				await this.remote.disconnect()
+			}
+			return
+		}
+
+		const pwrWithCat = this.connectorPwrWithCat()
+		const connectors = pwrWithCat ? this.connectors : { pwr: this.connectors.pwr }
+		if (this.tcvr) {
+			await this.tcvr.connect(connectors)
+			if (pwrWithCat)
+				this.tcvr.poweron()
+		} else if (this.remote) {
+			await this.remote.connect(connectors)
+			if (pwrWithCat)
+				this.remote.poweron()
+		}
+	}
+
+	connectorPwrWithCat() {
+		return !this.connectors.pwr || !this.connectors.cat 
+			|| this.connectors.pwr.id === this.connectors.cat.id
+	}
+
+	async connectCat() {
+		if (this.tcvr) {
+			await this.tcvr.connect({ cat: this.connectors.cat })
+			this.tcvr.poweron()
+		} else if (this.remote) {
+			this.remote.connect({ cat: this.connectors.cat })
+			this.remote.poweron()
+		}
+	}
+
+	async connectRemoddle() {
+		if (!this.remoddle) return
+		// if (this._remoddleCtlr) return
+		await this.disconnectRemoddle() // remove previous instance
+
+		try {
+			const module = await import('../remoddle.js')
+			this._remoddleCtlr = await new module.RemoddleBluetooth(this.transceiver).connect()
+			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
+		} catch (error) {
+			console.error(`Remoddle: ${error}`)
+			throw error
+		}
+	}
+
+	async disconnectRemoddle() {
+		if (this._remoddleCtlr) {
+			// this.unbind(this._remoddleCtlr.constructor.id)
+			await this._remoddleCtlr.disconnect()
+			this._remoddleCtlr = null
+		}
 	}
 
 	decreaseWpm() {
@@ -474,32 +585,22 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	switchMode() {
-		// const i = this.tcvr.modes.indexOf(this.mode)
-		// this.tcvr.mode = this.tcvr.modes[i < (this.tcvr.modes.length - 1) ? i + 1 : 0]
 		this.tcvr.mode = nextValue(this.tcvr.modes, this.mode)
 	}
 
 	switchGain() {
-		// const i = this.tcvr.gains.indexOf(this.gain)
-		// this.tcvr.gain = this.tcvr.gains[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
 		this.tcvr.gain = nextValue(this.tcvr.gains, this.gain)
 	}
 			
 	switchBand() {
-		// const i = this.tcvr.bands.indexOf(this.band)
-		// this.tcvr.band = this.tcvr.bands[i < (this.tcvr.bands.length - 1) ? i + 1 : 0]
 		this.tcvr.band = nextValue(this.tcvr.bands, this.band)
 	}
 
 	switchStep() {
-		// const i = this.tcvr.steps.indexOf(this.knob.scale / 400)
-		// this.tcvr.step = this.tcvr.steps[i < (this.tcvr.steps.length - 1) ? i + 1 : 0]
 		this.tcvr.step = nextValue(this.tcvr.steps, this.knob.scale / 400)
 	}
 
 	switchFilter() {
-		// const i = this.tcvr.filters.indexOf(this.filter)
-		// this.tcvr.filter = this.tcvr.filters[i < (this.tcvr.filters.length - 1) ? i + 1 : 0]
 		this.tcvr.filter = nextValue(this.tcvr.filters, this.filter)
 	}
 

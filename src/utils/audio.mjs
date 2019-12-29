@@ -1,27 +1,25 @@
 import {SignalType} from './signals.mjs'
 
 class AudioProcessor {
-	constructor(rtcTrackEvent, tcvr) {
+	constructor(rtcTrackEvent) {
 		console.debug('Remote RTCTrackEvent:', rtcTrackEvent)
 		this._stream = rtcTrackEvent.streams[0]
 		this._track = rtcTrackEvent.track
 		this._remoteAudio = document.querySelector('#remoteAudio')
-		this.tcvr = tcvr
+		// this.tcvr = tcvr
 
 		this._audioCtx = new AudioContext()
 		this._analyser = this._audioCtx.createAnalyser()
 		this._gain = this._audioCtx.createGain()
 		this._filterArray = []
-		this._filterCount = 4 //10
-		this._hpfCutoff = 300
+		this._filterCount = 4 // 10
+		this._hpfCutoff = 400
 		this._Q = 2
 		this._cutoffDiv = 2
 
 		// this._canvas = document.querySelector('#fft')
 		// this._canvasCtx = canvas.getContext('2d')
 		// canvas.height = 256
-		this.tcvr.bind(SignalType.ptt, 'audio', 
-			event => event.value ? this.mute() : this.unmute())
 		this._connectStream() // hook for https://bugs.chromium.org/p/chromium/issues/detail?id=121673
 
 		// this._canvas.width = analyser.frequencyBinCount / cutoffDiv //document.body.clientWidth //1.4;
@@ -31,10 +29,12 @@ class AudioProcessor {
 		this._gain.connect(this._analyser)
 		this._buildFilterChain()
 
-		this.tcvr.bind(SignalType.filter, 'audio',
-			event => this.updateFilter({bandwidth: event.value.filter * 1.0}))
-		this.tcvr.bind(SignalType.audioMute, 'audio',
-			event => this.switchMute())
+		// this.tcvr.bind(SignalType.ptt, 'audio', 
+		// 	event => event.value ? this.mute() : this.unmute())
+		// this.tcvr.bind(SignalType.filter, 'audio',
+		// 	event => this.updateFilter({bandwidth: event.value.filter * 1.0}))
+		// this.tcvr.bind(SignalType.audioMute, 'audio',
+		// 	event => this.switchMute())
 		// drawSpectrum()
 	}
 
@@ -51,7 +51,7 @@ class AudioProcessor {
 			this._remoteAudio.removeAttribute("src")
 			this._remoteAudio.removeAttribute("srcObject")
 		}
-		this.tcvr.unbind('audio')
+		// this.tcvr.unbind('audio')
 	}
 
 	trackRemoved(event) {
@@ -104,8 +104,8 @@ class AudioProcessor {
 		// 	filterSelect.selectedIndex = tcvrFilter.filter
 		// 	// TODO stop propagate default event
 		// }
-		const bw = tcvrFilter.bandwidth > 300 ? tcvrFilter.bandwidth : 300
-		const lpfCutoff = bw + this._hpfCutoff // add hpf cutoff to bandwidth
+		this._bw = tcvrFilter.bandwidth > 300 ? tcvrFilter.bandwidth : 300
+		const lpfCutoff = this._bw + this._hpfCutoff // add hpf cutoff to bandwidth
 		console.debug("tcvr.bandwidth=" + tcvrFilter.bandwidth + ", lpfCutoff=" + lpfCutoff)
 		for (let i = 0; i < this._filterCount; i++) {
 			const filter = this._filterArray[i]
@@ -138,7 +138,7 @@ class AudioProcessor {
 		this._canvasCtx.fillStyle = '#615913'
 		this._canvasCtx.lineCap = 'round'
 		this._canvasCtx.fillRect(this._hpfCutoff / binFreq, this._canvas.height, 
-			this.tcvr.bandwidth / binFreq, -this._canvas.height)
+			this._bw / binFreq, -this._canvas.height)
 
 			window.requestAnimationFrame(t => this._drawSpectrum(t), this._canvas)
 	}

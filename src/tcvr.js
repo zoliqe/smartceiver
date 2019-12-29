@@ -1,3 +1,5 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-unused-expressions */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-return-assign */
 /* eslint-disable max-classes-per-file */
@@ -100,59 +102,60 @@ class Transceiver {
 
 	#props
 
+	#defaultProps
+
 	#state = {}
 
 	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
 
-	#ports = []
+	#connectors = {}
 
 	#bus = new SignalBus()
 
 	#acl = [this]
 
-	static get id() {
+	get id() {
 		return 'tcvr'
 	}
 
-	async switchPower(connectors, remoddleOptions) {
-		if (this.#ports.length) {
-			this.#props = null
-			this.controller = null
-			this.disconnectRemoddle()
-			this._unbindSignals()
-			for (const port of this.#ports) {
-				this._d('disconnect', port.constructor.id)
-				await port.disconnect()
-				port.signals.out.unbind(this)
-			}
-			this.#ports = []
-			this.fire(new TcvrSignal(SignalType.pwrsw, false), true)
-		} else if (connectors.length) {
-			await this.connectRemoddle(remoddleOptions)
-			let firstConn = null
-			for (const connector of connectors) {
-				if (connector) {
-					this._d('connect connector', connector.constructor.id)
-					const port = await connector.connect(this)
-					this._d('connected', connector.constructor.id)
-					port.signals.out.bind(this.#bus)
-					this.#ports.push(port)
-					if (!firstConn) {
-						firstConn = connector
-					}
-				}
-			}
-			
-			this._bindSignals()
-			await this._initState(firstConn)
-			// this.connectRemoddle(remoddleOptions)
-			this.fire(new TcvrSignal(SignalType.pwrsw, this.online), true)
+	async disconnect() {
+		this.#props = null
+		this._unbindSignals()
 
-			window.onbeforeunload = _ => {
-				this.disconnectRemoddle()
-				this.#ports.forEach(port => port.disconnect())
-			}
+		this._disconnect(this.#connectors.pwr)
+		this._disconnect(this.#connectors.cat)
+		this.#connectors = {}
+		this.fire(new TcvrSignal(SignalType.pwrsw, false), {force: true})
+	}
+
+	async _disconnect(connector) {
+		if (!connector || !connector.connected) return
+		this._d('disconnect', connector.id)
+		await connector.disconnect()
+		connector.signals.out.unbind(this)
+	}
+
+	async connect(connectors) {
+		if (!connectors) return
+		if (connectors.pwr) {
+			const connector = await this._connectConnector(connectors.pwr)
+			this.#connectors.pwr = connector
+			this._bindSignals()
 		}
+		if (connectors.cat) {
+			const connector = await this._connectConnector(connectors.cat)
+			this.#connectors.cat = connector
+			await this._initState(connector)
+		}
+	}
+
+	async _connectConnector(connector) {
+		if (connector.connected) return connector
+		this._d('connect connector', connector.id)
+		await connector.connect(this)
+		this._d('connected', connector.id)
+		connector.signals.out.bind(this.#bus)
+		return connector
 	}
 
 	async _initState(connector) {
@@ -189,6 +192,7 @@ class Transceiver {
 			this.#state.agc = defaults.agc
 		
 		this.#props = props // set field after everything is done
+		this.#defaultProps = defaults
 	}
 
 	_buildFreqTable(props) {
@@ -233,33 +237,6 @@ class Transceiver {
 		// TODO persist state to KV storage
 	}
 
-	async connectRemoddle(options) {
-		this.disconnectRemoddle() // remove previous instance
-		if (!options) return
-
-		try {
-			const module = await import('./controllers/remoddle.mjs')
-			this._remoddle = await new module.RemoddleBluetooth(this).connect()
-			// this._remoddle.reverse = this.reversePaddle
-		} catch (error) {
-			console.error(`Remoddle: ${error}`)
-			throw error
-		}
-
-		// if (this._remoddle) {
-			// const ctlModule = await import('./controllers/remoddle/mapper.mjs')
-			// this.controller = new ctlModule.RemoddleController(this)
-		// }
-	}
-
-	disconnectRemoddle() {
-		if (this._remoddle) {
-			this.unbind(this._remoddle.constructor.id)
-			this._remoddle.disconnect()
-			this._remoddle = null
-		}
-	}
-
 	_keyTx() {
 		if (!this.#state.keyed) {
 			this.#state.keyed = true
@@ -286,7 +263,7 @@ class Transceiver {
 		if (!this.online || this._denieded(controller)) return
 		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
 		this.#state.ptt = state
-		this._d("ptt", status)
+		this._d("ptt", state)
 		this.fire(new TcvrSignal(SignalType.ptt, state))
 	}
 
@@ -313,16 +290,24 @@ class Transceiver {
 		this.fire(new TcvrSignal(SignalType.reverse, value))
 	}
 
+	get properties() {
+		return this.#props
+	}
+
+	get defaultProps() {
+		return this.#defaultProps
+	}
+
 	get connectorId() {
 		return this._connectorId
 	}
 
 	get online() {
-		return this.#props && this.#ports.some(port => port.connected)
+		return this.properties && this.#connectors.cat && this.#connectors.cat.connected
 	}
 
 	get bands() {
-		return this.#props && this.#props.bands
+		return this.properties && this.properties.bands
 	}
 
 	get band() {
@@ -331,20 +316,20 @@ class Transceiver {
 
 	setBand(controller, band) {
 		if (!this.online || this._denieded(controller)) return
-		if (!this.#props.bands.includes(band)) return
+		if (!this.properties.bands.includes(band)) return
 
 		this._d("band", band)
 		this.#state.band = band
-		this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode]) // call setter
 		this.fire(new TcvrSignal(SignalType.band, this.band))
 
-		if (controller.ignoreSubsignals) return
+		if (controller.preventSubcmd) return
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
-			this.fire(new TcvrSignal(SignalType.mode, this.mode))
-			this.fire(new TcvrSignal(SignalType.gain, this.gain))
-			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}))
-			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
+			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode]) // call setter
+			this.fire(new TcvrSignal(SignalType.mode, this.mode), {subcmd: true})
+			this.fire(new TcvrSignal(SignalType.gain, this.gain), {subcmd: true})
+			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}), {subcmd: true})
+			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}), {subcmd: true})
 		}, 2000) // wait for band change on tcvr
 	}
 
@@ -435,7 +420,7 @@ class Transceiver {
 	}
 
 	get modes() {
-		return this.#props && this.#props.modes
+		return this.properties && this.properties.modes
 	}
 
 	get mode() {
@@ -448,14 +433,14 @@ class Transceiver {
 		if (this.modes.includes(value)) {
 			this.#state.mode = value
 			this.fire(new TcvrSignal(SignalType.mode, this.#state.mode))
-			if (controller.ignoreSubsignals) return
-			this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.mode]))
-			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}))
+			if (controller.preventSubcmd) return
+			this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.mode]), {subcmd: true})
+			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}), {subcmd: true})
 		}
 	}
 
 	get filters() {
-		return this.#props && this.#props.filters(this.mode)
+		return this.properties && this.properties.filters(this.mode)
 	}
 
 	get filter() {
@@ -473,7 +458,7 @@ class Transceiver {
 	}
 
 	get gains() {
-		return this.#props && this.#props.gains(this.band)
+		return this.properties && this.properties.gains(this.band)
 	}
 
 	get gain() {
@@ -489,7 +474,7 @@ class Transceiver {
 	}
 
 	get agcTypes() {
-		return this.#props && this.#props.agcTypes
+		return this.properties && this.properties.agcTypes
 	}
 
 	get agc() {
@@ -514,18 +499,22 @@ class Transceiver {
 	}
 
 	fire(signal, force) {
-		if (!force && !this.online) return false
+		if (!force && !this.online) return
 		this.#bus.fire(signal)
 	}
 
-	register(controller) {
+	attachController(controller) {
 		if (controller.exclusive) {
-			this.#acl
-				.filter(ctlr => ctlr.id !== this.id)
-				.forEach(ctlr => ctlr.unregister())
-			this.#acl = [this]
+			this._detachControllers()
 		}
 		this.#acl.push(controller)
+	}
+
+	_detachControllers() {
+		this.#acl
+			.filter(ctlr => ctlr.id !== this.id)
+			.forEach(ctlr => ctlr.detach())
+		this.#acl = [this]
 	}
 
 	_denieded(controller) {
@@ -554,7 +543,7 @@ class TransceiverProperties {
 		if (!bands || !bands.length) throw new Error('No bands declared')
 		this.#bands = bands
 		this.#modes = modes && modes.length ? modes : [Modes.LSB]
-		this.#agcTypes = agcTypes && agcTypes.length ? agcTypes : [AgcTypes.NONE]
+		this.#agcTypes = agcTypes && agcTypes.length ? agcTypes : [AgcTypes.AUTO]
 
 		this.#bandGains = {}
 		if (bandGains && Object.keys(bandGains).length) {
