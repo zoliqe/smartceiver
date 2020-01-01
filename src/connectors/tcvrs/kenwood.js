@@ -1,6 +1,8 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-unused-expressions */
 import {Bands, Modes, AgcTypes} from '../../tcvr.js'
-import {delay} from '../../utils/time.mjs'
-import {selectFilter, resolveAgc, tcvrOptions} from './utils.mjs'
+import {delay} from '../../utils/time.js'
+import {selectFilter, resolveAgc, tcvrOptions} from './utils.js'
 
 
 const MD = {}
@@ -29,8 +31,11 @@ export class Adapter {
 	}
 
 	_splitState = false
+
 	_rit = 0
+	
 	_xit = 0
+	
 	#options
 
 	constructor(options = {powerViaCat, baudrate, props}) {
@@ -39,7 +44,7 @@ export class Adapter {
 	}
 
 	async init(dataSender) {
-		this._uart = async (data) => await dataSender(data + ';')
+		this._uart = async (data) => dataSender(`${data};`)
 		await delay(4000) // wait for tcvr internal CPU start
 		if (this.#options.powerViaCat) {
 			await this._uart('PS1')
@@ -83,10 +88,10 @@ export class Adapter {
 	async agc({agc, mode}) { // 000=OFF, 001 (min.) ~ 020 (max.)
 		let v = '001'
 		agc = resolveAgc(agc, mode)
-		if (agc == AgcTypes.SLOW) v = '020'
-		else if (agc == AgcTypes.MEDIUM) v = '010'
-		else if (agc == AgcTypes.OFF) v = '000'
-		await this._uart('GT' + v)
+		if (agc === AgcTypes.SLOW) v = '020'
+		else if (agc === AgcTypes.MEDIUM) v = '010'
+		else if (agc === AgcTypes.OFF) v = '000'
+		await this._uart(`GT${v}`)
 	}
 
 	async gain(gain) {
@@ -112,8 +117,8 @@ export class Adapter {
 	}
 
 	async split(value) {
-		const state = value != 0
-		if (state != this._splitState) {
+		const state = value !== 0
+		if (state !== this._splitState) {
 			await this._uart(`FT${state ? 1 : 0}`)
 			this._splitState = state
 		}

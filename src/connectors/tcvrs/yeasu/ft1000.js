@@ -1,8 +1,11 @@
+/* eslint-disable camelcase */
 import {Bands, Modes, AgcTypes, TransceiverProperties} from '../../../tcvr.js'
 
 const filters = {}
-filters[Modes.CW]  = filters[Modes.CWR] = [6000, 2400, 2000, 500, 250]
-filters[Modes.LSB] = filters[Modes.USB] = [6000, 2400, 2000, 500, 250]
+filters[Modes.CWR] = [6000, 2400, 2000, 500, 250]
+filters[Modes.CW]  = filters[Modes.CWR]
+filters[Modes.USB] = [6000, 2400, 2000, 500, 250]
+filters[Modes.LSB] = filters[Modes.USB]
 
 const modeValues = {}
 modeValues[Modes.LSB] = 0x00

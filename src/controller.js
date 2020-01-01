@@ -1,5 +1,5 @@
 /* eslint-disable no-unused-expressions */
-import {SignalType, TcvrSignal} from './utils/signals.mjs'
+import {SignalType, TcvrSignal} from './utils/signals.js'
 
 export class TcvrController {
 	#id

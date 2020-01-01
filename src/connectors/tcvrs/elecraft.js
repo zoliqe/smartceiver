@@ -1,6 +1,8 @@
+/* eslint-disable class-methods-use-this */
+/* eslint-disable no-unused-expressions */
 import { Bands, Modes, AgcTypes } from '../../tcvr.js'
-import { delay } from '../../utils/time.mjs'
-import { selectFilter, resolveAgc, tcvrOptions } from './utils.mjs'
+import { delay } from '../../utils/time.js'
+import { selectFilter, resolveAgc, tcvrOptions } from './utils.js'
 
 const MD = {}
 MD[Modes.CW] = 3
@@ -32,9 +34,13 @@ export class Adapter {
 	}
 
 	_splitState = false
+
 	_rit = 0
+
 	_xit = 0
+
 	#model
+
 	#options
 
 	constructor(options = { model, baudrate, props }) {
@@ -44,7 +50,7 @@ export class Adapter {
 	}
 
 	async init(dataSender) {
-		this._uart = async (data) => await dataSender(data + ';')
+		this._uart = async (data) => dataSender(`${data};`)
 		await delay(2000) // wait for tcvr internal CPU start
 		await this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
@@ -116,7 +122,7 @@ export class Adapter {
 	async _filterK3(bw) {
 		bw = Number(bw) / 10
 		bw = String(bw).padStart(4, '0')
-		await this._uart('BW' + bw)
+		await this._uart(`BW${bw}`)
 	}
 
 	async txpower(level) {
@@ -124,8 +130,8 @@ export class Adapter {
 	}
 
 	async split(value) {
-		const state = value != 0
-		if (state != this._splitState) {
+		const state = value !== 0
+		if (state !== this._splitState) {
 			await this._uart(`FT${state ? 1 : 0}`)
 			this._splitState = state
 		}
@@ -136,48 +142,52 @@ export class Adapter {
 		await this._uart(cmd + value)
 	}
 
-	// TODO see newer impl for kenwood
 	async rit(value) {
 		if (!value) {
+			//			this.clearRit()
+			this._rit = 0
 			await this._uart('RT0')
-			await this._uart('RC')
-			this._rit = -1 // mark as disabled
 			return
 		}
-
-		if (this._rit == -1) { // was disabled
+		if (!this._rit) {
 			this._xit && (await this.xit(0))
 			await this._uart('RT1')
-			this._rit = 0
-			await this.clearRit()
 		}
 
+		if (this.#model === 'k2') await this.ritK2(value)
+    else await this.ritK3(value)
+	}
+
+	async ritK2(value) {
 		const steps = this._diff10(this._rit, value)
 		const up = steps > 0
-		for (let step = 0; step < Math.abs(steps); step++) {
+		for (let step = 0; step < Math.abs(steps); step += 1) {
+			// eslint-disable-next-line no-await-in-loop
 			await this._uart(up ? 'RU' : 'RD')
 		}
+	}
+
+	async ritK3(value) {
+		await this._uart(`RO${value.padStart(4, '0')}`)
 	}
 
 	// TODO see newer impl for kenwood
 	async xit(value) {
 		if (!value) {
 			await this._uart('XT0')
-			await this._uart('RC')
-			this._xit = -1 // mark as disabled
+			this._xit = 0
 			return
 		}
 
-		if (this._xit == -1) { // was disabled
+		if (!this._xit) { // was disabled
 			this._rit && (await this.rit(0))
 			await this._uart('XT1')
-			this._xit = 0
-			await this.clearXit()
 		}
 
 		const steps = this._diff10(this._xit, value)
 		const up = steps > 0
-		for (let step = 0; step < Math.abs(steps); step++) {
+		for (let step = 0; step < Math.abs(steps); step += 1) {
+			// eslint-disable-next-line no-await-in-loop
 			await this._uart(up ? 'RU' : 'RD')
 		}
 	}

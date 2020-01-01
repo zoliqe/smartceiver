@@ -6,14 +6,15 @@ import { Bands, Modes, AgcTypes } from '../../tcvr.js'
  */
 function selectFilter(values, valueRaw) {
 	const value = parseInt(valueRaw, 10)
-	values = values
+	// values = values
 		// .map(bw => parseInt(bw, 10))
 		.sort((a, b) => a - b)
 	const widest = parseInt(values[values.length - 1], 10)
-	if (isNaN(value) || isNaN(widest)) return values[values.length - 1]
+	if (!Number.isInteger(value) || !Number.isInteger(widest)) 
+		return values[values.length - 1]
 
 	const result = values
-		.filter(bw => !isNaN(bw) && bw >= value)
+		.filter(bw => Number.isInteger(bw) && bw >= value)
 		.reduce((nearestWider, bw) => bw < nearestWider ? bw : nearestWider, widest)
 	console.debug('_findNearestWiderFilter:', {'for': valueRaw, 'found': result})
 	if (result == null) return String(widest)
@@ -22,12 +23,12 @@ function selectFilter(values, valueRaw) {
 
 function resolveAgc(agc, mode) {
 	if (agc !== AgcTypes.AUTO) return agc
-	return mode == Modes.CW || mode == Modes.CWR ?
+	return mode === Modes.CW || mode === Modes.CWR ?
 		AgcTypes.FAST : AgcTypes.SLOW
 }
 
 async function tcvrOptions(manufacturer, model, options) {
-	const defaults = await import(`./${manufacturer}/${model}.mjs`)
+	const defaults = await import(`./${manufacturer}/${model}.js`)
 	return {...defaults.default, ...options}
 }
 

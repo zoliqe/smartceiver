@@ -1,6 +1,6 @@
-import {delay} from '../../utils/time.mjs'
+import {delay} from '../../utils/time.js'
 
-const State = {on: 'active', starting: 'starting', off: null, stoping: 'stoping'}
+const State = {on: 'active', starting: 'starting', off: 'off', stoping: 'stoping'}
 export class PowrSwitch {
 
 	#state = State.off
@@ -45,6 +45,7 @@ export class PowrSwitch {
 
 	async resetWatchdog() {
 		await this.#connector.state(true) // reset HW watchdog
+		this.#state = State.on
 		this._watchdogStart({reset: true})
 	}
 

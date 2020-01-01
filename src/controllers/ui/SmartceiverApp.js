@@ -1,11 +1,12 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { LitElement, html, css } from 'https://cdn.pika.dev/lit-element/' // 'lit-element'
-// import { classMap } from 'lit-html/directives/class-map.js'
+import { LitElement, html, css } from 'lit-element'
+import { classMap } from 'lit-html/directives/class-map.js'
 import { Transceiver, Bands, } from '../../tcvr.js'
-import { SignalsBinder } from '../../utils/signals.mjs'
+import { SignalsBinder } from '../../utils/signals.js'
 import { get as resolveConnector } from '../../connector.js'
 import { nextValue } from '../../utils/lists.js'
-import { TcvrController } from '../../controller.mjs'
+import { TcvrController } from '../../controller.js'
 
 // import { template } from './templateMain.js';
 
@@ -178,20 +179,18 @@ export class SmartceiverApp extends LitElement {
         background-color: magenta;
       }
 
-			button#conbtn {
+			button.conbtn {
+				background-color: darkred;
+				color: white;
+        border-radius: 5px;
 				/* height: 2.5em; */
+			}
+			button.conbtn:disabled {
+				background-color: black;
+				color: darkgray;
 			}
 			button.on {
 				background-color: darkgreen;
-				color: white;
-			}
-			button.off {
-				background-color: darkred;
-				color: white;
-			}
-			button#conbtn:disabled {
-				background-color: black;
-				color: darkgray;
 			}
 
       .ctl-value {
@@ -249,7 +248,11 @@ export class SmartceiverApp extends LitElement {
 				font: bold 200% monospace;
 				color: #aaa;
 			}`
-  }
+	}
+	
+	static step2scale(step) {
+		return step * 200
+	}
 
 	#params
 
@@ -284,18 +287,21 @@ export class SmartceiverApp extends LitElement {
       <main>
       <ul class="app-grid">
 					<li class="card controls-card">
-							<button id="conbtn" name="pwrbtn" class="off" 
+							<button id="pwrbtn" 
+								class=${this._pwrbtnClass()} 
 								@click=${this.connectPower} 
 								?disabled=${this.pwrbtnDisable}>
 								PWR
 							</button>
-							<button id="conbtn" name="catbtn" class="off"
+							<button id="catbtn"
+								class=${this._catbtnClass()} 
 								@click=${this.connectCat}
-								?disabled=${this.tcvr == null && this.remote == null}
+								?disabled=${!this.connectorPwrConnected()}
 								?hidden=${this.connectorPwrWithCat()}>
 								CAT
 							</button>
-							<button id="conbtn" name="pdlbtn" class="off"
+							<button id="pdlbtn"
+								class=${this._pdlbtnClass()} 
 								@click=${this.connectRemoddle}
 								?disabled=${this.pwrbtnDisable}
 								?hidden=${!this.powerState || !this.remoddle}>
@@ -349,7 +355,7 @@ export class SmartceiverApp extends LitElement {
 	}
 	
 	firstUpdated() {
-		this.pwrbtn = this.shadowRoot.getElementById('conbtn')
+		// this.pwrbtn = this.shadowRoot.getElementById('pwrbtn')
 		this.knob = this.shadowRoot.getElementById('freq-knob')
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', () => {
@@ -377,7 +383,7 @@ export class SmartceiverApp extends LitElement {
 			gain: value => {this.gain = value},
 			agc: value => {this.agc = value.agc},
 			step: value => {
-				this.knob.scale = value * 400
+				this.knob.scale = SmartceiverApp.step2scale(value)
 				this._displayFreq(this.knob.value)
 			},
 			band: value => { 
@@ -394,7 +400,7 @@ export class SmartceiverApp extends LitElement {
 			pwrsw: value => { 
 				this.powerState = value
 				this.pwrbtnDisable = false
-				// this.pwrbtn.className = value ? 'on' : 'off' TODO
+				// this.pwrbtn.className = value ? 'conbtn on' : 'conbtn'
 			},
 		})
 		this.signals.out.bind(transceiver)
@@ -507,7 +513,7 @@ export class SmartceiverApp extends LitElement {
 		const khzHz = (freq - Math.floor(freq / 1000000) * 1000000)
 		const frq = this.#fmt.format(khzHz).replace(',', '.')
 		const val = `.${frq}`
-		const lastDigit = (this.knob && this.knob.scale >= 40000) ? 2 : 1
+		const lastDigit = (this.knob && this.knob.scale >= SmartceiverApp.step2scale(100)) ? 2 : 1
 		this.freqDisplay = val.substring(0, val.length - lastDigit)
 	}
 
@@ -522,6 +528,7 @@ export class SmartceiverApp extends LitElement {
 				this.remote.poweroff()
 				await this.remote.disconnect()
 			}
+			setTimeout(() => this.requestUpdate(), 2000) // FIXME need event (onconnect)
 			return
 		}
 
@@ -531,16 +538,30 @@ export class SmartceiverApp extends LitElement {
 			await this.tcvr.connect(connectors)
 			if (pwrWithCat)
 				this.tcvr.poweron()
+			if (this.connectors.pwr && this.connectors.pwr.id === 'remotig')
+				this.connectRemoddle()
 		} else if (this.remote) {
 			await this.remote.connect(connectors)
 			if (pwrWithCat)
 				this.remote.poweron()
 		}
+		setTimeout(() => this.requestUpdate(), 2000) // FIXME need event (onconnect)
 	}
 
 	connectorPwrWithCat() {
 		return !this.connectors.pwr || !this.connectors.cat 
 			|| this.connectors.pwr.id === this.connectors.cat.id
+	}
+
+	connectorPwrConnected() {
+		return !this.connectors.pwr || this.connectors.pwr.connected
+	}
+
+	_pwrbtnClass() {
+		return classMap({
+			conbtn: true,
+			on: this.powerState
+		})
 	}
 
 	async connectCat() {
@@ -551,6 +572,13 @@ export class SmartceiverApp extends LitElement {
 			this.remote.connect({ cat: this.connectors.cat })
 			// this.remote.poweron()
 		}
+	}
+
+	_catbtnClass() {
+		return classMap({
+			conbtn: true,
+			on: this.connectors.cat && this.connectors.cat.connected
+		})
 	}
 
 	async connectRemoddle() {
@@ -576,6 +604,13 @@ export class SmartceiverApp extends LitElement {
 		}
 	}
 
+	_pdlbtnClass() {
+		return classMap({
+			conbtn: true,
+			on: this._remoddleCtlr != null
+		})
+	}
+
 	decreaseWpm() {
 		this.tcvr.wpm = this.wpm - 2;
 	}
@@ -597,7 +632,7 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	switchStep() {
-		this.tcvr.step = nextValue(this.tcvr.steps, this.knob.scale / 400)
+		this.tcvr.step = nextValue(this.tcvr.steps, this.knob.scale / SmartceiverApp.step2scale(1))
 	}
 
 	switchFilter() {

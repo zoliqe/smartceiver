@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {SignalsBinder} from '../utils/signals.mjs'
+import {SignalsBinder} from '../utils/signals.js'
 
 // const devFilters = [
 // 	{ 'vendorId': 0x2341, 'productId': 0x8036 },

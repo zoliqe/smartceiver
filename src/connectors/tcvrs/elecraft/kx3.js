@@ -7,13 +7,13 @@ filters[Modes.CWR] = filters[Modes.CW]
 filters[Modes.LSB] = [2700, 2300, 2100, 1800, 1500, 1200, 1000, 800, 600]
 filters[Modes.USB] = filters[Modes.LSB]
 const gains = {}
-bands.forEach(b => gains[b] = [-10, 20]) // TODO kx3 supports more preamps (10/20/30) per band - can we handle this via CAT?
+bands.forEach(b => {gains[b] = [-10, 20]}) // TODO kx3 supports more preamps (10/20/30) per band - can we handle this via CAT?
 
 export default {
 	model: 'kx3',
 	baudrate: 38400,
 	props: new TransceiverProperties({
-		bands: bands,
+		bands,
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
 		agcTypes: [AgcTypes.FAST, AgcTypes.SLOW, AgcTypes.AUTO],
 		bandGains: gains,

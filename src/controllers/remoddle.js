@@ -1,10 +1,10 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {BluetoothTerminal} from '../utils/BluetoothTerminal.mjs'
-import {SignalsBinder} from '../utils/signals.mjs'
-import {delay} from '../utils/time.mjs'
-import {TcvrController} from '../controller.mjs'
-import { RemoddleMapper } from './remoddle/mapper.mjs'
+import {BluetoothTerminal} from '../utils/BluetoothTerminal.js'
+import {SignalsBinder} from '../utils/signals.js'
+import {delay} from '../utils/time.js'
+import {TcvrController} from '../controller.js'
+import { RemoddleMapper } from './remoddle/mapper.js'
 
 class RemoddleBluetooth {
 	constructor(tcvr) {

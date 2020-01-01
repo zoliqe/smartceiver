@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {SignalsBinder} from '../utils/signals.mjs'
-import {AudioProcessor} from '../utils/audio.mjs'
-// import {Microphone} from '../utils/mic.mjs'
-import {delay} from '../utils/time.mjs'
+import {SignalsBinder} from '../utils/signals.js'
+import {AudioProcessor} from '../utils/audio.js'
+// import {Microphone} from '../utils/mic.js'
+import {delay} from '../utils/time.js'
 import {WebRTC as ConnectionService} from '../utils/webrtc.js'
 import {TransceiverProperties} from '../tcvr.js'
 

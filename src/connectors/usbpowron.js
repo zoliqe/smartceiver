@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { delay } from '../utils/time.mjs'
-import {SignalsBinder} from '../utils/signals.mjs'
-import { Keyer } from './extensions/keyer.mjs'
-import { PowrSwitch } from './extensions/powrsw.mjs'
+import { delay } from '../utils/time.js'
+import {SignalsBinder} from '../utils/signals.js'
+import { Keyer } from './extensions/keyer.js'
+import { PowrSwitch } from './extensions/powrsw.js'
 
 const cmdByState = state => (state && 'H') || 'L'
 const startSeq = '$OM4AA#'

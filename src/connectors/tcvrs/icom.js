@@ -1,6 +1,6 @@
 import {Bands, Modes, AgcTypes} from '../../tcvr.js'
-import {delay} from '../../utils/time.mjs'
-import { resolveAgc, tcvrOptions } from './utils.mjs'
+import {delay} from '../../utils/time.js'
+import { resolveAgc, tcvrOptions } from './utils.js'
 
 const myCivAddr = 224
 const modeValues = {}

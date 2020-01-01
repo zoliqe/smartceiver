@@ -1,10 +1,15 @@
+/* eslint-disable no-unused-expressions */
 
 export class Keyer {
 
 	#wpm = 0
+
 	#connector
+
 	#pttTimeout
+
 	#pttTimer
+
 	#keyTimer
 
 	constructor(keyerConnector = {send, speed, state, key, ptt}, options = {pttTimeout}) {

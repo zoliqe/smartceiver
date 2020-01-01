@@ -1,5 +1,5 @@
-import {delay} from '../../utils/time.mjs'
-import {selectFilter, tcvrOptions} from './utils.mjs'
+import {delay} from '../../utils/time.js'
+import {selectFilter, tcvrOptions} from './utils.js'
 
 const hex2dec = (h) => {
 	const s = Math.floor(h / 10)
