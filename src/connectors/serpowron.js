@@ -101,6 +101,11 @@ class PowronConnector {
 			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 			await this.#device.open(this.#devopts)
 			console.info('POWRON Connected', this.#device.productName)
+			await delay(startSeqDelay)
+			this._send(startSeq)
+			await delay(serialInitDelay)
+			await this._powerTimeout(this.#timeout)
+			await this._serialBaudrate(this.#adapter.baudrate)
 			// await this._on()
 			this._readLoop()
 		} catch (error) {
