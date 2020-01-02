@@ -528,7 +528,7 @@ export class SmartceiverApp extends LitElement {
 				this.remote.poweroff()
 				await this.remote.disconnect()
 			}
-			setTimeout(() => this.requestUpdate(), 2000) // FIXME need event (onconnect)
+			setTimeout(() => this.requestUpdate(), 5000) // FIXME need event (onconnect)
 			return
 		}
 
