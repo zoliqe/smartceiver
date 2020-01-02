@@ -104,6 +104,7 @@ class PowronConnector {
 			await delay(startSeqDelay)
 			this._send(startSeq)
 			await delay(serialInitDelay)
+			this._send('?')
 			// await this._powerTimeout(this.#timeout)
 			// await this._serialBaudrate(this.#adapter.baudrate)
 			// await this._on()
