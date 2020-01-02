@@ -6,7 +6,7 @@ import { Bands, Modes, AgcTypes } from '../../tcvr.js'
  */
 function selectFilter(values, valueRaw) {
 	const value = parseInt(valueRaw, 10)
-	// values = values
+	values = values
 		// .map(bw => parseInt(bw, 10))
 		.sort((a, b) => a - b)
 	const widest = parseInt(values[values.length - 1], 10)
