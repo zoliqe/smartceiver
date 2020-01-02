@@ -1,4 +1,4 @@
-import {SignalType} from '../utils/signals.mjs'
+import {SignalType} from './signals.js'
 
 class Microphone {
 	constructor(tcvr) {

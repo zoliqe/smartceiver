@@ -1,4 +1,5 @@
-import {SignalType} from './signals.mjs'
+/* eslint-disable no-unused-expressions */
+// import {SignalType} from './signals.js'
 
 class AudioProcessor {
 	constructor(rtcTrackEvent) {
@@ -83,8 +84,8 @@ class AudioProcessor {
 		hpf.type = 'highpass'
 		hpf.frequency.setValueAtTime(this._hpfCutoff, 0)
 	
-		for (let i = 0; i < this._filterCount; i++) {
-			let filter = this._audioCtx.createBiquadFilter()
+		for (let i = 0; i < this._filterCount; i +=1) {
+			const filter = this._audioCtx.createBiquadFilter()
 			this._filterArray[i] = filter
 			filter.type = 'lowpass'
 			if (i > 0) {
