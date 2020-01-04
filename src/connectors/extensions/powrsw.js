@@ -35,9 +35,8 @@ export class PowrSwitch {
 		this.#state = State.stoping
 		console.info(`powerOff`)
 		this._watchdogStop()
-		await delay(500)
 		await this.#connector.state(false)
-		await delay(1000)
+		await delay(100)
 		await this.#connector.state(false)
 
 		this.#state = State.off

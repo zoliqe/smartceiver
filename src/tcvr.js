@@ -122,8 +122,8 @@ class Transceiver {
 		this.#props = null
 		this._unbindSignals()
 
-		this._disconnect(this.#connectors.pwr)
-		this._disconnect(this.#connectors.cat)
+		await this._disconnect(this.#connectors.pwr)
+		await this._disconnect(this.#connectors.cat)
 		this.#connectors = {}
 		this.fire(new TcvrSignal(SignalType.pwrsw, false), {force: true})
 	}
@@ -325,7 +325,8 @@ class Transceiver {
 		if (controller.preventSubcmd) return
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
-			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode]) // call setter
+			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode])
+			this.setSplit(this, this.#state.split[this.#state.band][this.#state.mode])
 			this.fire(new TcvrSignal(SignalType.mode, this.mode), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.gain, this.gain), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}), {subcmd: true})
@@ -358,14 +359,10 @@ class Transceiver {
 
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
-		if (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq)) return
+		if (freq && (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
 		this.#state.split[this.#state.band][this.#state.mode] = freq
 		this._d('split', freq)
 		this.fire(new TcvrSignal(SignalType.split, freq))
-	}
-
-	clearSplit() {
-		this.split = 0
 	}
 
 	get rit() {
@@ -381,26 +378,18 @@ class Transceiver {
 		}
 	}
 
-	clearRit() {
-		this.rit = 0
-	}
+	// get xit() {
+	// 	return this.#state.xit
+	// }
 
-	get xit() {
-		return this.#state.xit
-	}
-
-	setXit(controller, value) {
-		if (!this.online || this._denieded(controller)) return
-		this._d('xit', value)
-		if (Math.abs(value) < 10000) {
-			this.#state.xit = value
-			this.fire(new TcvrSignal(SignalType.xit, value))
-		}
-	}
-
-	clearXit() {
-		this.xit = 0
-	}
+	// setXit(controller, value) {
+	// 	if (!this.online || this._denieded(controller)) return
+	// 	this._d('xit', value)
+	// 	if (Math.abs(value) < 10000) {
+	// 		this.#state.xit = value
+	// 		this.fire(new TcvrSignal(SignalType.xit, value))
+	// 	}
+	// }
 
 	get steps() {
 		return [10, 100]

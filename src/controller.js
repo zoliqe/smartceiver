@@ -1,5 +1,6 @@
 /* eslint-disable no-unused-expressions */
 import {SignalType, TcvrSignal} from './utils/signals.js'
+import { Transceiver } from './tcvr.js'
 
 export class TcvrController {
 	#id
@@ -29,6 +30,10 @@ export class TcvrController {
 		this.#tcvr = null
 	}
 
+	/**
+	 * 
+	 * @param {Transceiver} tcvr 
+	 */
 	attachTo(tcvr) {
 		tcvr.attachController(this)
 		this.#tcvr = tcvr
@@ -36,7 +41,7 @@ export class TcvrController {
 	}
 
 	async connect(connectors) {
-		this.#tcvr && this.#tcvr.connect(connectors)
+		this.#tcvr && (await this.#tcvr.connect(connectors))
 	}
 
 	async disconnect() {
