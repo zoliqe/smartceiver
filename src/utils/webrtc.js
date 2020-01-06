@@ -196,14 +196,10 @@ class WebRTC {
 	async _getLocalAudio() {
 		console.debug('Getting user media with constraints', this.options.userMediaConstraints)
 		this._localStream = await navigator.mediaDevices.getUserMedia(this.options.userMediaConstraints)
-			// .then(stream => this._gotStream(stream))
-			// .catch(function (e) {
-			//   alert('getUserMedia() error: ' + e.name);
-			// })
 		console.debug('Adding local stream', this._localStream)
 		// this._localStream.getAudioTracks().forEach(track => console.log(track.getSettings()))		
 		// this._localAudio.srcObject = stream;
-		this.sendSignal('ready') // TODO looks unused
+		this.sendSignal('ready')
 	}
 
 	_maybeStart() {
