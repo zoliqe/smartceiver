@@ -8,10 +8,12 @@ import { SignalsBinder } from '../../utils/signals.js'
 import { get as resolveConnector } from '../../connector.js'
 import { nextValue } from '../../utils/lists.js'
 import { TcvrController } from '../../controller.js'
+import { WakeLock } from './wakelock.js'
 
 // import { template } from './templateMain.js';
 
 const _vfos = ['main', 'rit', 'split']
+const subvfoDefault = 'RIT/SPLIT'
 
 export class SmartceiverApp extends LitElement {
   static get properties() {
@@ -100,7 +102,7 @@ export class SmartceiverApp extends LitElement {
 				padding-left: 10px;
 				padding-top: 10px;
 				text-align: left;
-				color: darkviolet;
+				color: lightskyblue;
 				flex-grow: 100;
 				height: fit-content;
 				user-select: none;
@@ -111,8 +113,12 @@ export class SmartceiverApp extends LitElement {
 			}
 
 			.band {
-				color: slateblue;
+				color: lightsteelblue;
 				flex-grow: 1;
+			}
+
+			.subvfo {
+				font-size: 2.5em;
 			}
 
       ul {
@@ -254,7 +260,7 @@ export class SmartceiverApp extends LitElement {
 	}
 	
 	static step2scale(step) {
-		return step * 200
+		return step * 100
 	}
 
   constructor() {
@@ -263,6 +269,7 @@ export class SmartceiverApp extends LitElement {
 		this.connectors = {}
 		this.kredence = {}
 		this.remoddle = null
+		this._wakeLock = new WakeLock()
 		this._params = new URLSearchParams(window.location.search)
 		this._initTcvr()
 
@@ -277,7 +284,7 @@ export class SmartceiverApp extends LitElement {
 		this.mode = 'MODE'
 		this.gain = 0;
 		this.vfo = _vfos[0]
-		this.subvfo = ''
+		this.subvfo = subvfoDefault
 		this.unackStateQueries = 0
 		setInterval(() => this._fetchStatus(), 5000)
   }
@@ -334,9 +341,9 @@ export class SmartceiverApp extends LitElement {
 							@click=${this.switchStep}
 							?hidden=${!this.powerState}>${this.freqDisplay}</span>
 						<span id="subvfo" name="subvfo" class="freq-display subvfo"
-							?hidden=${this.vfo === 'split' || this.vfo === 'rit'}>${this.subvfo}</span>
-						<input-knob id="freq-knob" name="freq-knob" 
 							@click=${this.switchVfo}
+							?hidden=${!this.powerState}>${this.subvfo}</span>
+						<input-knob id="freq-knob" name="freq-knob" 
 							?hidden=${!this.powerState}><div class="mark">▲</div>
 						</input-knob>
 						<!-- <div class="ctl">
@@ -365,9 +372,16 @@ export class SmartceiverApp extends LitElement {
 		this.knob = this.shadowRoot.getElementById('freq-knob')
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', () => {
-			const curValue = Number.parseFloat(this.knob.value) / 10
-			if (this.tcvr) 
-				this.tcvr.freq = Math.floor(curValue) * 10
+			if (!this.tcvr) return 
+			const curValue = Math.floor(
+				Number.parseFloat(this.knob.value) / 10) * 10
+
+			if (this.vfo === 'main')
+				this.tcvr.freq = curValue
+			else if (this.vfo === 'split')
+				this.tcvr.split = curValue
+			else if (this.vfo === 'rit')
+				this.tcvr.rit = curValue
 		})
 
 		window.onbeforeunload = () => {
@@ -401,7 +415,7 @@ export class SmartceiverApp extends LitElement {
 				this._displayFreq(value)
 			},
 			rit: value => {
-				this.subvfo = (value < 0 ? '-' : '+') + value
+				this.subvfo = `RIT ${value < 0 ? '' : '+'}${value}Hz`
 			},
 			split: value => {
 				if (value)
@@ -411,6 +425,7 @@ export class SmartceiverApp extends LitElement {
 			pwrsw: value => { 
 				this.powerState = value
 				this.pwrbtnDisable = false
+				this._wakeLock.changeState(value)
 				// this.pwrbtn.className = value ? 'conbtn on' : 'conbtn'
 			},
 		})
@@ -536,13 +551,14 @@ export class SmartceiverApp extends LitElement {
 
 	_displaySplit(split) {
 		if (!split || !this.tcvr || !Number.isInteger(split)) {
-			this.subvfo = ''
+			this.subvfo = subvfoDefault
+			return
 		}
 
 		const mhz = Math.floor(split / 1000000)
 		const khzHz = (split - mhz * 1000000)
 		const frq = this._fmt.format(khzHz).replace(',', '.')
-		this.subvfo = `${mhz}.${frq}`
+		this.subvfo = `TX ${mhz}.${frq.substring(0, frq.length - 1)}`
 	}
 
 	async connectPower() {
@@ -684,14 +700,15 @@ export class SmartceiverApp extends LitElement {
 			this.knob.value = this.tcvr.freq
 			this.tcvr.split = this.tcvr.freq
 		} else if (this.vfo === 'rit') {
-			this.tcvr.rit = 10
-			// TODO
+			// TODO rit knob settings from tcvr
 			this.knob.min = -9999
 			this.knob.max = 9999
-			this.knob.value = 10
+			this.knob.value = 0
+			this.tcvr.rit = 0
 		} else {
 			this._knobParamsByBand()
 			this.knob.value = this.tcvr.freq
+			this.subvfo = subvfoDefault
 		}
 	}
 
