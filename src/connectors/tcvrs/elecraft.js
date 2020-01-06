@@ -168,45 +168,44 @@ export class Adapter {
 	}
 
 	async ritK3(value) {
-		await this._uart(`RO${value.padStart(4, '0')}`)
+		await this._uart(`RO${String(value).padStart(4, '0')}`)
 	}
 
-	// TODO see newer impl for kenwood
-	async xit(value) {
-		if (!value) {
-			await this._uart('XT0')
-			this._xit = 0
-			return
-		}
+	// async xit(value) {
+	// 	if (!value) {
+	// 		await this._uart('XT0')
+	// 		this._xit = 0
+	// 		return
+	// 	}
 
-		if (!this._xit) { // was disabled
-			this._rit && (await this.rit(0))
-			await this._uart('XT1')
-		}
+	// 	if (!this._xit) { // was disabled
+	// 		this._rit && (await this.rit(0))
+	// 		await this._uart('XT1')
+	// 	}
 
-		const steps = this._diff10(this._xit, value)
-		const up = steps > 0
-		for (let step = 0; step < Math.abs(steps); step += 1) {
-			// eslint-disable-next-line no-await-in-loop
-			await this._uart(up ? 'RU' : 'RD')
-		}
-	}
+	// 	const steps = this._diff10(this._xit, value)
+	// 	const up = steps > 0
+	// 	for (let step = 0; step < Math.abs(steps); step += 1) {
+	// 		// eslint-disable-next-line no-await-in-loop
+	// 		await this._uart(up ? 'RU' : 'RD')
+	// 	}
+	// }
 
 	_diff10(v1, v2) {
 		return Math.floor(v2 / 10) - Math.floor(v1 / 10)
 	}
 
-	async clearRit() {
-		if (this._rit != -1) {
-			await this._uart('RC')
-			this._rit = 0
-		}
-	}
+	// async clearRit() {
+	// 	if (this._rit != -1) {
+	// 		await this._uart('RC')
+	// 		this._rit = 0
+	// 	}
+	// }
 
-	async clearXit() {
-		if (this._xit != -1) {
-			await this._uart('RC')
-			this._xit = 0
-		}
-	}
+	// async clearXit() {
+	// 	if (this._xit != -1) {
+	// 		await this._uart('RC')
+	// 		this._xit = 0
+	// 	}
+	// }
 }

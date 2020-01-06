@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 import {delay} from '../../utils/time.js'
 import {selectFilter, tcvrOptions} from './utils.js'
 
@@ -36,7 +37,7 @@ export class Adapter {
 	}
 
 	async init(dataSender) {
-		this._uart = async (data) => await dataSender(new Uint8Array(data))
+		this._uart = async (data) => dataSender(new Uint8Array(data))
 		await delay(2000) // wait for tcvr internal CPU start
 	}
 
@@ -98,10 +99,12 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async agc({agc, mode}) {
-	}
+	async agc({agc, mode}) {}
 
-	async gain(gain) {
-	}
+	async gain(gain) {}
+
+	async split(freq) {}
+
+	async rit(rit) {}
 
 }
