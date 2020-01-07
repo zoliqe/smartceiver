@@ -392,7 +392,7 @@ class Transceiver {
 	// }
 
 	get steps() {
-		return [10, 100]
+		return [10, 100, 1000, 10_000]
 	}
 
 	get step() {
@@ -439,8 +439,9 @@ class Transceiver {
 	setFilter(controller, bw) {
 		if (!this.online || this._denieded(controller)) return
 		this._d('filter', bw)
-		const filterRange = _filters[this.mode]
-		if (filterRange.min <= bw && filterRange.max >= bw) {
+		// const filterRange = _filters[this.mode]
+		// if (filterRange.min <= bw && filterRange.max >= bw) {
+		if (this.filters.includes(bw)) {
 			this.#state.filters[this.mode] = bw
 			this.fire(new TcvrSignal(SignalType.filter, {filter: bw, mode: this.mode}))
 		}

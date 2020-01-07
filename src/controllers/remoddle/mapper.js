@@ -10,7 +10,7 @@ class RemoddleMapper {
 	_encoderAvailableFunctions = {
 		1: [dir => this.changeFreq(dir)],
 		2: [dir => this.changeWpm(dir), dir => this.switchFilter(dir)],
-		3: [dir => this.changeRit(dir)]
+		3: [dir => this.changeRit(dir), dir => this.changeSplit(dir)]
 	}
 
 	_encoderFunction = { 
@@ -144,8 +144,13 @@ class RemoddleMapper {
 		this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
 	}
 	
+	changeSplit = dir => {
+		const split = this._tcvr.split === 0 ? this._tcvr.freq : this._tcvr.split
+		this._tcvr.split = dir === '+' ? (split + this._tcvr.step) : (split - this._tcvr.step)
+	}
+	
 	changeRit = dir => { 
-		this._tcvr.freq = dir === '+' ? (this._tcvr.freq + 10) : (this._tcvr.freq - 10) 
+		this._tcvr.rit = dir === '+' ? (this._tcvr.rit + 10) : (this._tcvr.rit - 10) 
 	}
 	
 	changeWpm = dir => { this._tcvr.wpm += (dir === '+' ? 1 : -1) }
