@@ -1,7 +1,9 @@
+/* eslint-disable prefer-destructuring */
+/* eslint-disable no-unused-expressions */
 import {SignalType} from './signals.js'
 
 class Microphone {
-	constructor(tcvr) {
+	constructor() {
 		this.userMediaConstraints = {
 			video: false,
 			audio: {
@@ -14,7 +16,7 @@ class Microphone {
 				noiseSuppression: false
 			}
 		}
-		this.tcvr = tcvr
+		// this.tcvr = tcvr
 	}
 
 	request() {
@@ -25,19 +27,19 @@ class Microphone {
 				this._track = stream.getAudioTracks()[0]
 				console.debug('Adding microphone', stream, this._track)
 				this._track && console.info('Microphone constraints:', this._track.getSettings())
-				this.mute()
-				this.tcvr.bind(SignalType.ptt, 'mic', 
-					event => event.value ? this.unmute() : this.mute())
+				// this.mute()
+				// this.tcvr.bind(SignalType.ptt, 'mic', 
+				// 	event => event.value ? this.unmute() : this.mute())
 				return this
 			})
-			.catch(error => alert('Request to access your microphone was unsucessfull.\nSSB transmit will not be available.\nError: ' + error.name))
+			.catch(error => window.alert(`Request to access your microphone was unsucessfull.\nSSB transmit will not be available.\nError: ${error.name}`))
 	}
 
 	close() {
 		this._track && this._track.stop()
 		this._stream = null
 		this._track = null
-		this.tcvr.unbind('mic')
+		// this.tcvr.unbind('mic')
 	}
 
 	mute() {
@@ -51,6 +53,7 @@ class Microphone {
 	get track() {
 		return this._track
 	}
+	
 	get stream() {
 		return this._stream
 	}

@@ -9,6 +9,7 @@ import { get as resolveConnector } from '../../connector.js'
 import { nextValue } from '../../utils/lists.js'
 import { TcvrController } from '../../controller.js'
 import { WakeLock } from './wakelock.js'
+import { Microphone } from '../../utils/mic.js'
 
 // import { template } from './templateMain.js';
 
@@ -129,7 +130,7 @@ export class SmartceiverApp extends LitElement {
 				font-size: 2.5em;
 			}
 
-			.vfoflag {
+			/* .vfoflag {
 				color: white;
 				font-size: 0.5em;
 				padding: 3px;
@@ -137,12 +138,14 @@ export class SmartceiverApp extends LitElement {
 				background-color: blue;
         border-radius: 10px;
 			}
-
+ */
       ul {
         list-style: none;
 				display: flex;
+				/* justify-content: center; */
 				padding: 10px;
 				margin: 0;
+				width: fit-content;
       }
       .card {
         /* border-radius: 30px;  */
@@ -153,6 +156,9 @@ export class SmartceiverApp extends LitElement {
 				justify-content: flex-start;
       }
       .knob-card {
+				/* max-width: 700px; */
+				width: 700px;
+				/* height: 450px; */
         display: flex;
 				flex-grow: 1;
 				flex-wrap: wrap;
@@ -275,20 +281,32 @@ export class SmartceiverApp extends LitElement {
 				color: #aaa;
 			}
 			
+			.knobflag {
+				color: white;
+				/* font-size: 0.5em; */
+				padding: 3px;
+				margin-left: 2rem;
+				vertical-align: middle;
+				background-color: #aaa;
+        border-radius: 10px;
+			}
+
 			#fft {
 				/* border-color: gray;
 				border-width: 2px;
 				border-style: solid;
 				top: 44px; */
-				/* position: absolute; */
-				/*left: 0em;*/
-				/*top: 0em;*/
-				padding: 2px;
-				width: 100%;
-				height: 100%;
+				position: absolute;
+				left: 130px;
+				top: 110px;
+				/* right: 20px; */
+				/* padding: 2px; */
+				width: 500px;
+				height: 300px;
 				background-color: #505050;
 				color: #cfcfcf;
-				z-index: -10;
+				/* z-index: -10; */
+				z-index: 1;
 			}
 			`
 	}
@@ -305,6 +323,7 @@ export class SmartceiverApp extends LitElement {
 		this.remoddle = null
 		this._wakeLock = new WakeLock()
 		this._params = new URLSearchParams(window.location.search)
+		this._mic = new Microphone()
 		this._initTcvr()
 
 		this.powerState = false
@@ -366,9 +385,7 @@ export class SmartceiverApp extends LitElement {
               </button>
 					</li>
 					<li class="card knob-card">
-						<!-- <div> -->
-					    <canvas id="fft" class="fft"></canvas>
-						<!-- </div> -->
+						<audio-processor id="audio-processor"></audio-processor>
 						<span id="band" name="band" class=${this._dispBandClass()}
 							@click=${this.switchBand}
 							?hidden=${!this.powerState}>${this.bandMHz}</span>
@@ -378,11 +395,13 @@ export class SmartceiverApp extends LitElement {
 						<span id="subvfo" name="subvfo" class=${this._dispTxFreqClass()}
 							@click=${this.switchVfo}
 							?hidden=${!this.powerState}>
-							<span id="splitflag" class="vfoflag" ?hidden=${this.vfo !== 'split'}>SPLIT</span>
-							<span id="ritflag" class="vfoflag" ?hidden=${this.vfo !== 'rit'}>RIT</span>
+							<!-- <span id="splitflag" class="vfoflag" ?hidden=${this.vfo !== 'split'}>SPLIT</span> -->
+							<!-- <span id="ritflag" class="vfoflag" ?hidden=${this.vfo !== 'rit'}>RIT</span> -->
 							TX:${this.subvfo}</span>
 						<input-knob id="freq-knob" name="freq-knob" 
 							?hidden=${!this.powerState}><div class="mark">▲</div>
+							<span id="splitflag" class="knobflag" ?hidden=${this.vfo !== 'split'}>SPLIT</span>
+							<span id="ritflag" class="knobflag" ?hidden=${this.vfo !== 'rit'}>RIT</span>
 						</input-knob>
 						<!-- <div class="ctl">
 							<button onclick="decreaseWpm" class="ctl" hidden="[[!powerState]]">--</button>
@@ -407,6 +426,7 @@ export class SmartceiverApp extends LitElement {
 	
 	firstUpdated() {
 		// this.pwrbtn = this.shadowRoot.getElementById('pwrbtn')
+		this.audioProcessor = this.shadowRoot.getElementById('audio-processor')
 		this.knob = this.shadowRoot.getElementById('freq-knob')
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', () => {
@@ -433,11 +453,23 @@ export class SmartceiverApp extends LitElement {
 		this.transceiver = transceiver
 
 		this.signals = new SignalsBinder('ui', {
-			ptt: value => {this.ptt = value},
-			keyTx: value => {this.ptt = value},
+			ptt: value => {
+				this.ptt = value
+				if (value) this.audioProcessor.mute()
+				else this.audioProcessor.unmute()
+			},
+			keyTx: value => {
+				this.ptt = value
+				if (value) this.audioProcessor.mute()
+				else this.audioProcessor.unmute()
+				// TODO handle mic / rxin
+			},
 			wpm: value => {this.wpm = value},
 			mode: value => {this.mode = value},
-			filter: value => {this.filter = value.filter},
+			filter: value => {
+				this.filter = value.filter
+				this.audioProcessor.updateFilter({bandwidth: value.filter * 1.0})
+			},
 			gain: value => {this.gain = value},
 			agc: value => {this.agc = value.agc},
 			step: value => {
@@ -475,8 +507,11 @@ export class SmartceiverApp extends LitElement {
 				this.powerState = value
 				this.pwrbtnDisable = false
 				this._wakeLock.changeState(value)
+				if (!value)
+					this.audioProcessor.close()
 				// this.pwrbtn.className = value ? 'conbtn on' : 'conbtn'
 			},
+			audioMute: async () => this.audioProcessor.switchMute(),
 		})
 		this.signals.out.bind(transceiver)
 
@@ -639,6 +674,8 @@ export class SmartceiverApp extends LitElement {
 			if (pwrWithCat) {
 				console.info('pwr connector contains cat - auto powering on')
 				this.tcvr.poweron()
+				await this._mic.request()
+				this.audioProcessor.connectStream({streams: [this._mic.stream], track: this._mic.track})
 			}
 			if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
 				// on remotig, click-event (user action) can be used to 'auto' connect remoddle
