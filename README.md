@@ -26,7 +26,6 @@ Currently tested:
 
 *TODO*
 - Hide unchangeable values (values.length <= 1)
-- panadapter
 - build filter table with AudioProcessor filters
 - use KV storage to persist state / connectors config
 - add login form for remote

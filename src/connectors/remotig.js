@@ -24,9 +24,9 @@ class RemotigConnector {
 		conoptions.signaling.autoClose = true
 		this._con = new ConnectionService(conoptions)
 		this._con.onControlOpen = () => this._onControlOpen()
-		this._con.onTrack = e => this._onTrack(e)
+		this._con.onTrack = e => this.onTrack(e)
 		this._con.onRemoveTrack = e => this._onRemoveTrack(e)
-		this._con.ondisconnect = () => this._onDisconnect()
+		this._con.ondisconnect = () => this.onDisconnect()
 		
 		this._initSignals()
 	}
@@ -77,19 +77,20 @@ class RemotigConnector {
 		return this._con.info && this._con.info.propDefaults
 	}
 
-	_onDisconnect() {
-		this._audio && this._audio.close()
-		this._audio = null
+	onDisconnect() {
+		// this._audio && this._audio.close()
+		// this._audio = null
 		// this._mic && this._mic.close()
 		// this._mic = null
 	}
 	
-	_onTrack(event) {
-		this._audio = new AudioProcessor(event)
+	onTrack(event) {
+		// this._audio = new AudioProcessor(event)
 	}
 
 	_onRemoveTrack(event) {
-		this._audio && this._audio.trackRemoved(event)
+		console.debug('Remote track removed: ', event)
+		// this._audio && this._audio.trackRemoved(event)
 	}
 
 	async _onControlOpen() {
@@ -110,13 +111,13 @@ class RemotigConnector {
 			wpm: async (value) => this._con.sendCommand(`wpm=${value}`),
 			ptt: async (value) => {
 				this._con.sendCommand(`ptt${value ? 'on' : 'off'}`)
-				if (value) this._audio.mute()
-				else this._audio.unmute()
+				// if (value) this._audio.mute()
+				// else this._audio.unmute()
 			},
 			mode: async (value) => this._con.sendCommand(`mode=${value}`),
 			filter: async (value) => {
 				this._con.sendCommand(`filter=${value.filter}`)
-				this._audio.updateFilter({bandwidth: value.filter * 1.0})
+				// this._audio.updateFilter({bandwidth: value.filter * 1.0})
 			},
 			gain: async (value) => this._con.sendCommand(`gain=${value}`),
 			agc: async (value) => this._con.sendCommand(`agc=${value.agc}`),
@@ -126,7 +127,7 @@ class RemotigConnector {
 			rit: async (value) => this._con.sendCommand(`rit=${value}`),
 			// xit: async (value) => this._con.sendCommand(`xit=${value}`),
 			keepAlive: async () => this._con.sendCommand('poweron'),
-			audioMute: async () => this._audio.switchMute(),
+			// audioMute: async () => this._audio.switchMute(),
 		})
 	}
 

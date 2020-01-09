@@ -1,6 +1,6 @@
 /* eslint-disable prefer-destructuring */
 /* eslint-disable no-unused-expressions */
-import {SignalType} from './signals.js'
+// import {SignalType} from './signals.js'
 
 class Microphone {
 	constructor() {

@@ -5,7 +5,9 @@ import { LitElement, html, css } from 'lit-element'
 
 export class AudioProcessor extends LitElement {
   static get properties() {
-    return {}
+    return {
+			hidden: { type: Boolean, reflect: true },
+		}
   }
 
   static get styles() {
@@ -22,9 +24,9 @@ export class AudioProcessor extends LitElement {
 				/* padding: 2px; */
 				width: 500px;
 				height: 300px;
-				background-color: #505050;
+				background-color: #333;
 				color: #cfcfcf;
-				z-index: -10;
+				z-index: 0;
 			}`
 	}
 	
@@ -50,9 +52,9 @@ export class AudioProcessor extends LitElement {
   render() {
 		return html`
 			<!-- <div> -->
-			<canvas id="fft" class="fft"></canvas>
+			<canvas id="fft" class="fft" ?hidden=${this.hidden}></canvas>
 			<!-- </div> -->
-			<audio id="remoteAudio" autoplay></audio>`
+			<audio id="remoteAudio" autoplay hidden></audio>`
 	}
 
 	firstUpdated() {
@@ -75,21 +77,6 @@ export class AudioProcessor extends LitElement {
 		this._drawSpectrum()
 	}
 
-	_buildAudioChain(stream) {
-		this._audioCtx = new AudioContext()
-		this._analyser = this._audioCtx.createAnalyser()
-		this._analyser.fftSize = 512
-		this._analyser.smoothingTimeConstant = 0.82
-		this._gain = this._audioCtx.createGain()
-		this._gain.connect(this._analyser)
-
-		this._buildFilterChain()
-
-		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv
-
-		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
-	}
-
 	close() {
 		this._track && this._track.stop()
 		// this._stream = null
@@ -101,9 +88,9 @@ export class AudioProcessor extends LitElement {
 		// this.tcvr.unbind('audio')
 	}
 
-	trackRemoved(event) {
-		console.debug('Remote track removed: ', event)
-	}
+	// trackRemoved(event) {
+	// 	console.debug('Remote track removed: ', event)
+	// }
 
 	mute() {
 		if (this._track) 
@@ -125,6 +112,21 @@ export class AudioProcessor extends LitElement {
 		// 	this._remoteAudio.removeAttribute("src")
 		// 	this._remoteAudio.removeAttribute("srcObject")
 		// }
+	}
+
+	_buildAudioChain(stream) {
+		this._audioCtx = new AudioContext()
+		this._analyser = this._audioCtx.createAnalyser()
+		this._analyser.fftSize = 512
+		this._analyser.smoothingTimeConstant = 0.82
+		this._gain = this._audioCtx.createGain()
+		this._gain.connect(this._analyser)
+
+		this._buildFilterChain()
+
+		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv
+
+		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
 	}
 
 	_buildFilterChain() {
@@ -177,21 +179,21 @@ export class AudioProcessor extends LitElement {
 	
 		this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height)
 		this._canvasCtx.globalAlpha = 1.0
-		for (let i = 0; i < this._analyser.frequencyBinCount / this._cutoffDiv; i += 1) {
+		for (let i = 3; i < this._analyser.frequencyBinCount / this._cutoffDiv; i += 1) {
 			if (i > 3 && (i * binFreq) % 1000 < 80) {
-				this._canvasCtx.fillStyle = '#404040'
+				this._canvasCtx.fillStyle = '#000'
 				this._canvasCtx.fillRect(i, this._canvas.height, 1, -this._canvas.height)
 			}
 			const magnitude = freqByteData[i]
-			this._canvasCtx.fillStyle = `rgb(50,${magnitude},80)`
+			this._canvasCtx.fillStyle = `rgb(60,60,${magnitude*0.5 + 150})` // `rgb(50,${magnitude},80)`
 			this._canvasCtx.fillRect(i, this._canvas.height, 1, -magnitude)
 		}
 	
-		this._canvasCtx.globalAlpha = 0.5
-		this._canvasCtx.fillStyle = '#615913'
+		this._canvasCtx.globalAlpha = 0.3
+		this._canvasCtx.fillStyle = '#bac977'
 		this._canvasCtx.lineCap = 'round'
 		this._canvasCtx.fillRect(this._hpfCutoff / binFreq, this._canvas.height, 
-			this._bw / binFreq, -this._canvas.height)
+			this._bw / binFreq - 1, -this._canvas.height)
 
 		window.requestAnimationFrame(t => this._drawSpectrum(t), this._canvas)
 	}
