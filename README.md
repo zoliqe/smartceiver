@@ -25,8 +25,9 @@ Currently tested:
 - Android 7+ with Chrome
 
 *TODO*
-- Hide unchangeable values (values.length <= 1)
+- mark active remoddle enc function
 - build filter table with AudioProcessor filters
-- use KV storage to persist state / connectors config
 - add login form for remote
 - create settings page for connectors (with persistance)
+- Hide unchangeable values (values.length <= 1)
+- use KV storage to persist state / connectors config

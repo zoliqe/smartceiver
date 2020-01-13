@@ -8,9 +8,14 @@ class RemoddleMapper {
 	dn = '-'
 
 	_encoderAvailableFunctions = {
-		1: [dir => this.changeFreq(dir)],
-		2: [dir => this.changeWpm(dir), dir => this.switchFilter(dir)],
-		3: [dir => this.changeRit(dir), dir => this.changeSplit(dir)]
+		1: [
+			{id: 'freq', fnc: dir => this.changeFreq(dir)}],
+		2: [
+			{id: 'wpm', fnc: dir => this.changeWpm(dir)}, 
+			{id: 'filter', fnc: dir => this.switchFilter(dir)}],
+		3: [
+			{id: 'rit', fnc: dir => this.changeRit(dir)}, 
+			{id: 'split', fnc: dir => this.changeSplit(dir)}]
 	}
 
 	_encoderFunction = { 
@@ -99,8 +104,13 @@ class RemoddleMapper {
 
 	rotateEncoder = (enc, dir) => {
 		// const fnc = this._encoderAvailableFunctions[enc][this._encoderFunction[enc]]
-		const fnc = this._encoderFunction[enc]
-		fnc && fnc(dir)
+		const fncobj = this._encoderFunction[enc]
+		fncobj && fncobj.fnc(dir)
+	}
+
+	get encodersActiveFunctions() {
+		return Object.values(this._encoderFunction)
+			.map(fncobj => fncobj.id)
 	}
 
 	holdButton(btn) {

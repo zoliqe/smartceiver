@@ -14,15 +14,15 @@ import { Microphone } from '../../utils/mic.js'
 // import { template } from './templateMain.js';
 
 const _vfos = ['main', 'rit', 'split']
-// const subvfoDefault = 'RIT/SPLIT'
 
 export class SmartceiverApp extends LitElement {
   static get properties() {
     return {
 			bandMHz: { type: String},
-			freqDisplay: {type: String},
+			freqRx: {type: String},
+			freqTx: {type: String},
+			knobVfo: {type: String},
 			vfo: {type: String},
-			subvfo: {type: String},
 			filter: {type: Number},
 			wpm: {type: Number},
 			mode: {type: String},
@@ -129,7 +129,7 @@ export class SmartceiverApp extends LitElement {
 				width: 100%;
 				flex-grow: 100;
 			}
-			.subvfo {
+			.txfreq {
 				font-size: 2.5em;
 				padding-left: 10px;
 			}
@@ -207,6 +207,9 @@ export class SmartceiverApp extends LitElement {
         background-color: darkblue;
       }
       button.toggles:hover {
+        background-color: blue;
+      }
+      button.active {
         background-color: blue;
       }
       button.ctl {
@@ -325,9 +328,9 @@ export class SmartceiverApp extends LitElement {
 		this.filter = 2000
 		this.agc = 'AGC'
 		this.mode = 'MODE'
-		this.gain = 0;
+		this.gain = 0
+		this.knobVfo = _vfos[0]
 		this.vfo = _vfos[0]
-		// this.subvfo = subvfoDefault
 		this.unackStateQueries = 0
 		setInterval(() => this._fetchStatus(), 5000)
   }
@@ -366,10 +369,10 @@ export class SmartceiverApp extends LitElement {
               <button @click=${this.switchAgc} class="toggles toggle-btn" ?hidden=${!this.powerState}>
                 ${this.agc}
               </button>
-              <button @click=${this.switchFilter} class="toggles toggle-btn" ?hidden=${!this.powerState}>
+              <button @click=${this.switchFilter} class=${this._toggleBtnClass('filter')} ?hidden=${!this.powerState}>
                 ${this.filter}
               </button>
-              <button class="toggles toggle-btn" ?hidden=${!this.powerState}>
+              <button class=${this._toggleBtnClass('wpm')} ?hidden=${!this.powerState}>
                 ${this.wpm}
               </button>
 					</li>
@@ -382,20 +385,20 @@ export class SmartceiverApp extends LitElement {
 								?hidden=${!this.powerState}>${this.bandMHz}</span>
 							<span id="freq" name="freq" class=${this._dispFreqClass()} 
 								@click=${this.switchStep}
-								?hidden=${!this.powerState}>${this.freqDisplay}</span>
+								?hidden=${!this.powerState}>${this.freqRx}</span>
 						</span>
-						<span id="subvfo" name="subvfo" class=${this._dispTxFreqClass()}
+						<span id="txfreq" name="txfreq" class=${this._dispTxFreqClass()}
 							@click=${this.switchVfo}
 							?hidden=${!this.powerState}>
 							<span class="vfoflag">
 								TX<br/>${this.vfo.toUpperCase()}
 							</span>
-							${this.subvfo}</span>
+							${this.freqTx}</span>
 						<input-knob id="freq-knob" name="freq-knob" 
 							?hidden=${!this.powerState}><div class="mark">▲</div>
 							<span class="knobflag"
-								?hidden=${this.vfo !== 'split' && this.vfo !== 'rit'}>
-								${this.vfo.toUpperCase()}
+								?hidden=${this.knobVfo !== 'split' && this.knobVfo !== 'rit'}>
+								${this.knobVfo.toUpperCase()}
 							</span>
 						</input-knob>
 						<!-- <div class="ctl">
@@ -429,16 +432,16 @@ export class SmartceiverApp extends LitElement {
 			const curValue = Math.floor(
 				Number.parseFloat(this.knob.value) / 10) * 10
 
-			if (this.vfo === 'main')
-				this.tcvr.freq = curValue
-			else if (this.vfo === 'split')
+			if (this.knobVfo === 'split')
 				this.tcvr.split = curValue
-			else if (this.vfo === 'rit')
+			else if (this.knobVfo === 'rit')
 				this.tcvr.rit = curValue - this.tcvr.freq
+			else
+				this.tcvr.freq = curValue
 		})
 
 		window.onbeforeunload = () => {
-			this.powerState = true
+			this.powerState = true // force to poweroff
 			this.connectPower()
 		}
 	}
@@ -477,23 +480,25 @@ export class SmartceiverApp extends LitElement {
 				this._knobParamsByBand()
 			},
 			freq: value => {
-				if (this.vfo === 'main') 
+				if (this.knobVfo === 'main') 
 					this.knob.value = value// + this.tcvr.rit
 				this._displayFreq(value + this.tcvr.rit)
-				// if (this.vfo === 'split')
+				// if (this.knobVfo === 'split')
 				this._displayTxFreq(this.tcvr.split)
 				// else
 					// this._displayTxFreq(this.tcvr.freq)
 			},
 			rit: value => {
-				if (this.vfo === 'rit')
+				this.vfo = value ? 'RIT' : 'MAIN'
+				if (this.knobVfo === 'rit')
 					this.knob.value = this.tcvr.freq + value
 				this._displayFreq(this.tcvr.freq + value)
 				this._displayTxFreq(this.tcvr.split)
 				// this.subvfo = `RIT ${value < 0 ? '' : '+'}${value}Hz`
 			},
 			split: value => {
-				if (value && this.vfo === 'split')
+				this.vfo = value ? 'SPLIT' : 'MAIN'
+				if (value && this.knobVfo === 'split')
 					this.knob.value = value
 				this._displayFreq(this.tcvr.freq + this.tcvr.rit)
 				this._displayTxFreq(value)
@@ -624,13 +629,13 @@ export class SmartceiverApp extends LitElement {
 	
 	_displayFreq(freq) {
 		if (freq === null || !this.tcvr || !Number.isInteger(freq)) {
-			this.freqDisplay = this.operator
+			this.freqRx = this.operator
 		}
 
 		const khzHz = (freq - Math.floor(freq / 1000000) * 1000000)
 		const frq = this._fmt.format(khzHz).replace(',', '.')
 		const val = `.${frq}`
-		this.freqDisplay = val.substring(0, val.length - this._nonTunableDigits())
+		this.freqRx = val.substring(0, val.length - this._nonTunableDigits())
 	}
 
 	_displayTxFreq(split) {
@@ -641,7 +646,7 @@ export class SmartceiverApp extends LitElement {
 		const mhz = Math.floor(split / 1000000)
 		const khzHz = (split - mhz * 1000000)
 		const frq = this._fmt.format(khzHz).replace(',', '.')
-		this.subvfo = `${mhz}.${frq.substring(0, frq.length - this._nonTunableDigits())}`
+		this.freqTx = `${mhz}.${frq.substring(0, frq.length - this._nonTunableDigits())}`
 	}
 
 	_nonTunableDigits() {
@@ -675,15 +680,7 @@ export class SmartceiverApp extends LitElement {
 			if (pwrWithCat) {
 				console.info('pwr connector contains cat - auto powering on')
 				this.tcvr.poweron()
-				if (this.audioproc) {
-					console.info('AudioProcessing ENABLED, Requesting access to microphone and connecting audio stream')
-					try {
-						await this._mic.request()
-						this.audioProcessor.connectStream({streams: [this._mic.stream], track: this._mic.track})
-					} catch (e) {
-						console.error("AudioProcessor error:", e)
-					}
-				}
+				await this.startAudioProcessor()
 			}
 			if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
 				// on remotig, click-event (user action) can be used to 'auto' connect remoddle
@@ -693,6 +690,18 @@ export class SmartceiverApp extends LitElement {
 			await this.remote.connect(connectors)
 		}
 		setTimeout(() => this.requestUpdate(), 5000) // FIXME need event (onconnect)
+	}
+
+	async startAudioProcessor() {
+		if (!this.audioproc) return
+		console.info('AudioProcessing ENABLED, Requesting access to microphone and connecting audio stream')
+		try {
+			await this._mic.request()
+			this.audioProcessor.connectStream({ streams: [this._mic.stream], track: this._mic.track })
+		}
+		catch (e) {
+			console.error("AudioProcessor error:", e)
+		}
 	}
 
 	connectorPwrWithCat() {
@@ -766,16 +775,23 @@ export class SmartceiverApp extends LitElement {
 	_dispFreqClass() {
 		return classMap({
 			'freq-display': true,
-			'tx': this.ptt && this.vfo === 'main',
-			'rit': this.vfo === 'rit'
+			'tx': this.ptt && this.knobVfo === 'main',
+			'rit': this.vfo === 'RIT'
 		})
 	}
 
 	_dispTxFreqClass() {
 		return classMap({
 			'freq-display': true,
-			'subvfo': true,
-			'tx': this.vfo !== 'main'
+			'txfreq': true,
+			'tx': this.vfo === 'SPLIT'
+		})
+	}
+
+	_toggleBtnClass(fncid) {
+		return classMap({
+			'toggles toggle-btn': true,
+			'active': this._remoddleCtlr && this._remoddleCtlr.mapper.encodersActiveFunctions.includes(fncid)
 		})
 	}
 
@@ -812,14 +828,14 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	switchVfo() {
-		if (this.vfo === 'split')
+		if (this.knobVfo === 'split')
 			this.tcvr.split = 0
-		else if (this.vfo === 'rit')
+		else if (this.knobVfo === 'rit')
 			this.tcvr.rit = 0
 
-		this.vfo = nextValue(_vfos, this.vfo)
+		this.knobVfo = nextValue(_vfos, this.knobVfo)
 
-		if (this.vfo === 'split') {
+		if (this.knobVfo === 'split') {
 			// this._knobParamsByBand()
 			if (!this.tcvr.split)
 				this.tcvr.split = this.tcvr.freq

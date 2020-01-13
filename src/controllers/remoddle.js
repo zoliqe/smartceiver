@@ -86,6 +86,9 @@ class RemoddleBluetooth {
 		}
 	}
 
+	get mapper() {
+		return this._tcvr
+	}
 }
 
 export {RemoddleBluetooth}
