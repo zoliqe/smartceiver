@@ -489,7 +489,7 @@ export class SmartceiverApp extends LitElement {
 					// this._displayTxFreq(this.tcvr.freq)
 			},
 			rit: value => {
-				this.vfo = value ? 'rit' : 'main'
+				// this.vfo = value ? 'rit' : 'main'
 				if (this.knobVfo === 'rit')
 					this.knob.value = this.tcvr.freq + value
 				this._displayFreq(this.tcvr.freq + value)
