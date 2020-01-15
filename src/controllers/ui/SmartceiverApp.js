@@ -854,6 +854,7 @@ export class SmartceiverApp extends LitElement {
 			this.knob.value = this.tcvr.freq
 			// this.subvfo = subvfoDefault
 		} */
+		this.requestUpdate()
 	}
 
 }
