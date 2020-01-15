@@ -489,7 +489,7 @@ export class SmartceiverApp extends LitElement {
 					// this._displayTxFreq(this.tcvr.freq)
 			},
 			rit: value => {
-				this.vfo = value ? 'RIT' : 'MAIN'
+				this.vfo = value ? 'rit' : 'main'
 				if (this.knobVfo === 'rit')
 					this.knob.value = this.tcvr.freq + value
 				this._displayFreq(this.tcvr.freq + value)
@@ -497,7 +497,7 @@ export class SmartceiverApp extends LitElement {
 				// this.subvfo = `RIT ${value < 0 ? '' : '+'}${value}Hz`
 			},
 			split: value => {
-				this.vfo = value ? 'SPLIT' : 'MAIN'
+				this.vfo = value ? 'split' : 'main'
 				if (value && this.knobVfo === 'split')
 					this.knob.value = value
 				this._displayFreq(this.tcvr.freq + this.tcvr.rit)
@@ -776,7 +776,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'tx': this.ptt && this.knobVfo === 'main',
-			'rit': this.vfo === 'RIT'
+			'rit': this.vfo === 'rit'
 		})
 	}
 
@@ -784,7 +784,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'txfreq': true,
-			'tx': this.vfo === 'SPLIT'
+			'tx': this.vfo === 'split'
 		})
 	}
 
@@ -840,9 +840,14 @@ export class SmartceiverApp extends LitElement {
 			// this._knobParamsByBand()
 			if (!this.tcvr.split)
 				this.tcvr.split = this.tcvr.freq
+			this.vfo = 'split' // TODO change enc fnc of remoddle
 			this.knob.value = this.tcvr.split
-		} else
+		} else {
+			if (this.knobVfo === 'rit') {
+				this.vfo = 'rit' // TODO change enc fnc
+			}
 			this.knob.value = this.tcvr.freq + this.tcvr.rit
+		}
 		/* else if (this.vfo === 'rit') {
 			// TODO rit knob settings from tcvr
 			// this.knob.min = -9999
