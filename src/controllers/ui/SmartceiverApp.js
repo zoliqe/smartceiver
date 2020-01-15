@@ -790,7 +790,8 @@ export class SmartceiverApp extends LitElement {
 
 	_toggleBtnClass(fncid) {
 		return classMap({
-			'toggles toggle-btn': true,
+			'toggles': true,
+			'toggle-btn': true,
 			'active': this._remoddleCtlr && this._remoddleCtlr.mapper.encodersActiveFunctions.includes(fncid)
 		})
 	}
