@@ -516,12 +516,12 @@ export class SmartceiverApp extends LitElement {
 		this.signals.out.bind(transceiver)
 
 		await this._initConnector()
+		this.tcvr = new TcvrController('ui')
+		this.tcvr.attachTo(transceiver)
+
 		if (this.remote && this.remoteController) {
 			this.remote.attachTo(transceiver)
 		} else {
-			this.tcvr = new TcvrController('ui')
-			this.tcvr.attachTo(transceiver)
-	
 			this.tcvr.reversePaddle = this._params.get('reverse') === '1'
 			setInterval(() => this.tcvr.keepAlive(), 5000)
 		}
@@ -583,7 +583,7 @@ export class SmartceiverApp extends LitElement {
 		}
 
 
-		if (!this.connectors.cat && !this.remote) {
+		if (!this.connectors.cat) {
 			throw new Error('No connector defined!')
 		}
 
@@ -661,11 +661,11 @@ export class SmartceiverApp extends LitElement {
 	async connectPower() {
 		this.pwrbtnDisable = true
 		if (this.powerState) {
-			if (this.tcvr) {
+			if (this.tcvr && this.tcvr.active) {
 				await this.disconnectRemoddle()
 				this.tcvr.poweroff()
 				await this.tcvr.disconnect()
-			} else if (this.remote) {
+			} else if (this.remote && this.remote.active) {
 				this.remote.poweroff()
 				await this.remote.disconnect()
 			}
@@ -675,7 +675,7 @@ export class SmartceiverApp extends LitElement {
 
 		const pwrWithCat = this.connectorPwrWithCat()
 		const connectors = pwrWithCat ? this.connectors : { pwr: this.connectors.pwr }
-		if (this.tcvr) {
+		if (this.tcvr && this.tcvr.active) {
 			await this.tcvr.connect(connectors)
 			if (pwrWithCat) {
 				console.info('pwr connector contains cat - auto powering on')
@@ -686,7 +686,7 @@ export class SmartceiverApp extends LitElement {
 				// on remotig, click-event (user action) can be used to 'auto' connect remoddle
 				this.connectRemoddle()
 			}
-		} else if (this.remote) {
+		} else if (this.remote && this.remote.active) {
 			await this.remote.connect(connectors)
 		}
 		setTimeout(() => this.requestUpdate(), 5000) // FIXME need event (onconnect)
@@ -721,10 +721,10 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	async connectCat() {
-		if (this.tcvr) {
+		if (this.tcvr && this.tcvr.active) {
 			await this.tcvr.connect({ cat: this.connectors.cat })
 			this.tcvr.poweron()
-		} else if (this.remote) {
+		} else if (this.remote && this.remote.active) {
 			this.remote.connect({ cat: this.connectors.cat })
 		}
 	}
