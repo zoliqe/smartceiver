@@ -107,9 +107,9 @@ export class Adapter {
 	// 	this._uart(`RA0${attn > 0 ? 1 : 0}`)
 	// }
 
-	async filter({value, mode}) {
-		const filter = selectFilter(this.properties.filters(mode), value)
-		await this._uart(`FW${String(filter).padStart(4, '0')}`)
+	async filter({filter, mode}) {
+		const filt = selectFilter(this.properties.filters(mode), filter)
+		await this._uart(`FW${String(filt).padStart(4, '0')}`)
 	}
 
 	async txpower(level) {

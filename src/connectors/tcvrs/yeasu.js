@@ -88,12 +88,12 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async filter({value, mode}) {
+	async filter({filter, mode}) {
 		if (this.#options.model === 'ft817') return // unsupported
-		const filter = selectFilter(this.properties.filters(mode), value)
-		const data = this.#options.filterdata(filter)
+		const filt = selectFilter(this.properties.filters(mode), filter)
+		const data = this.#options.filterdata(filt)
 		if (data == null) {
-			console.error('YeasuTcvr: Unknown filter', value)
+			console.error('YeasuTcvr: Unknown filter', filter)
 			return
 		}
 		await this._uart(data)
