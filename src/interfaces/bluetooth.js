@@ -1,8 +1,10 @@
 /**
  * Bluetooth Terminal class.
+ * Project: WebBluetoothTerminal
+ * 
  * @author loginov.rocks
  */
-class BluetoothTerminal {
+class BluetoothInterface {
   /**
    * Create preconfigured Bluetooth Terminal instance.
    * @param {!(number|string)} [serviceUuid=0xFFE0] - Service UUID
@@ -28,6 +30,10 @@ class BluetoothTerminal {
     this.setCharacteristicUuid(characteristicUuid);
     this.setReceiveSeparator(receiveSeparator);
     this.setSendSeparator(sendSeparator);
+  }
+
+  get name() {
+    return 'Bluetooth'
   }
 
   /**
@@ -111,7 +117,7 @@ class BluetoothTerminal {
   /**
    * Disconnect from the connected device.
    */
-  disconnect() {
+  async disconnect() {
     this._disconnectFromDevice(this._device);
 
     if (this._characteristic) {
@@ -199,6 +205,9 @@ class BluetoothTerminal {
    * @private
    */
   _connectToDevice(device) {
+    if (!navigator.bluetooth) {
+      throw new Error('unsupported')
+    }
     return (device ? Promise.resolve(device) : this._requestBluetoothDevice()).
         then((device) => this._connectDeviceAndCacheCharacteristic(device)).
         then((characteristic) => this._startNotifications(characteristic)).
@@ -396,4 +405,4 @@ class BluetoothTerminal {
   }
 }
 
-export {BluetoothTerminal}
+export {BluetoothInterface}

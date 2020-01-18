@@ -1,42 +1,50 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {BluetoothTerminal} from '../utils/BluetoothTerminal.js'
 import {SignalsBinder} from '../utils/signals.js'
 import {delay} from '../utils/time.js'
 import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
+import { TcvrEmulator } from './remoddle/tcvremu.js'
 
-class RemoddleBluetooth {
-	constructor(tcvr) {
+export class RemoddleController {
+	constructor(tcvr, params) {
+		this._iface = (params || '').trim().toLowerCase()
 		this._port = null
 		const ctlr = new TcvrController(this.id)
 		ctlr.attachTo(tcvr)
 		this._tcvr = new RemoddleMapper(ctlr)
+		this._emu = new TcvrEmulator(ctlr)
 		this._bindSignals(tcvr)
 	}
 
 	get id() { return 'remoddle' }
 
 	async connect() {
-		if (!BluetoothTerminal || !navigator.bluetooth) {
-			throw new Error('Remoddle: WebBluetooth is not supported!')
-		}
-
-		this._port = new BluetoothTerminal()
-
+		this._port = this._resolveInterface()
 		return new Promise((resolve, reject) => this._connectPort(resolve, reject))
 	}
 
-	async _connectPort(resolve, reject) {
-		if (!this._port) {
-			reject('Remoddle: port is null')
-			return
+	async _resolveInterface() {
+		if (this._iface === 'bt') {
+			const module = await import('../interfaces/bluetooth.js')
+			return new module.BluetoothInterface()
 		}
+		if (this._iface === 'serial') {
+			const module = await import('../interfaces/serial.js')
+			return new module.SerialInterface(115200)
+		}
+		const module = await import('../interfaces/usb.js')
+		return new module.USBInterface()
+	}
 
+	async _connectPort(resolve, reject) {
 		try {
 			await this._port.connect()
 		} catch (error) {
-			reject(`Remoddle: ${error}`)
+			if (error === 'unsupported') {
+				window.alert(`${this._port.name} interface not supported.\nCannot connect remoddle / paddle.`)
+			}
+			reject(`Remoddle connect error: ${error}`)
 			return
 		}
 		console.info(`Remoddle device ${this._port.getDeviceName()} connected :-)`)
@@ -79,16 +87,15 @@ class RemoddleBluetooth {
 	}
 
 	_evaluate(cmd) {
-		if (!this._tcvr) return
-		
-		for (let i = 0; i < cmd.length; i++) {
-			this._tcvr.remoddleCommand(cmd[i])
-		}
+		if (!this._port || cmd == null) return
+
+		if (cmd && cmd.startsWith(this._emu.startSeq))
+			this._emu.handleCatCommand(cmd)
+		else for (let i = 0; i < cmd.length; i += 1)
+			this.mapper.remoddleCommand(cmd[i])
 	}
 
 	get mapper() {
 		return this._tcvr
 	}
 }
-
-export {RemoddleBluetooth}

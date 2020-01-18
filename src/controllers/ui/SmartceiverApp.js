@@ -742,7 +742,8 @@ export class SmartceiverApp extends LitElement {
 
 		try {
 			const module = await import('../remoddle.js')
-			this._remoddleCtlr = await new module.RemoddleBluetooth(this.transceiver).connect()
+			this._remoddleCtlr = new module.RemoddleController(this.transceiver, this.remoddle)
+			await this._remoddleCtlr.connect()
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
@@ -793,6 +794,7 @@ export class SmartceiverApp extends LitElement {
 			'toggles': true,
 			'toggle-btn': true,
 			'active': this._remoddleCtlr && this._remoddleCtlr.mapper.encodersActiveFunctions.includes(fncid)
+			// TODO this.requestUpdate() on enc fnc change
 		})
 	}
 

@@ -70,16 +70,16 @@ class RemoddleMapper {
 		if (c === '-') this._tcvr.keyDah()
 		else if (c === '.') this._tcvr.keyDit()
 		else if (c === '_') this._tcvr.keySpace()
-		else if (c === '>') this.rotateEncoder(1, '+') // enc1 up
-		else if (c === '<') this.rotateEncoder(1, '-') // enc1 dn
-		else if (c === ']') this.rotateEncoder(2, '+') // enc2 up
-		else if (c === '[') this.rotateEncoder(2, '-') // enc2 dn
-		else if (c === '}') this.rotateEncoder(3, '+') // enc3 up
-		else if (c === '{') this.rotateEncoder(3, '-') // enc3 dn
+		else if (c === '>') this.rotateEncoder(1, +1) // enc1 up
+		else if (c === '<') this.rotateEncoder(1, -1) // enc1 dn
+		else if (c === ']') this.rotateEncoder(2, +1) // enc2 up
+		else if (c === '[') this.rotateEncoder(2, -1) // enc2 dn
+		else if (c === '}') this.rotateEncoder(3, +1) // enc3 up
+		else if (c === '{') this.rotateEncoder(3, -1) // enc3 dn
 		else if (code >= 97 && code <= 122) this.tapButton(code - 96) // a - z
 		else if (code >= 65 && code <= 90) this.holdButton(code - 64) // A - Z
-		else if (c === '!') this.setPtt(true)
-		else if (c === '~') this.setPtt(false)
+		else if (c === '/') this.setPtt(true)
+		else if (c === '\\') this.setPtt(false)
 		// else if (c === '$') this.pushButton(3) // btn3 push
 		// else if (c === '^') this.pushButton(4) // btn4 push
 		// else if (c === '*') this.pushButton(5) // btn5 push
@@ -150,18 +150,14 @@ class RemoddleMapper {
 		this._buttonFunctions = this._buttonMainFunctions
 	}
 
-	changeFreq = dir => {
-		this._tcvr.freq = dir === '+' ? (this._tcvr.freq + this._tcvr.step) : (this._tcvr.freq - this._tcvr.step)
-	}
+	changeFreq = delta => { this._tcvr.freq += this._tcvr.step * delta }
 	
-	changeSplit = dir => {
+	changeSplit = delta => {
 		const split = this._tcvr.split === 0 ? this._tcvr.freq : this._tcvr.split
-		this._tcvr.split = dir === '+' ? (split + this._tcvr.step) : (split - this._tcvr.step)
+		this._tcvr.split = split + this._tcvr.step * delta
 	}
 	
-	changeRit = dir => { 
-		this._tcvr.rit = dir === '+' ? (this._tcvr.rit + 10) : (this._tcvr.rit - 10) 
-	}
+	changeRit = delta => { this._tcvr.rit += delta * 10 }
 	
 	changeWpm = dir => { this._tcvr.wpm += (dir === '+' ? 1 : -1) }
 	
