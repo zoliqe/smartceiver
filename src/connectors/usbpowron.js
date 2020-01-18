@@ -173,6 +173,7 @@ class PowronConnector {
 			'value': 0x00,
 			'index': this.#interfaceNumber
 		})
+		console.debug('POWRON close()')
 		await this.#device.close()
 		this.#device = null
 	}
