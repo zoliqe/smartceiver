@@ -151,12 +151,12 @@ class PowronConnector {
         'value': 0x01,
         'index': this.#interfaceNumber
       }))
-      // .then(() => this._readLoop())
+      .then(() => this._readLoop())
   }
 
 	_readLoop() {
 	  this.#device.transferIn(this.#endpointIn, 64).then(result => {
-	    this.onReceive(result.data)
+	    this.onReceive(decoder.decode(result.data))
 	    this._readLoop()
 	  }, error => this.onReceiveError(error))
 	}
@@ -200,7 +200,7 @@ class PowronConnector {
 	}
 
 	onReceive(data) {
-		console.debug('POWRON rcvd:', decoder.decode(data))
+		console.debug('POWRON rcvd:', data)
 	}
 
 	onReceiveError(error) {

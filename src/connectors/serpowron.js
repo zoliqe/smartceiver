@@ -107,7 +107,7 @@ class PowronConnector {
 			// this._send('?')
 			await this._powerTimeout(this.#timeout)
 			await this._serialBaudrate(this.#adapter.baudrate)
-			// this._readLoop()
+			this._readLoop()
 		} catch (error) {
 			console.error('POWRON Connection error:', error)
 			throw error
@@ -121,7 +121,7 @@ class PowronConnector {
 				this.#reader = this.#device.readable.getReader()
 				while (true) {
 					const {value, done} = await this.#reader.read()
-					this.onReceive(value)
+					this.onReceive(decoder.decode(value))
 					if (done) break
 				}
 				this.#reader = null
@@ -134,7 +134,7 @@ class PowronConnector {
 	async disconnect() {
 		if (!this.#device) return
 
-		await delay(400) // for poweroff signals 
+		await delay(1000) // for poweroff signals 
 		// await this._off()
 		if (this.#reader)
 			this.#reader.cancel()
@@ -164,7 +164,7 @@ class PowronConnector {
 	}
 
 	onReceive(data) {
-		console.debug('POWRON rcvd:', decoder.decode(data))
+		console.debug('POWRON rcvd:', data)
 	}
 
 	onReceiveError(error) {

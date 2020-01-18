@@ -62,7 +62,7 @@ class SercatConnector {
 				this.#reader = this.#device.readable.getReader()
 				while (true) {
 					const {value, done} = await this.#reader.read()
-					this.onReceive(value)
+					this.onReceive(decoder.decode(value))
 					if (done) break
 				}
 				this.#reader = null
@@ -124,7 +124,7 @@ class SercatConnector {
 	}
 
 	onReceive(data) {
-		console.debug('SERCAT rcvd:', decoder.decode(data))
+		console.debug('SERCAT rcvd:', data)
 	}
 
 	onReceiveError(error) {
