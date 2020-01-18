@@ -150,12 +150,14 @@ export class Adapter {
 			return
 		}
 		if (!this._rit) {
-			this._xit && (await this.xit(0))
+			// this._xit && (await this.xit(0))
 			await this._uart('RT1')
 		}
 
 		if (this.#model === 'k2') await this.ritK2(value)
     else await this.ritK3(value)
+
+		this._rit = value
 	}
 
 	async ritK2(value) {
@@ -168,7 +170,9 @@ export class Adapter {
 	}
 
 	async ritK3(value) {
-		await this._uart(`RO${String(value).padStart(4, '0')}`)
+		if (value === this._rit) return
+		const sign = value >= 0 ? '+' : '-'
+		await this._uart(`RO${sign}${String(value).padStart(4, '0')}`)
 	}
 
 	// async xit(value) {
