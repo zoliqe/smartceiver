@@ -164,7 +164,7 @@ class PowronConnector {
 	async disconnect() {
 		if (!this.#device) return
 
-		await delay(400) // for poweroff signals 
+		await delay(1000) // for poweroff signals 
 		// await this._off()
 		await this.#device.controlTransferOut({
 			'requestType': 'class',
