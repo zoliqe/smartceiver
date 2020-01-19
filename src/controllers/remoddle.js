@@ -20,7 +20,8 @@ export class RemoddleController {
 	get id() { return 'remoddle' }
 
 	async connect() {
-		this._port = this._resolveInterface()
+		this._port = await this._resolveInterface()
+		console.debug(`Remoddle resolved iface: ${this._port.name}`)
 		return new Promise((resolve, reject) => this._connectPort(resolve, reject))
 	}
 
