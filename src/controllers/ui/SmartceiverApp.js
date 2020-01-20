@@ -390,7 +390,7 @@ export class SmartceiverApp extends LitElement {
 						<span id="txfreq" name="txfreq" class=${this._dispTxFreqClass()}
 							@click=${this.switchVfo}
 							?hidden=${!this.powerState}>
-							<span class="vfoflag">
+							<span class="vfoflag" ?hidden=${this.vfo == null}>
 								${this.vfo.toUpperCase()}
 							</span>
 							${this.freqTx}</span>
