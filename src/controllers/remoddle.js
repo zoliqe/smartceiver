@@ -13,11 +13,16 @@ export class RemoddleController {
 		const ctlr = new TcvrController(this.id)
 		ctlr.attachTo(tcvr)
 		this._tcvr = new RemoddleMapper(ctlr)
+		this._tcvr.onEncFncChange = (enc, fncId) => this.onEncFncChange(enc, fncId)
 		this._emu = new TcvrEmulator(ctlr)
 		this._bindSignals(tcvr)
 	}
 
 	get id() { return 'remoddle' }
+
+	onEncFncChange(enc, fncId) {
+		// handle encoder function change
+	}
 
 	async connect() {
 		this._port = await this._resolveInterface()

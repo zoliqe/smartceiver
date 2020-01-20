@@ -744,6 +744,7 @@ export class SmartceiverApp extends LitElement {
 			const module = await import('../remoddle.js')
 			this._remoddleCtlr = new module.RemoddleController(this.transceiver, this.remoddle)
 			await this._remoddleCtlr.connect()
+			this._remoddleCtlr.onEncFncChange = () => this.requestUpdate()
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)

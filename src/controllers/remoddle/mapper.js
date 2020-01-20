@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import {nextValue, prevValue, nextValueBounds} from '../../utils/lists.js'
 
@@ -39,6 +40,8 @@ class RemoddleMapper {
 		6: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // f
 		7: { tap: _ => this.switchMode() }, // g
 		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
+		10: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // obsolete j
+		9: { tap: _ => this.switchMode() }, // obsolete i
 	}
 
 	_buttonCwSelectFunctions = {
@@ -61,6 +64,10 @@ class RemoddleMapper {
 	constructor(tcvr) {
 		this._tcvr = tcvr
 		this.buttonMainFunctions()
+	}
+
+	onEncFncChange(enc, fncId) {
+		// handle encoder function change
 	}
 
 	remoddleCommand(c) {
@@ -100,6 +107,7 @@ class RemoddleMapper {
 	switchEncoderFunction = enc => {
 		// this._encoderFunction[enc] = this._shiftIndex(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
 		this._encoderFunction[enc] = nextValue(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
+		this.onEncFncChange(enc, this._encoderFunction[enc].id)
 	}
 
 	rotateEncoder = (enc, delta) => {
