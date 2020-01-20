@@ -391,7 +391,7 @@ export class SmartceiverApp extends LitElement {
 							@click=${this.switchVfo}
 							?hidden=${!this.powerState}>
 							<span class="vfoflag">
-								TX<br/>${this.vfo.toUpperCase()}
+								${this.vfo.toUpperCase()}
 							</span>
 							${this.freqTx}</span>
 						<input-knob id="freq-knob" name="freq-knob" 
@@ -497,7 +497,7 @@ export class SmartceiverApp extends LitElement {
 				// this.subvfo = `RIT ${value < 0 ? '' : '+'}${value}Hz`
 			},
 			split: value => {
-				this.vfo = value ? 'split' : 'main'
+				// this.vfo = value ? 'split' : 'main'
 				if (value && this.knobVfo === 'split')
 					this.knob.value = value
 				this._displayFreq(this.tcvr.freq + this.tcvr.rit)
@@ -787,7 +787,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'tx': this.ptt && this.knobVfo === 'main',
-			'rit': this.vfo === 'rit' && this.tcvr.rit
+			'rit': (this.vfo === 'rit' || this.knobVfo === 'rit') && this.tcvr.rit
 		})
 	}
 
@@ -795,7 +795,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'txfreq': true,
-			'tx': this.vfo === 'split'
+			'tx': this.vfo === 'split' || this.knobVfo === 'split'
 		})
 	}
 
