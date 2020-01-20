@@ -102,10 +102,10 @@ class RemoddleMapper {
 		this._encoderFunction[enc] = nextValue(this._encoderAvailableFunctions[enc], this._encoderFunction[enc])
 	}
 
-	rotateEncoder = (enc, dir) => {
+	rotateEncoder = (enc, delta) => {
 		// const fnc = this._encoderAvailableFunctions[enc][this._encoderFunction[enc]]
 		const fncobj = this._encoderFunction[enc]
-		fncobj && fncobj.fnc(dir)
+		fncobj && fncobj.fnc(delta)
 	}
 
 	get encodersActiveFunctions() {
@@ -159,7 +159,7 @@ class RemoddleMapper {
 	
 	changeRit = delta => { this._tcvr.rit += delta * 10 }
 	
-	changeWpm = dir => { this._tcvr.wpm += (dir === '+' ? 1 : -1) }
+	changeWpm = delta => { this._tcvr.wpm += delta }
 	
 	// changeFilter = dir => this._tcvr.filter = dir === '+' ? (this._tcvr.filter + 50) : (this._tcvr.filter - 50)
 	// this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
