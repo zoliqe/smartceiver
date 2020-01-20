@@ -803,9 +803,13 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'toggles': true,
 			'toggle-btn': true,
-			'active': this._remoddleCtlr && this._remoddleCtlr.mapper.encodersActiveFunctions.includes(fncid)
+			'active': this._activeFncOfRemoddleEnc(fncid)
 			// TODO this.requestUpdate() on enc fnc change
 		})
+	}
+
+	_activeFncOfRemoddleEnc(fncid) {
+		return this._remoddleCtlr && this._remoddleCtlr.mapper.encodersActiveFunctions.includes(fncid)
 	}
 
 	decreaseWpm() {
@@ -852,12 +856,12 @@ export class SmartceiverApp extends LitElement {
 			// this._knobParamsByBand()
 			if (!this.tcvr.split)
 				this.tcvr.split = this.tcvr.freq
-			this.vfo = 'split' // TODO change enc fnc of remoddle
+			// this.vfo = 'split' // TODO change enc fnc of remoddle
 			this.knob.value = this.tcvr.split
 		} else {
-			if (this.knobVfo === 'rit') {
-				this.vfo = 'rit' // TODO change enc fnc
-			}
+			// if (this.knobVfo === 'rit') {
+			// 	this.vfo = 'rit' // TODO change enc fnc
+			// }
 			this.knob.value = this.tcvr.freq + this.tcvr.rit
 		}
 		/* else if (this.vfo === 'rit') {
