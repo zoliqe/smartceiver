@@ -1,3 +1,4 @@
+/* eslint-disable class-methods-use-this */
 
 // const devFilters = [
 // 	{ 'vendorId': 0x2341, 'productId': 0x8036 },
@@ -16,7 +17,7 @@ export class SerialInterface {
 	}
 
 	constructor(baudrate = 4800, receiveSeparator = '\n', sendSeparator = '\n') {
-		this._options.baudrate = baudrate
+		this._devopts.baudrate = baudrate
 		this._receiveSeparator = receiveSeparator
 		this._sendSeparator = _encoder.encode(sendSeparator)
 		this._receiveBuffer = ''
@@ -32,7 +33,7 @@ export class SerialInterface {
 		}
 
 		this._device = await navigator.serial.requestPort({})
-		await this._device.open(this._options)
+		await this._device.open(this._devopts)
 		this._readLoop() // do not await
 		return this
 	}
