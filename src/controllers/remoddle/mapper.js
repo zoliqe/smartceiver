@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {nextValue, prevValue, nextValueBounds} from '../../utils/lists.js'
+import {nextValue, prevValue, nextValueBounds, prevValueBounds} from '../../utils/lists.js'
 
 class RemoddleMapper {
 
@@ -199,10 +199,12 @@ class RemoddleMapper {
 		this._tcvr.mode = nextValue(this._tcvr.modes, this._tcvr.mode)
 	}
 	
-	switchFilter = _ => {
+	switchFilter = delta => {
 		// this._tcvr.filter = this._tcvr.filters[
 		// 	this._shiftIndex(this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
-		this._tcvr.filter = nextValueBounds(this._tcvr.filters, this._tcvr.filter)
+		// filters has inverted order
+		this._tcvr.filter = delta < 0 ? nextValueBounds(this._tcvr.filters, this._tcvr.filter)
+			: prevValueBounds(this._tcvr.filters, this._tcvr.filter)
 	}
 	
 	cwmem = (mem, { repeat = false }) => {

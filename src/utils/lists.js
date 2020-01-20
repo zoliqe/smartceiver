@@ -15,4 +15,10 @@ function prevValue(values, value) {
 	return values[i > 0 ? i - 1 : values.length - 1]
 }
 
-export {nextValue, prevValue, nextValueBounds}
+function prevValueBounds(values, value) {
+	const i = values.indexOf(value)
+	if (i > 0) return values[i - 1]
+	return value
+}
+
+export {nextValue, prevValue, nextValueBounds, prevValueBounds}
