@@ -754,7 +754,7 @@ export class SmartceiverApp extends LitElement {
 				}
 				this.requestUpdate()
 			}
-			this.vfo = this._activeFncOfRemoddleEnc('rit') ? 'rit' : (this._activeFncOfRemoddleEnc('split') ? 'split' : null)
+			this.vfo = this._activeFncOfRemoddleEnc('split') ? 'split' : 'rit'
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
