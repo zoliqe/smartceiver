@@ -345,6 +345,7 @@ class Transceiver {
 
 	setFreq(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
+		if (this.freq === freq) return
 		if (this._outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
 		// 	return
@@ -359,6 +360,7 @@ class Transceiver {
 
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
+		if (this.split === freq) return
 		if (freq && (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
 		if (this.rit) this.setRit(this, 0)
 		this.#state.split[this.#state.band][this.#state.mode] = freq
@@ -372,6 +374,7 @@ class Transceiver {
 
 	setRit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
+		if (this.rit === value) return
 		this._d('rit', value)
 		if (Math.abs(value) < 10000) {
 			if (this.split) this.setSplit(this, 0)
