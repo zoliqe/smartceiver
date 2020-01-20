@@ -36,7 +36,7 @@ class RemoddleMapper {
 		2: { tap: _ => this.switchEncoderFunction(2) }, // b
 		3: { tap: _ => this.switchEncoderFunction(3), hold: null }, // c // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
 		4: { tap: _ => this.switchGain() }, // d
-		5: { tap: _ => this.buttonCwSelectFunctions(), hold: null }, // e
+		// 5: { tap: _ => this.buttonCwSelectFunctions(), hold: null }, // e
 		6: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // f
 		7: { tap: _ => this.switchMode() }, // g
 		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
