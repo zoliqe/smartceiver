@@ -330,7 +330,7 @@ export class SmartceiverApp extends LitElement {
 		this.mode = 'MODE'
 		this.gain = 0
 		this.knobVfo = _vfos[0]
-		this.vfo = _vfos[0]
+		// this.vfo = _vfos[0]
 		this.unackStateQueries = 0
 		setInterval(() => this._fetchStatus(), 5000)
   }
@@ -754,6 +754,7 @@ export class SmartceiverApp extends LitElement {
 				}
 				this.requestUpdate()
 			}
+			this.vfo = this._activeFncOfRemoddleEnc('rit') ? 'rit' : (this._activeFncOfRemoddleEnc('split') ? 'split' : null)
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
