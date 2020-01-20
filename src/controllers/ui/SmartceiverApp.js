@@ -744,7 +744,10 @@ export class SmartceiverApp extends LitElement {
 			const module = await import('../remoddle.js')
 			this._remoddleCtlr = new module.RemoddleController(this.transceiver, this.remoddle)
 			await this._remoddleCtlr.connect()
-			this._remoddleCtlr.onEncFncChange = () => this.requestUpdate()
+			this._remoddleCtlr.onEncFncChange = (enc, fncId) => {
+				if (fncId === 'split' || fncId === 'rit') this.vfo = fncId
+				this.requestUpdate()
+			}
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle
 		} catch (error) {
 			console.error(`Remoddle: ${error}`)
@@ -778,7 +781,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'tx': this.ptt && this.knobVfo === 'main',
-			'rit': this.vfo === 'rit'
+			'rit': this.vfo === 'rit' && this.tcvr.rit
 		})
 	}
 
