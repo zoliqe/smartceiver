@@ -391,7 +391,7 @@ export class SmartceiverApp extends LitElement {
 							@click=${this.switchVfo}
 							?hidden=${!this.powerState}>
 							<span class="vfoflag" ?hidden=${this.vfo == null}>
-								${this.vfo.toUpperCase()}
+								${this.vfo && this.vfo.toUpperCase()}
 							</span>
 							${this.freqTx}</span>
 						<input-knob id="freq-knob" name="freq-knob" 
