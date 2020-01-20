@@ -745,7 +745,13 @@ export class SmartceiverApp extends LitElement {
 			this._remoddleCtlr = new module.RemoddleController(this.transceiver, this.remoddle)
 			await this._remoddleCtlr.connect()
 			this._remoddleCtlr.onEncFncChange = (enc, fncId) => {
-				if (fncId === 'split' || fncId === 'rit') this.vfo = fncId
+				if (fncId === 'split') {
+					this.vfo = 'split'
+					if (this.tcvr.rit) this.tcvr.rit = 0
+				} else if (fncId === 'rit') {
+					this.vfo = 'rit'
+					if (this.tcvr.split) this.tcvr.split = 0
+				}
 				this.requestUpdate()
 			}
 			this._remoddleCtlr.reverse = this.tcvr.reversePaddle

@@ -360,6 +360,7 @@ class Transceiver {
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
 		if (freq && (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
+		if (this.rit) this.setRit(this, 0)
 		this.#state.split[this.#state.band][this.#state.mode] = freq
 		this._d('split', freq)
 		this.fire(new TcvrSignal(SignalType.split, freq))
@@ -373,6 +374,7 @@ class Transceiver {
 		if (!this.online || this._denieded(controller)) return
 		this._d('rit', value)
 		if (Math.abs(value) < 10000) {
+			if (this.split) this.setSplit(this, 0)
 			this.#state.rit = value
 			this.fire(new TcvrSignal(SignalType.rit, value))
 		}
