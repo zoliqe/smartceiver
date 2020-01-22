@@ -6,6 +6,8 @@ import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
 
+const _serialBaudrate = 115200
+
 export class RemoddleController {
 	constructor(tcvr, params) {
 		this._iface = (params || '').trim().toLowerCase()
@@ -14,7 +16,7 @@ export class RemoddleController {
 		ctlr.attachTo(tcvr)
 		this._tcvr = new RemoddleMapper(ctlr)
 		this._tcvr.onEncFncChange = (enc, fncId) => this.onEncFncChange(enc, fncId)
-		this._emu = new TcvrEmulator(ctlr)
+		this._emu = new TcvrEmulator(ctlr, data => this._send(data))
 		this._bindSignals(tcvr)
 	}
 
@@ -37,7 +39,7 @@ export class RemoddleController {
 		}
 		if (this._iface === 'serial') {
 			const module = await import('../interfaces/serial.js')
-			return new module.SerialInterface(115200)
+			return new module.SerialInterface(_serialBaudrate)
 		}
 		const module = await import('../interfaces/usb.js')
 		return new module.USBInterface()
