@@ -85,12 +85,14 @@ export class TcvrEmulator {
 	}
 	
 	get _info() {
-		const ritfrq = String(this._tcvr.rit).padStart(5, '0')
+		// example: IF00007015660     -000000 0003000001 ;
+		const ritfrq = String(this._tcvr.rit).padStart(4, '0')
+		const ritsign = this._tcvr.rit > 0 ? '+' : '-'
 		const rit = this._tcvr.rit != 0 ? 1 : 0
 		const ptt = this._tcvr.ptt ? 1 : 0
 		const split = this._tcvr.split != 0 ? 1 : 0
 		return `${this._freqcat(this._tcvr.freq)}` +
-			`     ${ritfrq}${rit}0 00${ptt}${this._mode}00${split}000 `;
+			`     ${ritsign}${ritfrq}${rit}0 00${ptt}${this._mode}00${split}001 `;
 	}
 
 	get startSeq() {
