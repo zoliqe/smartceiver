@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 import { Bands, Modes } from '../../tcvr.js'
 
-const _modes = [null, Modes.LSB, Modes.USB, Modes.CW, null, null, Modes.RTTY, Modes.CWR]
+const _modes = {1: Modes.LSB, 2: Modes.USB, 3: Modes.CW, 6: Modes.RTTY, 7: Modes.CWR}
 
 export class TcvrEmulator {
 
