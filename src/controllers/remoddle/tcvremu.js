@@ -19,7 +19,8 @@ export class TcvrEmulator {
 
 		let cmd = str.trim().toUpperCase()
 		if (cmd.startsWith(this.startSeq)) cmd = cmd.substring(this.startSeq.length)
-		if (cmd.endsWith(this.endSeq)) cmd = cmd.substring(0, cmd.length)
+		if (cmd.endsWith(this.endSeq)) cmd = cmd.substring(0, cmd.length - 1)
+		if (!cmd) return
 
 		if (cmd.length < 3) {
 			console.debug(`TcvrEmulator: query=${cmd}`)
