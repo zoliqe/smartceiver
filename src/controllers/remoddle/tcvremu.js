@@ -42,6 +42,14 @@ export class TcvrEmulator {
 		return this._freqcat(this._tcvr.freq)
 	}
 
+	set _freq(p) {
+		// const fstr = this._stripLeadingZeros(p)
+		const freq = parseInt(p, 10)
+		if (Number.isNaN(freq)) return
+		this._tcvr.freq = freq
+		// TODO handle band change
+	}
+
 	_freqcat(freq) {
 		let res = '000'
 		if (freq < 10000000) res += '0'
@@ -52,19 +60,6 @@ export class TcvrEmulator {
 		return this._tcvr.split ? this._freqcat(this._tcvr.split) : this._freqcat(this._tcvr.freq)
 	}
 
-	get _mode() {
-		const m = Object.keys(_modes).find(key => _modes[key] === value)
-		return String(m != null ? m : 2)
-	}
-
-	set _freq(p) {
-		// const fstr = this._stripLeadingZeros(p)
-		const freq = parseInt(p, 10)
-		if (Number.isNaN(freq)) return
-		this._tcvr.freq = freq
-		// TODO handle band change
-	}
-
 	set _split(p) {
 		const split = parseInt(p, 10)
 		if (Number.isNaN(split)) return
@@ -72,9 +67,15 @@ export class TcvrEmulator {
 		// TODO handle split cancelation
 	}
 
+	get _mode() {
+		const mode = this._tcvr.mode
+		const m = Object.keys(_modes).find(key => _modes[key] === mode)
+		return String(m != null ? m : 2)
+	}
+
 	set _mode(p) {
 		const mode = parseInt(p, 10)
-		if (Number.isNaN(mode) || !Object.keys(_modes).includes(mode)) return
+		if (Number.isNaN(mode) || !Object.keys(_modes).includes(p)) return
 		this._tcvr.mode = _modes[mode]
 	}
 
