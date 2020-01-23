@@ -53,8 +53,8 @@ export class TcvrEmulator {
 	}
 
 	get _mode() {
-		const m = _modes.indexOf(this._tcvr.mode)
-		return String(m < 0 ? 2 : m)
+		const m = Object.keys(_modes).find(key => _modes[key] === value)
+		return String(m != null ? m : 2)
 	}
 
 	set _freq(p) {
