@@ -27,6 +27,7 @@ export class TcvrEmulator {
 			if (cmd.startsWith('FA')) this._send(`FA${this._freq}`)
 			else if (cmd.startsWith('FB')) this._send(`FB${this._split}`)
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
+			else if (cmd.startsWith('IF')) this._send(`IF${this._info}`)
 			return
 		}
 
@@ -81,6 +82,15 @@ export class TcvrEmulator {
 
 	set _keyer(p) {
 		// TODO
+	}
+	
+	get _info() {
+		const ritfrq = String(this._tcvr.rit).padStart(5, '0')
+		const rit = this._tcvr.rit != 0 ? 1 : 0
+		const ptt = this._tcvr.ptt ? 1 : 0
+		const split = this._tcvr.split != 0 ? 1 : 0
+		return `${this._freqcat(this._tcvr.freq)}` +
+			`     ${ritfrq}${rit}0 00${ptt}${this._mode}00${split}000 `;
 	}
 
 	get startSeq() {
