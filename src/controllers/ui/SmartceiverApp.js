@@ -789,7 +789,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'tx': this.ptt && this.knobVfo === 'main',
-			'rit': /*(this.vfo === 'rit' || this.knobVfo === 'rit') &&*/ this.tcvr && this.tcvr.rit
+			'rit': /*(this.vfo === 'rit' || this.knobVfo === 'rit') &&*/ this.powerState && this.tcvr.rit
 		})
 	}
 
@@ -797,7 +797,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'txfreq': true,
-			'tx': /*this.vfo === 'split' || this.knobVfo === 'split'*/ this.tcvr && this.tcvr.split
+			'tx': /*this.vfo === 'split' || this.knobVfo === 'split'*/ this.powerState && this.tcvr.split
 		})
 	}
 
