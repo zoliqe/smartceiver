@@ -652,6 +652,7 @@ export class SmartceiverApp extends LitElement {
 	_nonTunableDigits() {
 		if (!this.knob) return 0
 		let cnt = 1
+		if (this.tcvr.rit) return cnt;
 		if (this.knob.scale >= SmartceiverApp.step2scale(100)) cnt += 1
 		if (this.knob.scale >= SmartceiverApp.step2scale(1000)) cnt += 2 // include dot
 		if (this.knob.scale >= SmartceiverApp.step2scale(10000)) cnt += 1
@@ -788,7 +789,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'tx': this.ptt && this.knobVfo === 'main',
-			'rit': (this.vfo === 'rit' || this.knobVfo === 'rit') && this.tcvr.rit
+			'rit': /*(this.vfo === 'rit' || this.knobVfo === 'rit') &&*/ this.tcvr.rit
 		})
 	}
 
@@ -796,7 +797,7 @@ export class SmartceiverApp extends LitElement {
 		return classMap({
 			'freq-display': true,
 			'txfreq': true,
-			'tx': this.vfo === 'split' || this.knobVfo === 'split'
+			'tx': /*this.vfo === 'split' || this.knobVfo === 'split'*/ this.tcvr.split
 		})
 	}
 
