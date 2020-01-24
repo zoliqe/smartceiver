@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { Bands, Modes } from '../../tcvr.js'
-import { delay } from '../../utils/time.js'
+//import { delay } from '../../utils/time.js'
 
 const _modes = {1: Modes.LSB, 2: Modes.USB, 3: Modes.CW, 6: Modes.RTTY, 7: Modes.CWR}
 
@@ -15,7 +15,7 @@ export class TcvrEmulator {
 	 * 
 	 * @param {string} str 
 	 */
-	async handleCatCommand(str) {
+	handleCatCommand(str) {
 		if (!str) return
 
 		let cmd = str.trim().toUpperCase()
@@ -25,7 +25,7 @@ export class TcvrEmulator {
 
 		if (cmd.length < 3) {
 			console.debug(`TcvrEmulator: query=${cmd}`)
-			await delay(300)
+// 			await delay(300)
 			if (cmd.startsWith('FA')) this._send(`FA${this._freq}`)
 			else if (cmd.startsWith('FB')) this._send(`FB${this._split}`)
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
