@@ -6,7 +6,7 @@ import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
 
-const _serialBaudrate = 4800
+const _serialBaudrate = 115200
 
 export class RemoddleController {
 	constructor(tcvr, params) {
