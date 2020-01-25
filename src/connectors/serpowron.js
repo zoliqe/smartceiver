@@ -201,11 +201,11 @@ class PowronConnector {
 		if (pin != null && pins.includes(pin)) {
 			console.info('POWRON: Enabling keyer on pin', pin)
 			this.#keyerPin = pin
-			await this._pinState(pin, false)
+// 			await this._pinState(pin, false)
 			await this._send(`K${ pin } `)
 		} else {
 			console.info('POWRON: Disabling keyer on pin', this.#keyerPin)
-			await this._pinState(this.#keyerPin, false)
+// 			await this._pinState(this.#keyerPin, false)
 			await this._send('K0')
 			this.#keyerPin = null
 		}
