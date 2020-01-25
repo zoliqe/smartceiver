@@ -110,6 +110,7 @@ class PowronConnector {
 			await delay(serialInitDelay)
 			await this._powerTimeout(this.#timeout)
 			await this._serialBaudrate(this.#adapter.baudrate)
+			await this._keyerPing(this.#keyerPin)
 		} catch (error) {
 			console.error('POWRON Connection error: ' + error)
 			throw error
