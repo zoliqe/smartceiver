@@ -110,7 +110,7 @@ class PowronConnector {
 			await delay(serialInitDelay)
 			await this._powerTimeout(this.#timeout)
 			await this._serialBaudrate(this.#adapter.baudrate)
-			await this._keyerPing(this.#keyerPin)
+			await this._keyerPin(this.#keyerPin)
 		} catch (error) {
 			console.error('POWRON Connection error: ' + error)
 			throw error
@@ -239,11 +239,11 @@ class PowronConnector {
 		if (pin != null && pins.includes(pin)) {
 			console.info('POWRON: Enabling keyer on pin', pin)
 			this.#keyerPin = pin
-			await this._pinState(pin, false)
-			await this._send(`K${ pin } `)
+// 			await this._pinState(pin, false)
+			await this._send(`K${pin}`)
 		} else {
 			console.info('POWRON: Disabling keyer on pin', this.#keyerPin)
-			await this._pinState(this.#keyerPin, false)
+// 			await this._pinState(this.#keyerPin, false)
 			await this._send('K0')
 			this.#keyerPin = null
 		}
