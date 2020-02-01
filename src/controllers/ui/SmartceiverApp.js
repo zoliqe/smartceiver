@@ -42,7 +42,7 @@ export class SmartceiverApp extends LitElement {
         flex-direction: column;
         align-items: center;
         justify-content: flex-start;
-        font-size: calc(10px + 2vmin);
+        font-size: min(calc(10px + 2vmin), 26px);
         color: white;
         /* max-width: 960px; */
         margin: 0 auto;
@@ -749,6 +749,7 @@ export class SmartceiverApp extends LitElement {
 				if (fncId === 'split') {
 					this.vfo = 'split'
 					if (this.tcvr.rit) this.tcvr.rit = 0
+					if (!this.tcvr.split) this.tcvr.split = this.tcvr.freq
 				} else if (fncId === 'rit') {
 					this.vfo = 'rit'
 					if (this.tcvr.split) this.tcvr.split = 0

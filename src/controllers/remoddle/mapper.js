@@ -161,7 +161,7 @@ class RemoddleMapper {
 	changeFreq = delta => { this._tcvr.freq += this._tcvr.step * delta }
 	
 	changeSplit = delta => {
-		const split = this._tcvr.split === 0 ? this._tcvr.freq : this._tcvr.split
+		const split = /*this._tcvr.split === 0 ? this._tcvr.freq :*/ this._tcvr.split
 		this._tcvr.split = split + this._tcvr.step * delta
 	}
 	
