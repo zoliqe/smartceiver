@@ -3,31 +3,25 @@ import {SignalType, TcvrSignal} from './utils/signals.js'
 import { Transceiver } from './tcvr.js'
 
 export class TcvrController {
-	#id
-
-	#attached
-	
-	#tcvr
-
 	exclusive = false
 
 	preventSubcmd = false
 
 	constructor(controllerId) {
-		this.#id = controllerId
+		this._id = controllerId
 	}
 
 	get id() {
-		return this.#id
+		return this._id
 	}
 
 	get active() {
-		return this.#attached
+		return this._attached
 	}
 
 	detach() {
-		this.#attached = false
-		this.#tcvr = null
+		this._attached = false
+		this._tcvr = null
 	}
 
 	/**
@@ -36,171 +30,173 @@ export class TcvrController {
 	 */
 	attachTo(tcvr) {
 		tcvr.attachController(this)
-		this.#tcvr = tcvr
-		this.#attached = true
+		this._tcvr = tcvr
+		this._attached = true
 	}
 
 	async connect(connectors) {
-		this.#tcvr && (await this.#tcvr.connect(connectors))
+		this._tcvr && (await this._tcvr.connect(connectors))
 	}
 
 	async disconnect() {
-		this.#tcvr && this.#tcvr.disconnect()
+		this._tcvr && this._tcvr.disconnect()
 	}
 
 	async keepAlive() {
-		this.#tcvr && this.#tcvr.keepAlive()
+		this._tcvr && this._tcvr.keepAlive()
 	}
 
 	poweron() {
-		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.pwrsw, true), {force: true})
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.pwrsw, true), {force: true})
 	}
 
 	poweroff() {
-		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.pwrsw, false), {force: true})
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.pwrsw, false), {force: true})
 	}
 
 	keyDit() {
-		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keyDit, 1))
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.keyDit, 1))
 	}
 
 	keyDah() {
-		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keyDah, 1))
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.keyDah, 1))
 	}
 
 	keySpace() {
-		this.#tcvr && this.#tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
 	}
 
 	get properties() {
-		return this.#tcvr && this.#tcvr.properties
+		return this._tcvr && this._tcvr.properties
 	}
 
 	get propDefaults() {
-		return this.#tcvr && this.#tcvr.defaultProps
+		return this._tcvr && this._tcvr.defaultProps
 	}
 
 	set ptt(value) {
-		this.#tcvr && this.#tcvr.setPtt(this, value)
+		this._tcvr && this._tcvr.setPtt(this, value)
 	}
 
 	get wpm() {
-		return this.#tcvr && this.#tcvr.wpm
+		return this._tcvr && this._tcvr.wpm
 	}
 
 	set wpm(value) {
-		this.#tcvr && this.#tcvr.setWpm(this, value)
+		this._tcvr && this._tcvr.setWpm(this, value)
 	}
 
 	get reversePaddle() {
-		return this.#tcvr && this.#tcvr.reversePaddle
+		return this._tcvr && this._tcvr.reversePaddle
 	}
 
 	set reversePaddle(value) {
-		this.#tcvr && this.#tcvr.setReversePaddle(this, value)
+		this._tcvr && this._tcvr.setReversePaddle(this, value)
 	}
 
 	get bands() {
-		return this.#tcvr && this.#tcvr.bands
+		return this._tcvr && this._tcvr.bands
 	}
 
 	get band() {
-		return this.#tcvr && this.#tcvr.band
+		return this._tcvr && this._tcvr.band
 	}
 
 	set band(value) {
-		this.#tcvr && this.#tcvr.setBand(this, value)
+		this._tcvr && this._tcvr.setBand(this, value)
 	}
 
 	get freq() {
-		return this.#tcvr && this.#tcvr.freq
+		return this._tcvr && this._tcvr.freq
 	}
 
 	set freq(value) {
-		this.#tcvr && this.#tcvr.freq !== value && this.#tcvr.setFreq(this, value)
+		if (!this._tcvr) return
+		if (this.id === 'ui' && this._tcvr.freq === value) return
+		this._tcvr.setFreq(this, value)
 	}
 
 	get split() {
-		return this.#tcvr && this.#tcvr.split
+		return this._tcvr && this._tcvr.split
 	}
 
 	set split(value) {
-		this.#tcvr && this.#tcvr.setSplit(this, value)
+		this._tcvr && this._tcvr.setSplit(this, value)
 	}
 
 	get rit() {
-		return this.#tcvr && this.#tcvr.rit
+		return this._tcvr && this._tcvr.rit
 	}
 
 	set rit(value) {
-		this.#tcvr && this.#tcvr.setRit(this, value)
+		this._tcvr && this._tcvr.setRit(this, value)
 	}
 
 	// get xit() {
-	// 	return this.#tcvr && this.#tcvr.xit
+	// 	return this._tcvr && this._tcvr.xit
 	// }
 	set xit(value) {
-		this.#tcvr && this.#tcvr.setXit(this, value)
+		this._tcvr && this._tcvr.setXit(this, value)
 	}
 
 	get steps() {
-		return this.#tcvr && this.#tcvr.steps
+		return this._tcvr && this._tcvr.steps
 	}
 
 	get step() {
-		return this.#tcvr && this.#tcvr.step
+		return this._tcvr && this._tcvr.step
 	}
 
 	set step(value) {
-		this.#tcvr && this.#tcvr.setStep(this, value)
+		this._tcvr && this._tcvr.setStep(this, value)
 	}
 
 	get modes() {
-		return this.#tcvr && this.#tcvr.modes
+		return this._tcvr && this._tcvr.modes
 	}
 
 	get mode() {
-		return this.#tcvr && this.#tcvr.mode
+		return this._tcvr && this._tcvr.mode
 	}
 
 	set mode(value) {
-		this.#tcvr && this.#tcvr.setMode(this, value)
+		this._tcvr && this._tcvr.setMode(this, value)
 	}
 
 	get filters() {
-		return this.#tcvr && this.#tcvr.filters
+		return this._tcvr && this._tcvr.filters
 	}
 
 	get filter() {
-		return this.#tcvr && this.#tcvr.filter
+		return this._tcvr && this._tcvr.filter
 	}
 
 	set filter(value) {
-		this.#tcvr && this.#tcvr.setFilter(this, value)
+		this._tcvr && this._tcvr.setFilter(this, value)
 	}
 
 	get gains() {
-		return this.#tcvr && this.#tcvr.gains
+		return this._tcvr && this._tcvr.gains
 	}
 
 	get gain() {
-		return this.#tcvr && this.#tcvr.gain
+		return this._tcvr && this._tcvr.gain
 	}
 
 	set gain(value) {
-		this.#tcvr && this.#tcvr.setGain(this, value)
+		this._tcvr && this._tcvr.setGain(this, value)
 	}
 
 	get agcTypes() {
-		return this.#tcvr && this.#tcvr.agcTypes
+		return this._tcvr && this._tcvr.agcTypes
 	}
 
 	get agc() {
-		return this.#tcvr && this.#tcvr.agc
+		return this._tcvr && this._tcvr.agc
 	}
 
 	set agc(value) {
-		this.#tcvr && this.#tcvr.setAgc(this, value)
+		this._tcvr && this._tcvr.setAgc(this, value)
 	}
 
 }
