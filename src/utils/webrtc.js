@@ -79,16 +79,22 @@ class WebRTC {
 
 	sendSignal(signal, data) {
 		if (this._signaling && this._signaling.connected) {
-			console.debug('sendSignal:', signal, data)
+			console.debug('WebRTC: sendSignal:', signal, data)
 			this._signaling.emit(signal, data)
 		}
 	}
 
 	sendCommand(cmd) {
+		if (!this._control) return
+		if (this._control.readyState === 'closed' || this._control.readyState === 'closing')
+			this.disconnect()
+		if (this._control.readyState === 'connecting')
+			console.warn(`WebRTC: control channel may be not ready (cmd: ${cmd})`)
+		
 		try {
-			this._control && this._control.send(cmd)
+			this._control.send(cmd)
 		} catch (err) {
-			console.error(`ERROR sendCommand(${cmd}):`, err)
+			console.error(`WebRTC: ERROR sendCommand(${cmd}):`, err)
 			if (!this._server) window.alert('Transceiver control disconnected!')
 			this.disconnect()
 		}
@@ -101,18 +107,18 @@ class WebRTC {
 		this._initSignaling({url: kredence.qth})
 		this._signaling.on('state', state => this.stateResolved && this.stateResolved(state))
 		this._signaling.on('full', rig => {
-			console.error(`Rig ${rig} is busy`)
+			console.error(`WebRTC: Rig ${rig} is busy`)
 			window.alert('Transceiver is busy.')
 			this.disconnect()
 		})
 		this._signaling.on('empty', rig => {
-			console.error(`Rig ${rig} empty`)
+			console.error(`WebRTC: Rig ${rig} empty`)
 			window.alert('Transceiver is not connected.')
 			this.disconnect()
 		})
 
 		this._signaling.on('joined', (data) => { 
-			console.info(`Operating ${data.rig} as ${data.op}`)
+			console.info(`WebRTC: Operating ${data.rig} as ${data.op}`)
 			this._isReady = true
 			this.iceServers = data.iceServers
 			// this._mic = await new Microphone(this.tcvr).request()
@@ -121,7 +127,7 @@ class WebRTC {
 		})
 
 		this._signaling.on('connect', () => {
-			console.debug('Joining', kredence.rig)
+			console.debug('WebRTC: Joining', kredence.rig)
 			this.sendSignal('join', kredence)
 			})
 	}
@@ -133,18 +139,18 @@ class WebRTC {
 		this._server = true
 		this._initSignaling({url: kredence.qth})
 		this._signaling.on('connect', () => {
-			console.info('Open rig', kredence.rig)  
+			console.info('WebRTC: Open rig', kredence.rig)  
 			this.sendSignal('open', kredence.rig)
 		})
 		this._signaling.on('opened', data => {
-			console.info('Opened rig', data.rig)
+			console.info('WebRTC: Opened rig', data.rig)
 			this.iceServers = data.iceServers
 			this._getLocalAudio()
 		})
 		this._signaling.on('join', op => {
 			// whoNow = op
 			// authTime = secondsNow()
-			console.info(`Operator ${op} made a request to operate rig`)
+			console.info(`WebRTC: Operator ${op} made a request to operate rig`)
 			this.sendMessage({type: 'tcvrinfo', ...tcvrInfo()})
 			this._isReady = true
 		})
@@ -152,20 +158,20 @@ class WebRTC {
 	}
 
 	_initSignaling({url}) {
-		console.info('connectSignaling:', url)
+		console.info('WebRTC: connectSignaling:', url)
 		this._signaling = io.connect(`wss://${url}`, this.options.signaling)
 
-		this._signaling.on('reconnect', () => console.debug('socket.io reconnected'))
-		this._signaling.on('disconnect', () => console.debug('socket.io disconnected'))
-		this._signaling.on('error', error => console.error('socket.io error:', error))
-		this._signaling.on('connect_error', error => console.error('socket.io connect_error:', error))
-		this._signaling.on('log', array => console.debug('LOG:', ...array))
+		this._signaling.on('reconnect', () => console.debug('WebRTC: socket.io reconnected'))
+		this._signaling.on('disconnect', () => console.debug('WebRTC: socket.io disconnected'))
+		this._signaling.on('error', error => console.error('WebRTC: socket.io error:', error))
+		this._signaling.on('connect_error', error => console.error('WebRTC: socket.io connect_error:', error))
+		this._signaling.on('log', array => console.debug('WebRTC: LOG: ', ...array))
 
 		this._signaling.on('message', (message) => this._handleMessage(message))
 	}
 
 	_handleMessage(message) {
-		console.info('signal message:', message)
+		console.info('WebRTC: signal message:', message)
 		if (message === 'ready' && this._server) {
 			this._maybeStart()
 			this._doCall()
@@ -184,7 +190,7 @@ class WebRTC {
 		} else if (message.type === 'tcvrinfo') {
 			this._info = message
 		} else if (message === 'bye' && this._isStarted) {
-			console.info('Session terminated.')
+			console.info('WebRTC: Session terminated.')
 			this.disconnect()
 		// } else if (message === 'restart') {
 		// 	console.info('Session restart')
@@ -194,18 +200,18 @@ class WebRTC {
 	}
 
 	async _getLocalAudio() {
-		console.debug('Getting user media with constraints', this.options.userMediaConstraints)
+		console.debug('WebRTC: Getting user media with constraints', this.options.userMediaConstraints)
 		this._localStream = await navigator.mediaDevices.getUserMedia(this.options.userMediaConstraints)
-		console.debug('Adding local stream', this._localStream)
+		console.debug('WebRTC: Adding local stream', this._localStream)
 		// this._localStream.getAudioTracks().forEach(track => console.log(track.getSettings()))		
 		// this._localAudio.srcObject = stream;
 		this.sendSignal('ready')
 	}
 
 	_maybeStart() {
-		console.debug(`maybeStart(): isStarted=${this._isStarted}, isReady=${this._isReady}`)
+		console.debug(`WebRTC: maybeStart(): isStarted=${this._isStarted}, isReady=${this._isReady}`)
 		if (!this._isStarted /* && this._mic && this._mic.stream && this._mic.track */ && this._isReady) {
-			console.debug('creating peer connection')
+			console.debug('WebRTC: creating peer connection')
 			this._createPeerConnection()
 
 			if (this._localStream) {
@@ -217,29 +223,29 @@ class WebRTC {
 	}
 
 	_doAnswer() {
-		console.debug('Sending answer to peer.')
+		console.debug('WebRTC: Sending answer to peer.')
 		this._pc.createAnswer().then(
 			desc => this._setLocalAndSendMessage(desc),
-			error => console.error('doAnswer(): Failed to create session description:', error)
+			error => console.error('WebRTC: doAnswer(): Failed to create session description:', error)
 		)
 	}
 
 	_doCall() {
-		console.debug('Sending offer to peer');
+		console.debug('WebRTC: Sending offer to peer');
 		this._pc.createOffer().then(
 			desc => this._setLocalAndSendMessage(desc),
-			error => console.error('createOffer() error:', error))
+			error => console.error('WebRTC: createOffer() error:', error))
 	}
 	
 	_setLocalAndSendMessage(sessionDescription) {
 		this._pc.setLocalDescription(sessionDescription)
-		console.debug('setLocalAndSendMessage sending message', sessionDescription)
+		console.debug('WebRTC: setLocalAndSendMessage sending message', sessionDescription)
 		this.sendMessage(sessionDescription)
 	}
 
 	_createPeerConnection() {
 		try {
-			console.debug('Create RTCPeerConnnection, iceServers:', this.iceServers)
+			console.debug('WebRTC: Create RTCPeerConnnection, iceServers:', this.iceServers)
 			this._pc = new RTCPeerConnection({'iceServers': this.iceServers})
 			this._pc.onicecandidate = event => this._handleIceCandidate(event)
 			this._pc.ontrack = event => this.onTrack(event)
@@ -250,7 +256,7 @@ class WebRTC {
 				this._pc.ondatachannel = event => this._initControl(event.channel)
 			}
 		} catch (e) {
-			console.error('Failed to create PeerConnection, exception:', e)
+			console.error('WebRTC: Failed to create PeerConnection, exception:', e)
 			if (!this._server) window.alert('Cannot communicate with transceiver.')
 			this.disconnect()
 		}
@@ -265,7 +271,7 @@ class WebRTC {
 	}
 
 	_handleIceCandidate(event) {
-		console.debug('icecandidate event: ', event)
+		console.debug('WebRTC: icecandidate event: ', event)
 		if (event.candidate) {
 			this.sendMessage({
 				type: 'candidate',
@@ -274,7 +280,7 @@ class WebRTC {
 				candidate: event.candidate.candidate
 			})
 		} else {
-			console.debug('End of candidates.')
+			console.debug('WebRTC: End of candidates.')
 		}
 	}
 
@@ -288,14 +294,15 @@ class WebRTC {
 	}
 
 	onControlClose() {
+		console.info('WebRTC: Control channel closed')
 	}
 
 	onControlMessage(event) {
-		console.info('command received:', event.data)
+		console.info('WebRTC: command received:', event.data)
 	}
 
 	onControlError(event) {
-		console.error('command error:', event)
+		console.error('WebRTC: command error:', event)
 	}
 
 }
