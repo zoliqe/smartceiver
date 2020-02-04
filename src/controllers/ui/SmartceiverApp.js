@@ -807,7 +807,6 @@ export class SmartceiverApp extends LitElement {
 			'toggles': true,
 			'toggle-btn': true,
 			'active': this._activeFncOfRemoddleEnc(fncid)
-			// TODO this.requestUpdate() on enc fnc change
 		})
 	}
 

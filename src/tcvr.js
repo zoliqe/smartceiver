@@ -345,7 +345,6 @@ class Transceiver {
 
 	setFreq(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
-		if (this.freq === freq) return
 		if (this._outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
 		// 	return
