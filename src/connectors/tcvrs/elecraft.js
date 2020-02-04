@@ -39,36 +39,31 @@ export class Adapter {
 
 	_xit = 0
 
-	#model
-
-	#options
-
-	constructor(options = { model, baudrate, props }) {
+	constructor(options = { model: null, baudrate: null, props: null }) {
 		this._uart = _ => { } // do nothing
-		this.#options = options || {}
-		this.#model = options.model || ''
+		this._options = options || {}
+		this._model = options.model || ''
 	}
 
 	async init(dataSender) {
 		this._uart = async (data) => dataSender(`${data};`)
 		await delay(2000) // wait for tcvr internal CPU start
-		await this._uart('FR0') // set VFO A as RX VFO + cancel SPLIT
 	}
 
 	async close() {
-		this._uart = _ => { } // do nothing
+		this._uart = () => { } // do nothing
 	}
 
 	get properties() {
-		return this.#options.props
+		return this._options.props
 	}
 
 	get defaults() {
-		return this.#options.defaults
+		return this._options.defaults
 	}
 
 	get baudrate() {
-		return this.#options.baudrate
+		return this._options.baudrate
 	}
 
 	async frequency(freq) {
@@ -87,7 +82,7 @@ export class Adapter {
 	}
 
 	async agc({agc, mode}) {
-		await this._uart(`GT00${resolveAgc(agc, mode) == AgcTypes.SLOW ? 4 : 2}`)
+		await this._uart(`GT00${resolveAgc(agc, mode) === AgcTypes.SLOW ? 4 : 2}`)
 	}
 
 	async gain(gain) {
@@ -105,7 +100,7 @@ export class Adapter {
 
 	async filter({filter, mode}) {
 		const filt = selectFilter(this.properties.filters(mode), filter)
-		if (this.#model === 'k2') await this._filterK2(filt, mode)
+		if (this._model === 'k2') await this._filterK2(filt, mode)
     else await this._filterK3(filt)
 	}
 
@@ -119,8 +114,8 @@ export class Adapter {
 		// for (let i = 0; i < count; i++) this._uart(`FW0000${index}`) // cycle trought filters (basic cmd format)
 	}
 
-	async _filterK3(bw) {
-		bw = Number(bw) / 10
+	async _filterK3(bandwidth) {
+		let bw = Number(bandwidth) / 10
 		bw = String(bw).padStart(4, '0')
 		await this._uart(`BW${bw}`)
 	}
@@ -131,11 +126,17 @@ export class Adapter {
 
 	async split(value) {
 		const state = value !== 0
-		if (state !== this._splitState) {
-			await this._uart(`FT${state ? 1 : 0}`)
-			this._splitState = state
+		if (!state) {
+			await this._uart('FR0') // set VFO A as RX VFO
+			await this._uart('FT0') // set VFO A as TX VFO - cancel SPLIT
+				this._splitState = false
+			return
 		}
-		if (!state) return
+		if (!this._splitState) {
+			await this._uart('FR0') // set VFO A as RX VFO
+			await this._uart('FT1') // set VFO B as TX VFO - enable SPLIT
+			this._splitState = true
+		}
 
 		let cmd = 'FB000'
 		if (value < 10000000) cmd += '0'
@@ -154,7 +155,7 @@ export class Adapter {
 			await this._uart('RT1')
 		}
 
-		if (this.#model === 'k2') await this.ritK2(value)
+		if (this._model === 'k2') await this.ritK2(value)
     else await this.ritK3(value)
 
 		this._rit = value

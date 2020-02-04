@@ -121,7 +121,9 @@ export class TcvrController {
 	}
 
 	set split(value) {
-		this._tcvr && this._tcvr.setSplit(this, value)
+		if (!this._tcvr) return
+		if (this.id === 'ui' && this._tcvr.split === value) return
+		this._tcvr.setSplit(this, value)
 	}
 
 	get rit() {
@@ -129,7 +131,9 @@ export class TcvrController {
 	}
 
 	set rit(value) {
-		this._tcvr && this._tcvr.setRit(this, value)
+		if (!this._tcvr) return
+		if (this.id === 'ui' && this._tcvr.rit === value) return
+		this._tcvr.setRit(this, value)
 	}
 
 	// get xit() {

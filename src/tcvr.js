@@ -318,6 +318,10 @@ class Transceiver {
 		if (!this.online || this._denieded(controller)) return
 		if (!this.properties.bands.includes(band)) return
 
+		// disable RIT & SPLIT on current band
+		this.setSplit(this, 0)
+		this.setRit(this, 0)
+
 		this._d("band", band)
 		this.#state.band = band
 		this.fire(new TcvrSignal(SignalType.band, this.band))
@@ -326,7 +330,8 @@ class Transceiver {
 		// reset state - some tcvrs may store state on per band basis
 		setTimeout(_ => {
 			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode])
-			this.setSplit(this, this.#state.split[this.#state.band][this.#state.mode])
+			this.setSplit(this, 0) // disable RIT (in case tcvr has incorrect state)
+			this.setRit(this, 0) // disable SPLIT (in case tcvr has incorrect state)
 			this.fire(new TcvrSignal(SignalType.mode, this.mode), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.gain, this.gain), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}), {subcmd: true})
@@ -359,7 +364,6 @@ class Transceiver {
 
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
-		if (this.split === freq) return
 		if (freq && (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
 		if (this.rit) this.setRit(this, 0)
 		this.#state.split[this.#state.band][this.#state.mode] = freq
@@ -373,7 +377,6 @@ class Transceiver {
 
 	setRit(controller, value) {
 		if (!this.online || this._denieded(controller)) return
-		if (this.rit === value) return
 		this._d('rit', value)
 		if (Math.abs(value) < 10000) {
 			if (this.split) this.setSplit(this, 0)
