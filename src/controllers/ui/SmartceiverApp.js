@@ -556,6 +556,7 @@ export class SmartceiverApp extends LitElement {
 				remotig.trim().toLowerCase().split('@', 2)
 			await this._resolveConnector('remotig', connectorParams, 'pwr')
 
+			this.audioproc = null // force disable startAudioProcessor()
 			if (this.connectors.pwr) {
 				this.connectors.pwr.onTrack = e => this.audioProcessor.connectStream(e)
 				this.connectors.pwr.onDisconnect = () => this.audioProcessor.close()
@@ -602,7 +603,7 @@ export class SmartceiverApp extends LitElement {
 	async _resolveConnector(id, params, type) {
 		try {
 			const connector = await resolveConnector(id, params)
-			console.debug(`Resolved connector_params: id=${connector.id}_params=${JSON.stringify(params)}`)
+			console.debug(`Resolved connector: id=${connector.id} params=${JSON.stringify(params)}`)
 			this.connectors[type] = connector
 		} catch (e) {
 			console.error(e)
@@ -726,6 +727,7 @@ export class SmartceiverApp extends LitElement {
 		if (this.tcvr && this.tcvr.active) {
 			await this.tcvr.connect({ cat: this.connectors.cat })
 			this.tcvr.poweron()
+			await this.startAudioProcessor()
 		} else if (this.remote && this.remote.active) {
 			this.remote.connect({ cat: this.connectors.cat })
 		}
