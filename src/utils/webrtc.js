@@ -164,7 +164,11 @@ class WebRTC {
 		this._signaling.on('reconnect', () => console.debug('WebRTC: socket.io reconnected'))
 		this._signaling.on('disconnect', () => console.debug('WebRTC: socket.io disconnected'))
 		this._signaling.on('error', error => console.error('WebRTC: socket.io error:', error))
-		this._signaling.on('connect_error', error => console.error('WebRTC: socket.io connect_error:', error))
+		this._signaling.on('connect_error', error => {
+			console.error('WebRTC: socket.io connect_error:', error)
+			this.disconnect()
+			if (!this._server) window.alert('Transceiver control disconnected!')
+		})
 		this._signaling.on('log', array => console.debug('WebRTC: LOG: ', ...array))
 
 		this._signaling.on('message', (message) => this._handleMessage(message))
