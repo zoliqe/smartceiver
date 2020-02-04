@@ -117,7 +117,7 @@ export class TcvrController {
 	}
 
 	set freq(value) {
-		this.#tcvr && this.#this.tcvr.freq !== value && this.#tcvr.setFreq(this, value)
+		this.#tcvr && this.#tcvr.freq !== value && this.#tcvr.setFreq(this, value)
 	}
 
 	get split() {
