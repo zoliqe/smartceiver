@@ -683,10 +683,11 @@ export class SmartceiverApp extends LitElement {
 				this.tcvr.poweron()
 				await this.startAudioProcessor()
 			}
-			if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
-				// on remotig, click-event (user action) can be used to 'auto' connect remoddle
-				this.connectRemoddle()
-			}
+			// not working for Serial now (2020-02-05)
+			// if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
+			// 	// on remotig, click-event (user action) can be used to 'auto' connect remoddle
+			// 	this.connectRemoddle()
+			// }
 		} else if (this.remote && this.remote.active) {
 			await this.remote.connect(connectors)
 		}
