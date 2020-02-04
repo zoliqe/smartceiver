@@ -327,8 +327,12 @@ class Transceiver {
 		this.fire(new TcvrSignal(SignalType.band, this.band))
 
 		if (controller.preventSubcmd) return
+		if (this._bandTimer != null) { // another band change hit
+			clearTimeout(this._bandTimer)
+		}
 		// reset state - some tcvrs may store state on per band basis
-		setTimeout(_ => {
+		this._bandTimer = setTimeout(() => {
+			this._bandTimer = null
 			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode])
 			this.setSplit(this, 0) // disable RIT (in case tcvr has incorrect state)
 			this.setRit(this, 0) // disable SPLIT (in case tcvr has incorrect state)
