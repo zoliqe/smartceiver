@@ -15,6 +15,8 @@ export class RemotigController {
 
 	#connectors
 
+	timeout = 30
+
 	constructor(tcvrController, kredence, connectors) {
 		this.#local = tcvrController
 		this.#local.exclusive = true
@@ -33,10 +35,12 @@ export class RemotigController {
 	}
 
 	async _onControlOpen() {
-		await this.#local.poweron() // disable remoddle
+		await this.#local.poweron()
+		this._watchdogStart()
 	}
 
 	async _onControlClose() {
+		this._watchdogStop()
 		this.#remote.sendMessage('bye')
 		this.#remote.sendSignal('logout', this.#kredence.rig)
 		this.#remote.disconnect()
@@ -50,6 +54,7 @@ export class RemotigController {
 		console.debug(`${new Date().toISOString()} cmd: ${msg}`)
 	
 		if (msg === 'poweron') {
+			this._resetWatchdog()
 			this.#local.keepAlive() // heartbeat for session live
 		} else if (msg === 'poweroff') {
 			// shouldn't be not used
@@ -101,6 +106,32 @@ export class RemotigController {
 		}
 	}
 	
+	_resetWatchdog() {
+		this._watchdogStart({reset: true})
+	}
+
+	_watchdogStart({reset = false} = {}) {
+		if (reset && this._watchdog == null) return
+
+		if (this._watchdog != null) 
+			clearTimeout(this._watchdog)
+		this._watchdog = setTimeout(() => {
+			console.info('Remotig watchdog timedout')
+			this._onControlClose()
+		}, this.timeout * 1000)
+
+		if (!reset) {
+			console.info('Remotig watchdog active, timeout:', this.timeout)
+		}
+	}
+
+	_watchdogStop() {
+		if (this._watchdog != null) {
+			clearTimeout(this._watchdog)
+			this._watchdog = null
+		}
+	}
+
 }
 
 // function whoIn(token) {
