@@ -103,7 +103,7 @@ class RemotigConnector {
 	// }
 
 	_initSignals() {
-		this.#signals = new SignalsBinder(this.constructor.id, {
+		this.#signals = new SignalsBinder(this.id, {
 			keyDit: async () => this._con.sendCommand('.'),
 			keyDah: async () => this._con.sendCommand('-'),
 			keySpace: async () => this._con.sendCommand('_'),
