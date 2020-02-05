@@ -33,6 +33,9 @@ export class RemoddleController {
 	}
 
 	async _resolveInterface() {
+		if (this._iface === 'auto') {
+			this._iface = navigator.appVersion.indexOf('Win') === -1 ? 'usb' : 'serial'
+		}
 		if (this._iface === 'bt') {
 			const module = await import('../interfaces/bluetooth.js')
 			return new module.BluetoothInterface()
