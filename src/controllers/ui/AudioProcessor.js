@@ -38,7 +38,7 @@ export class AudioProcessor extends LitElement {
 		this._filterCount = 4 // 10
 		this._hpfCutoff = 400
 		this._Q = 2
-		this._cutoffDiv = 4
+		this._cutoffDiv = 2 // 4
 
 		// this.tcvr.bind(SignalType.ptt, 'audio', 
 		// 	event => event.value ? this.mute() : this.unmute())
@@ -180,10 +180,10 @@ export class AudioProcessor extends LitElement {
 		this._canvasCtx.clearRect(0, 0, this._canvas.width, this._canvas.height)
 		this._canvasCtx.globalAlpha = 1.0
 		for (let i = 3; i < this._analyser.frequencyBinCount / this._cutoffDiv; i += 1) {
-			if (i > 3 && (i * binFreq) % 1000 < 80) {
-				this._canvasCtx.fillStyle = '#000'
-				this._canvasCtx.fillRect(i, this._canvas.height, 1, -this._canvas.height)
-			}
+// 			if (i > 3 && (i * binFreq) % 1000 < 80) {
+// 				this._canvasCtx.fillStyle = '#000'
+// 				this._canvasCtx.fillRect(i, this._canvas.height, 1, -this._canvas.height)
+// 			}
 			const magnitude = freqByteData[i]
 			this._canvasCtx.fillStyle = `rgb(60,60,${magnitude*0.5 + 150})` // `rgb(50,${magnitude},80)`
 			this._canvasCtx.fillRect(i, this._canvas.height, 1, -magnitude)
@@ -193,7 +193,7 @@ export class AudioProcessor extends LitElement {
 		this._canvasCtx.fillStyle = '#bac977'
 		this._canvasCtx.lineCap = 'round'
 		this._canvasCtx.fillRect(this._hpfCutoff / binFreq, this._canvas.height, 
-			this._bw / binFreq - 1, -this._canvas.height)
+			this._bw / binFreq /* - 1 */, -this._canvas.height)
 
 		window.requestAnimationFrame(t => this._drawSpectrum(t), this._canvas)
 	}
