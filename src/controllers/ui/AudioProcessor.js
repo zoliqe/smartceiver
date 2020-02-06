@@ -189,11 +189,15 @@ export class AudioProcessor extends LitElement {
 			this._canvasCtx.fillRect(i, this._canvas.height, 1, -magnitude)
 		}
 	
-		this._canvasCtx.globalAlpha = 0.3
-		this._canvasCtx.fillStyle = '#bac977'
+		this._canvasCtx.globalAlpha = 0.1
+		this._canvasCtx.fillStyle = '#aaa'
 		this._canvasCtx.lineCap = 'round'
-		this._canvasCtx.fillRect(this._hpfCutoff / binFreq, this._canvas.height, 
-			this._bw / binFreq /* - 1 */, -this._canvas.height)
+		let bw = Math.max(this._bw, 600)
+		bw = bw / binFreq
+		if (this._bw > 1000)
+			bw = bw - 4
+		const lf = this._hpfCutoff / binFreq - 1
+		this._canvasCtx.fillRect(lf, this._canvas.height, bw, -this._canvas.height)
 
 		window.requestAnimationFrame(t => this._drawSpectrum(t), this._canvas)
 	}
