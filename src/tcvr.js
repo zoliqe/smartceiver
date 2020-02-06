@@ -550,7 +550,9 @@ class TransceiverProperties {
 
 		this.#bandGains = {}
 		if (bandGains && Object.keys(bandGains).length) {
-			Object.entries(bandGains).forEach(([band, gains]) => {this.#bandGains[band] = [0, ...gains]}) // 0 is mandatory
+			Object.entries(bandGains).forEach(([band, gains]) => {
+				this.#bandGains[band] = gains && gains.includes(0) ? [...gains] : [0, ...gains] // 0 is mandatory
+			})
 		} else {
 			bands.forEach(b => this.#bandGains[b] = [0])
 		}
