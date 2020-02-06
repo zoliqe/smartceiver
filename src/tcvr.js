@@ -210,8 +210,14 @@ class Transceiver {
 		
 	_buildFilterTable(props) {
 		this.#state.filters = this.#state.filters || {}
-		props.modes.forEach(mode => 
-				    this.#state.filters[mode] = this.#state.filters[mode] || _filters[mode].max)
+		props.modes.forEach(mode => {
+			const filters = props.filters(mode)
+			let filter = this.#state.filters[mode]
+			if (!filters.includes(filter))
+				filter = filters[0]
+
+			this.#state.filters[mode] = filter
+		})
 	}
 	
 	_buildGainsTable(props) {
@@ -561,7 +567,10 @@ class TransceiverProperties {
 			this.#modeFilters = modeFilters
 		} else {
 			this.#modeFilters = {}
-			modes.forEach(m => this.#modeFilters[m] = [3000])
+			const defaultFilter = mode => (_filters[mode] && _filters[mode].max) || 3000
+			this.#modes.forEach(m => {
+				this.#modeFilters[m] = [defaultFilter(m)]
+			})
 		}
 	}
 
