@@ -61,7 +61,7 @@ export class AudioProcessor extends LitElement {
 		this._remoteAudio = this.shadowRoot.getElementById('remoteAudio')
 		this._canvas = this.shadowRoot.getElementById('fft')
 		this._canvasCtx = this._canvas.getContext('2d')
-		this._canvas.height = 256
+		this._canvas.height = 100 // 256
 	}
 
 	connectStream(trackWithStream) {
