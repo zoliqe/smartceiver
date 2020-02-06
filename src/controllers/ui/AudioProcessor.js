@@ -62,7 +62,6 @@ export class AudioProcessor extends LitElement {
 		this._canvas = this.shadowRoot.getElementById('fft')
 		this._canvasCtx = this._canvas.getContext('2d')
 		this._canvas.height = 256
-		this._canvas.width = 100
 	}
 
 	connectStream(trackWithStream) {
@@ -125,7 +124,7 @@ export class AudioProcessor extends LitElement {
 
 		this._buildFilterChain()
 
-		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv
+		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
 
 		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
 	}
