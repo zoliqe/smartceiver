@@ -22,7 +22,8 @@ class RemoddleMapper {
 	_encoderFunction = { 
 		1: this._encoderAvailableFunctions[1][0], 
 		2: this._encoderAvailableFunctions[2][0], 
-		3: this._encoderAvailableFunctions[3][0] }
+		3: this._encoderAvailableFunctions[3][0]
+	}
 	
 	/**
 	 * button functions execution:
@@ -32,32 +33,28 @@ class RemoddleMapper {
 	 * - release: immediately on release
 	 */
 	_buttonMainFunctions = {
-		1: { tap: _ => this.switchStep() }, // a
-		2: { tap: _ => this.switchEncoderFunction(2) }, // b
-		3: { tap: _ => this.switchEncoderFunction(3), hold: null }, // c // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
-		4: { tap: _ => this.switchGain() }, // d
-		// 5: { tap: _ => this.buttonCwSelectFunctions(), hold: null }, // e
-		6: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // f
-		7: { tap: _ => this.switchMode() }, // g
-		// 8: { push: _ => this.setPtt(true), release: _ => this.setPtt(false) },
-		10: { tap: _ => this.switchBandUp(), hold: _ => this.switchBandDown() }, // obsolete j
-		9: { tap: _ => this.switchMode() }, // obsolete i
+		1: { tap: () => this.switchStep() }, // a
+		2: { tap: () => this.switchEncoderFunction(2) }, // b
+		3: { tap: () => this.switchEncoderFunction(3) }, // c // TODO hold: zeroes current fnc (RIT/SPLIT); release: disable rit/xit/split
+		4: { tap: () => this.switchBandUp(), hold: () => this.switchBandDown() }, // d
+		5: { tap: () => this.switchMode() }, // e
+		6: { tap: () => this.switchGain() }, // f
+		7: { tap: () => this.buttonCwSelectFunctions() }, // g
 	}
 
 	_buttonCwSelectFunctions = {
-		1: _ => this.buttonCwCancelFunction(1), 
-		2: _ => this.buttonCwCancelFunction(2), 
-		3: _ => this.buttonCwCancelFunction(3),
-		4: _ => this.buttonCwFunction(6),
-		5: _ => this.buttonCwCancelFunction(7), 
-		6: _ => this.buttonCwFunction(5), 
-		7: _ => this.buttonCwFunction(4), 
-		// 8: _ => this.buttonCwCancelFunction(8)
+		1: () => this.buttonCwCancelFunction(1), 
+		2: () => this.buttonCwCancelFunction(2), 
+		3: () => this.buttonCwCancelFunction(3),
+		4: () => this.buttonCwFunction(6),
+		5: () => this.buttonCwCancelFunction(7), 
+		6: () => this.buttonCwFunction(5), 
+		7: () => this.buttonCwFunction(4), 
 	}
 
-	buttonCwFunction = btn => ({ tap: _ => this.cwmem(btn), hold: _ => this.cwmem(btn, { repeat: true }) })
+	buttonCwFunction = btn => ({ tap: () => this.cwmem(btn), hold: () => this.cwmem(btn, { repeat: true }) })
 	
-	buttonCwCancelFunction = () => ({ release: _ => this.buttonMainFunctions() })
+	buttonCwCancelFunction = () => ({ release: () => this.buttonMainFunctions() })
 
 	// buttonTimeout = 2000
 
@@ -174,27 +171,27 @@ class RemoddleMapper {
 	
 	setPtt = state => { this._tcvr.ptt = state }
 	
-	switchStep = _ => {
+	switchStep = () => {
 		// this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
 		this._tcvr.step = nextValue(this._tcvr.steps, this._tcvr.step)
 	}
 	
-	switchBandUp = _ => {
+	switchBandUp = () => {
 		// this._tcvr.band = this._tcvr.bands[this._shiftIndex(this._tcvr.bands, this._tcvr.band)]
 		this._tcvr.band = nextValue(this._tcvr.bands, this._tcvr.band)
 	}
 	
-	switchBandDown = _ => {
+	switchBandDown = () => {
 		// this._tcvr.band = this._unshiftIndex(this._tcvr.bands, this._tcvr.band)
 		this._tcvr.band = prevValue(this._tcvr.bands, this._tcvr.band)
 	}
 	
-	switchGain = _ => {
+	switchGain = () => {
 		// this._tcvr.gain = this._tcvr.gains[this._shiftIndex(this._tcvr.gains, this._tcvr.gains.indexOf(this._tcvr.gain))]
 		this._tcvr.gain = nextValue(this._tcvr.gains, this._tcvr.gain)
 	}
 	
-	switchMode = _ => {
+	switchMode = () => {
 		// this._tcvr.mode = this._tcvr.modes[this._shiftIndex(this._tcvr.modes, this._tcvr.mode)]
 		this._tcvr.mode = nextValue(this._tcvr.modes, this._tcvr.mode)
 	}
