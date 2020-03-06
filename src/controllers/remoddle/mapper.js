@@ -39,7 +39,7 @@ class RemoddleMapper {
 		4: { tap: () => this.switchBandUp(), hold: () => this.switchBandDown() }, // d
 		5: { tap: () => this.switchMode() }, // e
 		6: { tap: () => this.switchGain() }, // f
-		7: { tap: () => this.buttonCwSelectFunctions() }, // g
+		// 7: { tap: () => this.buttonCwSelectFunctions() }, // g
 	}
 
 	_buttonCwSelectFunctions = {
