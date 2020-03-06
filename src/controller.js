@@ -116,6 +116,11 @@ export class TcvrController {
 		this._tcvr.setFreq(this, value)
 	}
 
+	set freqAndBand(value) {
+		if (!this._tcvr) return
+		this._tcvr.setFreq(this, value, {allowBandChange: true})
+	}
+
 	get split() {
 		return this._tcvr && this._tcvr.split
 	}

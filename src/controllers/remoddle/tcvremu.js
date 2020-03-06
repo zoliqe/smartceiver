@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { Bands, Modes } from '../../tcvr.js'
-//import { delay } from '../../utils/time.js'
+import { Modes } from '../../tcvr.js'
+// import { delay } from '../../utils/time.js'
 
 const _modes = {1: Modes.LSB, 2: Modes.USB, 3: Modes.CW, 6: Modes.RTTY, 7: Modes.CWR}
 
@@ -48,11 +48,9 @@ export class TcvrEmulator {
 	}
 
 	set _freq(p) {
-		// const fstr = this._stripLeadingZeros(p)
 		const freq = parseInt(p, 10)
 		if (Number.isNaN(freq)) return
-		this._tcvr.freq = freq
-		// TODO handle band change
+		this._tcvr.freqAndBand = freq
 	}
 
 	_freqcat(freq) {
@@ -82,7 +80,7 @@ export class TcvrEmulator {
 	set _split(p) {
 		const enable = p && p.endsWith('1')
 		if (enable) {
-			if (!this._freqTX)
+			if (!this._freqTX || this._tcvr.outOfBand(this._freqTX))
 				this._freqTX = this._tcvr.freq
 			this._tcvr.split = this._freqTX
 		} else

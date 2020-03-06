@@ -15,6 +15,9 @@ const _filters = {
 	'LSB': {min: 1800, max: 3000}, 'USB': {min: 1800, max: 3000}
 }
 
+const _vfoBanksCount = 1
+const _bandChangeDelay = 2000
+
 class Band {
 	#name
 
@@ -163,6 +166,7 @@ class Transceiver {
 		Object.keys(this.#defaults).forEach(prop => this._mergeDefault(prop))
 		this.#state.ptt = false
 		this.#state.keyed = false
+		this.#state.vfobank = 0
 
 		const props = await connector.tcvrProps
 		const defaults = await connector.tcvrDefaults
@@ -199,11 +203,11 @@ class Transceiver {
 		this.#state.freq = this.#state.freq || {}
 		this.#state.split = this.#state.split || {}
 		for (const band of props.bands) {
-			this.#state.freq[band] = this.#state.freq[band] || {}
-			this.#state.split[band] = this.#state.split[band] || {}
-			for (const mode of props.modes) {
-				this.#state.freq[band][mode] = this.#state.freq[band][mode] || Bands[band].freqFrom
-				this.#state.split[band][mode] = this.#state.split[band][mode] || 0
+			this.#state.freq[band] = this.#state.freq[band] || []
+			this.#state.split[band] = this.#state.split[band] || []
+			for (let i = 0; i < _vfoBanksCount; i += 1) {
+				this.#state.freq[band][i] = this.#state.freq[band][i] || Bands[band].freqFrom
+				this.#state.split[band][i] = this.#state.split[band][i] || 0
 			}
 		}
 	}
@@ -341,44 +345,55 @@ class Transceiver {
 			this._bandTimer = null
 			this.fire(new TcvrSignal(SignalType.split, 0)) // disable RIT & SPLIT on current band
 			this.fire(new TcvrSignal(SignalType.rit, 0))
-			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.mode])
+			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.vfobank])
 			this.setSplit(this, 0) // disable RIT (in case tcvr has incorrect state)
 			this.setRit(this, 0) // disable SPLIT (in case tcvr has incorrect state)
 			this.fire(new TcvrSignal(SignalType.mode, this.mode), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.gain, this.gain), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.agc, {agc: this.agc, mode: this.mode}), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}), {subcmd: true})
-		}, 2000) // wait for band change on tcvr
+		}, this.bandChangeDelay) // wait for band change on tcvr
 	}
 
-	_outOfBand(f) {
+	get bandChangeDelay() {
+		return _bandChangeDelay
+	}
+
+	outOfBand(f) {
 		const band = Band.byFreq(f)
 		return !band || band.id !== this.#state.band //! this.bands.includes(band)
 	}
 
 	get freq() {
-		return this.#state.freq[this.#state.band][this.#state.mode]
+		return this.#state.freq[this.#state.band][this.#state.vfobank]
 	}
 
-	setFreq(controller, freq) {
+	setFreq(controller, freq, options = {allowBandChange: false}) {
 		if (!this.online || this._denieded(controller)) return
-		if (this._outOfBand(freq)) return
+		if (options && options.allowBandChange && this.outOfBand(freq)) {
+			const band = Band.byFreq(freq)
+			if (!band) return
+			this.setBand(this, band)
+			this.#state.freq[this.#state.band][this.#state.vfobank] = freq
+			return
+		}
+		if (this.outOfBand(freq)) return
 		// if (freq < (_bandLowEdges[this._band] - 1) * 1000 || freq > (_bandLowEdges[this._band] + 510) * 1000)
 		// 	return
-		this.#state.freq[this.#state.band][this.#state.mode] = freq
+		this.#state.freq[this.#state.band][this.#state.vfobank] = freq
 		this._d("freq", freq)
 		this.fire(new TcvrSignal(SignalType.freq, freq))
 	}
 
 	get split() {
-		return this.#state.split[this.#state.band][this.#state.mode]
+		return this.#state.split[this.#state.band][this.#state.vfobank]
 	}
 
 	setSplit(controller, freq) {
 		if (!this.online || this._denieded(controller)) return
-		if (freq && (this._outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
+		if (freq && (this.outOfBand(freq) || Band.byFreq(freq) !== Band.byFreq(this.freq))) return
 		if (this.rit) this.setRit(this, 0)
-		this.#state.split[this.#state.band][this.#state.mode] = freq
+		this.#state.split[this.#state.band][this.#state.vfobank] = freq
 		this._d('split', freq)
 		this.fire(new TcvrSignal(SignalType.split, freq))
 	}
@@ -442,7 +457,7 @@ class Transceiver {
 			this.#state.mode = value
 			this.fire(new TcvrSignal(SignalType.mode, this.#state.mode))
 			if (controller.preventSubcmd) return
-			this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.mode]), {subcmd: true})
+			// this.fire(new TcvrSignal(SignalType.freq, this.#state.freq[this.#state.band][this.#state.vfobank]), {subcmd: true})
 			this.fire(new TcvrSignal(SignalType.filter, {filter: this.filter, mode: this.mode}), {subcmd: true})
 		}
 	}
