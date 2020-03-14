@@ -139,7 +139,7 @@ class SercatConnector {
 			// wpm: async (value) => await this.#keyer.wpm(value),
 			// ptt: async (value) => await this.#keyer.ptt(value),
 			wpm: async (value) => this.#adapter.wpm(value),
-			keymsg: async (value) => this.#adapter.keymsg(value),
+			keyMsg: async (value) => this.#adapter.keymsg(value),
 			mode: async (value) => this.#adapter.mode(value),
 			filter: async (value) => this.#adapter.filter(value),
 			gain: async (value) => this.#adapter.gain(value),
