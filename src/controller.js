@@ -66,6 +66,10 @@ export class TcvrController {
 		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.keySpace, 1))
 	}
 
+	keyMsg(msg) {
+		this._tcvr && this._tcvr.fire(new TcvrSignal(SignalType.keyMsg, msg))
+	}
+
 	get properties() {
 		return this._tcvr && this._tcvr.properties
 	}

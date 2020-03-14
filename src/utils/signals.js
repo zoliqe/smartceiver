@@ -14,7 +14,8 @@ class TcvrSignal {
 const SignalType = Object.freeze({
 	freq: 'freq', band: 'band', rit: 'rit', xit: 'xit', split: 'split',
 	wpm: 'wpm', mode: 'mode', vfo: 'vfo', filter: 'filter', gain: 'gain',
-	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', keyTx: 'keyTx', reverse: 'reverse',
+	keyDit: 'keyDit', keyDah: 'keyDah', keySpace: 'keySpace', keyTx: 'keyTx', 
+	keyMsg: 'keyMsg', reverse: 'reverse',
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', keepAlive: 'keepAlive', step: 'step', 
 	resetAudio: 'resetAudio', audioMute: 'audioMute',
 })

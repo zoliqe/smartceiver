@@ -107,6 +107,7 @@ class RemotigConnector {
 			keyDit: async () => this._con.sendCommand('.'),
 			keyDah: async () => this._con.sendCommand('-'),
 			keySpace: async () => this._con.sendCommand('_'),
+			keyMsg: async (value) => this._con.sendCommand(`keymsg=${value}`),
 			wpm: async (value) => this._con.sendCommand(`wpm=${value}`),
 			ptt: async (value) => {
 				this._con.sendCommand(`ptt${value ? 'on' : 'off'}`)

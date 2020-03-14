@@ -240,7 +240,11 @@ class PowronConnector {
 			keyDit: async () => this.#keyer.send('.'),
 			keyDah: async () => this.#keyer.send('-'),
 			keySpace: async () => this.#keyer.send('_'),
-			wpm: async (value) => this.#keyer.setwpm(value),
+			wpm: async (value) => {
+				this.#keyer.setwpm(value);
+				this.#adapter.wpm(value);
+			},
+			keymsg: async (value) => this.#adapter.keymsg(value),
 			ptt: async (value) => this.#keyer.ptt(value),
 			mode: async (value) => this.#adapter.mode(value),
 			filter: async (value) => this.#adapter.filter(value),

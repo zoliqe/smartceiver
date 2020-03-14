@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { Bands, Modes, AgcTypes } from '../../tcvr.js'
+import { Modes, AgcTypes } from '../../tcvr.js'
 import { delay } from '../../utils/time.js'
 import { selectFilter, resolveAgc, tcvrOptions } from './utils.js'
 
@@ -40,7 +40,7 @@ export class Adapter {
 	_xit = 0
 
 	constructor(options = { model: null, baudrate: null, props: null }) {
-		this._uart = _ => { } // do nothing
+		this._uart = () => { } // do nothing
 		this._options = options || {}
 		this._model = options.model || ''
 	}
@@ -122,6 +122,16 @@ export class Adapter {
 
 	async txpower(level) {
 		await this._uart(`PC${String(level).padStart(3, '0')}`)
+	}
+
+	async wpm(wpm) {
+		if (wpm < 8 || wpm > 50) return
+		await this._uart(`KS${String(wpm).padStart(3, '0')}`)
+	}
+
+	async keymsg(msg) {
+		if (!msg) return
+		await this._uart(`KY ${msg.length > 24 ? msg.substring(0, 24) : msg}`)
 	}
 
 	async split(value) {

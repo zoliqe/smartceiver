@@ -13,16 +13,16 @@ export class RemotigController {
 
 	#kredence
 
-	#connectors
+	// #connectors
 
 	timeout = 30
 
-	constructor(tcvrController, kredence, connectors) {
+	constructor(tcvrController, kredence) {
 		this.#local = tcvrController
 		this.#local.exclusive = true
 		this.#local.preventSubcmd = true
 		this.#kredence = kredence || {}
-		this.#connectors = connectors
+		// this.#connectors = connectors
 
 		this.#remote = new ConnectionService()
 		this.#remote.onControlOpen = () => this._onControlOpen()
@@ -66,6 +66,8 @@ export class RemotigController {
 			this.#local.keyDah()
 		} else if (msg === '_') {
 			this.#local.keySpace()
+		} else if (msg.startsWith('keymsg=')) {
+			this.#local.keyMsg(msg.substring(7))
 		} else if (msg.startsWith('wpm=')) {
 			this.#local.wpm = Number(msg.substring(4))
 		} else if (msg.startsWith('f=')) {

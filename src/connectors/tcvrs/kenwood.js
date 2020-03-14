@@ -107,6 +107,16 @@ export class Adapter {
 	// 	this._uart(`RA0${attn > 0 ? 1 : 0}`)
 	// }
 
+	async wpm(wpm) {
+		if (wpm < 8 || wpm > 50) return
+		await this._uart(`KS${String(wpm).padStart(3, '0')}`)
+	}
+
+	async keymsg(msg) {
+		if (!msg) return
+		await this._uart(`KY ${msg.length > 24 ? msg.substring(0, 24) : msg}`)
+	}
+
 	async filter({filter, mode}) {
 		const filt = selectFilter(this.properties.filters(mode), filter)
 		await this._uart(`FW${String(filt).padStart(4, '0')}`)

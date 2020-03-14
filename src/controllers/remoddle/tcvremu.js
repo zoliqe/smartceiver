@@ -31,6 +31,7 @@ export class TcvrEmulator {
 			else if (cmd.startsWith('FT')) this._send(`FT${this._split}`)
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
 			else if (cmd.startsWith('IF')) this._send(`IF${this._info}`)
+			else if (cmd.startsWith('KS')) this._send(`KS${this._keywpm}`)
 			return
 		}
 
@@ -40,7 +41,8 @@ export class TcvrEmulator {
 		else if (cmd.startsWith('FB')) this._freqtx = p
 		else if (cmd.startsWith('FT')) this._split = p
 		else if (cmd.startsWith('MD')) this._mode = p
-		else if (cmd.startsWith('KY')) this._keyer = p
+		else if (cmd.startsWith('KY')) this._keymsg = p
+		else if (cmd.startsWith('KS')) this._keywpm = p
 	}
 
 	get _freq() {
@@ -99,8 +101,18 @@ export class TcvrEmulator {
 		this._tcvr.mode = _modes[mode]
 	}
 
-	set _keyer(p) {
-		// TODO
+	set _keymsg(p) {
+		this._tcvr.keyMsg(p.trim())
+	}
+
+	get _keywpm() {
+		return `0${this._tcvr.wpm}`
+	}
+
+	set _keywpm(p) {
+		const wpm = parseInt(p, 10)
+		if (Number.isNaN(wpm)) return
+		this._tcvr.wpm = wpm
 	}
 	
 	get _info() {

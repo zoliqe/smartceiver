@@ -131,6 +131,10 @@ export class Adapter {
 		await this._uart(data)
 	}
 
+	async wpm() {}
+
+	async keymsg() {}
+
 	// set attn(attn) {
 	// 	// log(`tcvrAttn: ${state}`)
 	// 	const value = attn > 0 ? 0x20 : 0

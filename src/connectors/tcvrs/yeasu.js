@@ -107,4 +107,8 @@ export class Adapter {
 
 	async rit(rit) {}
 
+	async wpm() {}
+
+	async keymsg() {}
+
 }
