@@ -111,10 +111,10 @@ class PowronConnector {
 			await this._powerTimeout(this.#timeout)
 			await this._serialBaudrate(this.#adapter.baudrate)
 			await this._keyerPin(this.#keyerPin)
-			await this._send('D120')
-			await this._send('A120')
-			await this._send('E60') // CT spaces, normal: 80
-			await this._send('C60')
+			await this._send('D120') // ditCoef
+			await this._send('A120') // dahCoef
+			await this._send('E60')  // elementSpaceCoef // CT spaces, normal: 80
+			await this._send('C60')  // letterSpaceCoef
 		} catch (error) {
 			console.error('POWRON Connection error: ' + error)
 			throw error
