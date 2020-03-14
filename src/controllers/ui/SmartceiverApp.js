@@ -449,6 +449,7 @@ export class SmartceiverApp extends LitElement {
 	async _initTcvr() {
 		const transceiver = new Transceiver()
 		this.transceiver = transceiver
+		window.tcvr = transceiver // for debugging purposes
 
 		this.signals = new SignalsBinder('ui', {
 			ptt: value => {

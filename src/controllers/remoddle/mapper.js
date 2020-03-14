@@ -82,22 +82,8 @@ class RemoddleMapper {
 		else if (c === '{') this.rotateEncoder(3, -1) // enc3 dn
 		else if (code >= 97 && code <= 122) this.tapButton(code - 96) // a - z
 		else if (code >= 65 && code <= 90) this.holdButton(code - 64) // A - Z
-		else if (c === '/') this.setPtt(true)
-		else if (c === '\\') this.setPtt(false)
-		// else if (c === '$') this.pushButton(3) // btn3 push
-		// else if (c === '^') this.pushButton(4) // btn4 push
-		// else if (c === '*') this.pushButton(5) // btn5 push
-		// else if (c === ':') this.pushButton(6) // btn6 push
-		// else if (c === ';') this.pushButton(7) // btn7 push
-		// else if (c === '`') this.pushButton(8) // btn8 push
-		// else if (c === '@') this.releaseButton(1) // btn1 release
-		// else if (c === '#') this.releaseButton(2) // btn2 release
-		// else if (c === '%') this.releaseButton(3) // btn3 release
-		// else if (c === '&') this.releaseButton(4) // btn4 release
-		// else if (c === '?') this.releaseButton(5) // btn5 release
-		// else if (c === '"') this.releaseButton(6) // btn6 release
-		// else if (c === '|') this.releaseButton(7) // btn7 release
-		// else if (c === '\'') this.releaseButton(8) // btn8 release
+		// else if (c === '/') this.setPtt(true)
+		// else if (c === '\\') this.setPtt(false)
 		else console.error('Remoddle sent unknown command:', c)
 	}
 
