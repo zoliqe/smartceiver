@@ -245,7 +245,10 @@ class PowronConnector {
 				this.#adapter.wpm(value);
 			},
 			keyMsg: async (value) => this.#adapter.keymsg(value),
-			ptt: async (value) => this.#keyer.ptt(value),
+			ptt: async (value) => {
+				this.#adapter.ptt(value)
+				this.#keyer.ptt(value)
+			},
 			mode: async (value) => this.#adapter.mode(value),
 			filter: async (value) => this.#adapter.filter(value),
 			gain: async (value) => this.#adapter.gain(value),

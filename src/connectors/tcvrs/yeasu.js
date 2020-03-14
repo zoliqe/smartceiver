@@ -107,8 +107,10 @@ export class Adapter {
 
 	async rit(rit) {}
 
-	async wpm() {}
+	async wpm(wpm) {}
 
-	async keymsg() {}
+	async keymsg(msg) {}
+
+	async ptt(state) {}
 
 }

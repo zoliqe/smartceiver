@@ -271,7 +271,7 @@ class Transceiver {
 
 	setPtt(controller, state) {
 		if (!this.online || this._denieded(controller)) return
-		if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
+		// if (this.#state.mode !== Modes.LSB && this.#state.mode !== Modes.USB) return
 		this.#state.ptt = state
 		this._d("ptt", state)
 		this.fire(new TcvrSignal(SignalType.ptt, state))

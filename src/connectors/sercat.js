@@ -133,11 +133,7 @@ class SercatConnector {
 	
 	_initSignals() {
 		this.#signals = new SignalsBinder(this.id, {
-			// keyDit: async () => await this.#keyer.send('.'),
-			// keyDah: async () => await this.#keyer.send('-'),
-			// keySpace: async () => await this.#keyer.send('_'),
-			// wpm: async (value) => await this.#keyer.wpm(value),
-			// ptt: async (value) => await this.#keyer.ptt(value),
+			ptt: async (value) => this.#adapter.ptt(value),
 			wpm: async (value) => this.#adapter.wpm(value),
 			keyMsg: async (value) => this.#adapter.keymsg(value),
 			mode: async (value) => this.#adapter.mode(value),

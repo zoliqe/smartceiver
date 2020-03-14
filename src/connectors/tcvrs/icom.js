@@ -131,9 +131,11 @@ export class Adapter {
 		await this._uart(data)
 	}
 
-	async wpm() {}
+	async wpm(wpm) {}
 
-	async keymsg() {}
+	async keymsg(msg) {}
+
+	async ptt(state) {}
 
 	// set attn(attn) {
 	// 	// log(`tcvrAttn: ${state}`)

@@ -134,6 +134,10 @@ export class Adapter {
 		await this._uart(`KY ${msg.length > 24 ? msg.substring(0, 24) : msg}`)
 	}
 
+	async ptt(state) {
+		await this._uart(state ? 'TX' : 'RX')
+	}
+
 	async split(value) {
 		const state = value !== 0
 		if (!state) {

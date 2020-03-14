@@ -117,6 +117,10 @@ export class Adapter {
 		await this._uart(`KY ${msg.length > 24 ? msg.substring(0, 24) : msg}`)
 	}
 
+	async ptt(state) {
+		await this._uart(state ? 'TX' : 'RX')
+	}
+
 	async filter({filter, mode}) {
 		const filt = selectFilter(this.properties.filters(mode), filter)
 		await this._uart(`FW${String(filt).padStart(4, '0')}`)

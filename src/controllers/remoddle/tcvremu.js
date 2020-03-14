@@ -32,6 +32,8 @@ export class TcvrEmulator {
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
 			else if (cmd.startsWith('IF')) this._send(`IF${this._info}`)
 			else if (cmd.startsWith('KS')) this._send(`KS${this._keywpm}`)
+			else if (cmd.startsWith('RX')) this._ptt = false
+			else if (cmd.startsWith('TX')) this._ptt = true
 			return
 		}
 
@@ -113,6 +115,10 @@ export class TcvrEmulator {
 		const wpm = parseInt(p, 10)
 		if (Number.isNaN(wpm)) return
 		this._tcvr.wpm = wpm
+	}
+
+	set _ptt(p) {
+		this._tcvr.ptt = p
 	}
 	
 	get _info() {
