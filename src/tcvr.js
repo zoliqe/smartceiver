@@ -373,7 +373,7 @@ class Transceiver {
 		if (options && options.allowBandChange && this.outOfBand(freq)) {
 			const band = Band.byFreq(freq)
 			if (!band) return
-			this.setBand(this, band)
+			this.setBand(this, band.id)
 			this.#state.freq[this.#state.band][this.#state.vfobank] = freq
 			return
 		}
