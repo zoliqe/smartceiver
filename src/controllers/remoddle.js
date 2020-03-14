@@ -61,6 +61,7 @@ export class RemoddleController {
 		console.info(`Remoddle device ${this._port.getDeviceName()} connected :-)`)
 		this._port.receive = data => this._evaluate(data)
 
+		await delay(1000)
 		this.leadSpaces = 4
 		resolve(this)
 	}
