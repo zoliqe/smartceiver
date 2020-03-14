@@ -449,7 +449,6 @@ export class SmartceiverApp extends LitElement {
 	async _initTcvr() {
 		const transceiver = new Transceiver()
 		this.transceiver = transceiver
-		window.tcvr = transceiver // for debugging purposes
 
 		this.signals = new SignalsBinder('ui', {
 			ptt: value => {
@@ -519,9 +518,12 @@ export class SmartceiverApp extends LitElement {
 		await this._initConnector()
 		this.tcvr = new TcvrController('ui')
 		this.tcvr.attachTo(transceiver)
+		window.tcvr = transceiver // for debugging purposes
+		window.uiCtlr = this.tcvr // for debugging purposes
 
 		if (this.remote && this.remoteController) {
 			this.remote.attachTo(transceiver)
+			window.remoteCtlr = this.remote // for debugging purposes
 		} else {
 			this.tcvr.reversePaddle = this._params.get('reverse') === '1'
 			setInterval(() => this.tcvr.keepAlive(), 5000)
