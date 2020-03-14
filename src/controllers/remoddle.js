@@ -60,6 +60,8 @@ export class RemoddleController {
 		}
 		console.info(`Remoddle device ${this._port.getDeviceName()} connected :-)`)
 		this._port.receive = data => this._evaluate(data)
+
+		this.leadSpaces = 4
 		resolve(this)
 	}
 
@@ -89,6 +91,10 @@ export class RemoddleController {
 
 	set reverse(value) {
 		this._send(`R${value ? '1' : '0'}`)
+	}
+
+	set leadSpaces(value) {
+		this._send(`L${value}`)
 	}
 
 	async _send(data) {
