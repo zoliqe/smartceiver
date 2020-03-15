@@ -56,15 +56,15 @@ class Powron {
 
 		this.#adapter = tcvrAdapter
 		this.#powr = new PowrSwitch({
-			state: async (state) => this._pinState(this.#powerPins, state),
+			state: async (state) => this.pinState(this.#powerPins, state),
 			timeout: this.#timeout
 		})
 		this.#keyer = new Keyer({
 			send: async (cmd) => this._send(cmd),
 			speed: async (wpm) => this._send(`S${wpm}`),
 			state: () => this.#keyerPin != null,
-			key: async (state) => this._pinState(this.#keyerPin, state),
-			ptt: async (state) => this._pinState(this.#pttPins, state)
+			key: async (state) => this.pinState(this.#keyerPin, state),
+			ptt: async (state) => this.pinState(this.#pttPins, state)
 		}, keyerConfig)
 
 		this._initSignals()
@@ -170,7 +170,7 @@ class Powron {
 			rit: async (value) => this.#adapter.rit(value),
 			xit: async (value) => this.#adapter.xit(value),
 			keepAlive: async () => this.#powr.resetWatchdog(),
-			pwrsw: async (value) => value ? this._on() : this._off(),
+			pwrsw: async (value) => value ? this.on() : this.off(),
 		})
 	}
 
