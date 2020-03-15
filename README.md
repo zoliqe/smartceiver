@@ -3,8 +3,8 @@
 Smartceiver is based on these technologies:
 * **Arduino (Pro) Micro**
 * **Si5351** 
-* **WebUSB** 
-* **Polymer2 WebComponents** 
+* **WebUSB/WebSerial** 
+* **LitElement library** 
 
 ### Hardware
 
@@ -19,15 +19,19 @@ TX is keyed by enable/disable Si5351 output (or on AD9850 by power down mode).
 
 ### Control Software
 
-Based on new standards WebUSB + WebComponents. Thanks to wide support of these technologies, you can control Smartceiver on computer or mobile.
+Based on new standards WebUSB/WebSerial + WebComponents. Thanks to wide support of these technologies, you can control Smartceiver on desktopPC/notebook or your mobile/tablet.
 Currently tested:
-- LinuxOS (with latest Chrome browser) and ChromeOS
+- Linux (with latest Chrome browser) and ChromeOS
 - Android 7+ with Chrome
 
 *TODO*
+- Powron: try remove Serial.begin() (it's optional) and change baudrate to 115200
+- Remoddle functions enc2Hold (switch NAR/WIDE filter; switch PaddleReverse), enc3Hold (RIT clear)
+- Refactor WebRTC to use Microphone module
+- Reimplement support for SSB mic (bidir audio transfer)
+
 - use KV storage to persist state / connectors config
-- mark active remoddle enc function
 - build filter table with AudioProcessor filters
 - add login form for remote
 - create settings page for connectors (with persistance)
-- Hide unchangeable values (values.length <= 1)
+- check: Hide unchangeable values (values.length <= 1)
