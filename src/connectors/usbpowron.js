@@ -1,23 +1,7 @@
-/* eslint-disable no-await-in-loop */
 /* eslint-disable class-methods-use-this */
-/* eslint-disable no-unused-expressions */
 import { delay } from '../utils/time.js'
-import {SignalsBinder} from '../utils/signals.js'
-import { Keyer } from './extensions/keyer.js'
-import { PowrSwitch } from './extensions/powrsw.js'
+import { Powron, Pins } from './extensions/powron.js'
 
-const cmdByState = state => (state && 'H') || 'L'
-const startSeq = '$OM4AA#'
-const startSeqDelay = 3000
-// const serialBaudRate = 4800
-const serialInitDelay = 1000
-const PowronPins = Object.freeze({
-	pin2: 0, pin3: 1, pin4: 2, pin5: 3,
-	pin6: 4, pin7: 5, pin8: 6, pin9: 7, pin10: 8,
-	pinA0: 0, pinA1: 1, pinA2: 2, pinA3: 3, pinA4: 4, pinA5: 5,
-	pinA6: 6, pinA7: 7
-})
-const pins = Object.values(PowronPins)
 const devFilters = [
 	{ 'vendorId': 0x2341, 'productId': 0x8036 },
 	{ 'vendorId': 0x2341, 'productId': 0x8037 },
@@ -35,52 +19,10 @@ class PowronConnector {
 	
 	#device
 	
-	#powerPins
-	
-	#pttPins
-	
-	#keyerPin
-	
-	#adapter
-	
-	#powr
-	
-	#keyer
-	
-	#signals
+	#powron
 
-	#timeout
-
-	constructor(tcvrAdapter, {
-		options = {
-			keyerPin: PowronPins.pin5, pttPins: [PowronPins.pin6],
-			powerPins: [PowronPins.pin2, PowronPins.pin4], 
-			powerTimeout: 30
-		},
-		keyerConfig = { pttTimeout: 5000 }}) 
-	{
-		const opts = options || {}
-		this.#keyerPin = opts.keyerPin
-		this.#pttPins = opts.pttPins || []
-		this.#powerPins = opts.powerPins || []
-		this.#timeout = opts.powerTimeout || 0
-		// this.keyerState(true)
-		// this.pttState(false)
-
-		this.#adapter = tcvrAdapter
-		this.#powr = new PowrSwitch({
-			state: async (state) => this._pinState(this.#powerPins, state),
-			timeout: this.#timeout
-		})
-		this.#keyer = new Keyer({
-			send: async (cmd) => this._send(cmd),
-			speed: async (wpm) => this._send(`S${wpm}`),
-			state: () => this.#keyerPin != null,
-			key: async (state) => this._pinState(this.#keyerPin, state),
-			ptt: async (state) => this._pinState(this.#pttPins, state)
-		}, keyerConfig)
-
-		this._initSignals()
+	constructor(tcvrAdapter, {options, keyerConfig}) {
+		this.#powron = new Powron(tcvrAdapter, async (cmd) => this._send(cmd), {options, keyerConfig})
 	}
 
 	get id() {
@@ -99,22 +41,10 @@ class PowronConnector {
 			} else {
 				this.#device = await navigator.usb.requestDevice({ 'filters': devFilters })
 			}
-			// .then(device => {
 			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 			await this._open()
-			// .then(port => {
 			console.info('POWRON Connected ' + this.#device.productName)
-			// this._bindCommands(tcvr, port)
-			await delay(startSeqDelay)
-			this._send(startSeq)
-			await delay(serialInitDelay)
-			await this._powerTimeout(this.#timeout)
-			await this._serialBaudrate(this.#adapter.baudrate)
-			await this._keyerPin(this.#keyerPin)
-			await this._send('D120') // ditCoef
-			await this._send('A120') // dahCoef
-			await this._send('E60')  // elementSpaceCoef // CT spaces, normal: 80
-			await this._send('C60')  // letterSpaceCoef
+			await this.#powron.init()
 		} catch (error) {
 			console.error('POWRON Connection error: ' + error)
 			throw error
@@ -161,9 +91,9 @@ class PowronConnector {
 
 	_readLoop() {
 	  this.#device.transferIn(this.#endpointIn, 64).then(result => {
-	    this.onReceive(decoder.decode(result.data))
+	    this.#powron.onReceive(decoder.decode(result.data))
 	    this._readLoop()
-	  }, error => this.onReceiveError(error))
+	  }, error => this.#powron.onReceiveError(error))
 	}
 
 	async disconnect() {
@@ -193,75 +123,11 @@ class PowronConnector {
 	}
 	
 	get tcvrProps() {
-		return this.#adapter.properties
+		return this.#powron.tcvrProps
 	}
 
 	get tcvrDefaults() {
-		return this.#adapter.defaults
-	}
-
-	async serialData(data) {
-		return data != null && this._send(`>${data}`)
-	}
-
-	onReceive(data) {
-		console.debug('POWRON rcvd:', data)
-	}
-
-	onReceiveError(error) {
-		console.error('POWRON error:', error)
-	}
-	
-	async _on() {
-		console.debug('POWRON: poweron')
-		await this.#powr.on()
-		this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
-	}
-
-	async _keepAlive() {
-		await this.#powr.resetWatchdog()
-	}
-
-	async _off() {
-		console.debug('POWRON: poweroff')
-		this.#adapter.close && (await this.#adapter.close())
-		await this.#powr.off()
-	}
-
-	async _serialBaudrate(baudrate) {
-		if (baudrate >= 1200 && baudrate <= 115200)
-			await this._send(`P${ baudrate / 100 }`)
-		else
-			console.error(`POWRON: serial baudrate = ${baudrate} not in range, value not set`)
-	}
-
-	async _powerTimeout(timeout) {
-		await this._send(`T${timeout > 0 ? timeout + 30 : 0}`)
-	}
-
-	async _keyerPin(pin) {
-		if (pin != null && pins.includes(pin)) {
-			console.info('POWRON: Enabling keyer on pin', pin)
-			this.#keyerPin = pin
-// 			await this._pinState(pin, false)
-			await this._send(`K${pin}`)
-		} else {
-			console.info('POWRON: Disabling keyer on pin', this.#keyerPin)
-// 			await this._pinState(this.#keyerPin, false)
-			await this._send('K0')
-			this.#keyerPin = null
-		}
-	}
-
-	async _pinState(pin, state) {
-		if (Array.isArray(pin)) {
-			for (const p of pin) await this._pinState(p, state)
-			return
-		}
-		if (pin != null && pins.includes(pin))
-			await this._send(cmdByState(state) + pin)
-		else
-			console.error(`POWRON pinState: pin ${ pin } not known`)
+		return this.#powron.tcvrDefaults
 	}
 
 	async _send(data) {
@@ -275,36 +141,9 @@ class PowronConnector {
 		return false
 	}
 
-	_initSignals() {
-		this.#signals = new SignalsBinder(this.id, {
-			keyDit: async () => this.#keyer.send('.'),
-			keyDah: async () => this.#keyer.send('-'),
-			keySpace: async () => this.#keyer.send('_'),
-			wpm: async (value) => {
-				this.#keyer.setwpm(value);
-				this.#adapter.wpm(value);
-			},
-			keyMsg: async (value) => this.#adapter.keymsg(value),
-			ptt: async (value) => {
-				this.#adapter.ptt(value)
-				this.#keyer.ptt(value)
-			},
-			mode: async (value) => this.#adapter.mode(value),
-			filter: async (value) => this.#adapter.filter(value),
-			gain: async (value) => this.#adapter.gain(value),
-			agc: async (value) => this.#adapter.agc(value),
-			freq: async (value) => this.#adapter.frequency(value),
-			split: async (value) => this.#adapter.split(value),
-			rit: async (value) => this.#adapter.rit(value),
-			xit: async (value) => this.#adapter.xit(value),
-			keepAlive: async () => this._keepAlive(),
-			pwrsw: async (value) => value ? this._on() : this._off(),
-		})
-	}
-
 	get signals() {
-		return this.#signals
+		return this.#powron.signals
 	}
 }
 
-export {PowronConnector, PowronPins}
+export {PowronConnector, Pins as PowronPins}

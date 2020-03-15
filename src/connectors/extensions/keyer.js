@@ -12,8 +12,12 @@ export class Keyer {
 
 	#keyTimer
 
-	constructor(keyerConnector = {send, speed, state, key, ptt}, options = {pttTimeout}) {
+	constructor(
+		keyerConnector = {send: () => {}, speed: () => {}, state: () => {}, key: () => {}, ptt: () => {}}, 
+		options = {pttTimeout: 5000, ditCoef: 120, dahCoef: 120, elementSpaceCoef: 80, letterSpaceCoef: 80} // CT-spaces: 60, normal: 80
+	) {
 		this.#pttTimeout = options.pttTimeout
+		this.coefs = {dit: options.ditCoef, dah: options.dahCoef, elementSpace: options.elementSpaceCoef, letterSpace: options.letterSpaceCoef}
 		this.#connector = keyerConnector
 	}
 

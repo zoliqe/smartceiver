@@ -9,7 +9,7 @@ export class PowrSwitch {
 	
 	#watchdog
 
-	constructor(powerConnector = {state, timeout}) {
+	constructor(powerConnector = {state: () => {}, timeout: 60}) {
 		this.#connector = powerConnector
 	}
 
@@ -68,6 +68,10 @@ export class PowrSwitch {
 			clearTimeout(this.#watchdog)
 			this.#watchdog = null
 		}
+	}
+
+	get watchdogTimeout() {
+		return this.#connector.timeout
 	}
 
 }
