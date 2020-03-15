@@ -123,7 +123,7 @@ class Powron {
 	}
 
 	async _initKeyer() {
-		if (!this.#keyerPin || !Pins.includes(this.#keyerPin)) {
+		if (!this.#keyerPin || !Object.values(Pins).includes(this.#keyerPin)) {
 			console.info('POWRON: Disabling keyer')
 			await this._send('K0')
 			return
@@ -141,7 +141,7 @@ class Powron {
 			for (const p of pin) await this.pinState(p, state)
 			return
 		}
-		if (pin != null && Pins.includes(pin))
+		if (pin != null && Object.values(Pins).includes(pin))
 			await this._send(cmdByState(state) + pin)
 		else
 			console.error(`POWRON pinState: pin ${ pin } not known`)
