@@ -107,22 +107,22 @@ class Powron {
 		this._send(startSeq)
 		await delay(serialInitDelay)
 		await this._initPwrSwitch()
-		await this._serialBaudrate()
+		await this._initSerial()
 		await this._initKeyer()
 	}
 
-	async initSerial() {
+	async _initSerial() {
 		if (this.#adapter.baudrate >= 1200 && this.#adapter.baudrate <= 115200)
 			await this._send(`P${ this.#adapter.baudrate / 100 }`)
 		else
 			console.error(`POWRON: serial baudrate = ${this.#adapter.baudrate} not in range, value not set`)
 	}
 
-	async initPwrSwitch() {
+	async _initPwrSwitch() {
 		await this._send(`T${this.#powr.watchdogTimeout > 0 ? this.#powr.watchdogTimeout + 30 : 0}`)
 	}
 
-	async initKeyer() {
+	async _initKeyer() {
 		if (!this.#keyerPin || !Pins.includes(this.#keyerPin)) {
 			console.info('POWRON: Disabling keyer')
 			await this._send('K0')
