@@ -59,7 +59,7 @@ export class AudioProcessor extends LitElement {
 		this._canvas.height = 256
 	}
 
-	async connectStream(trackWithStream, deviceLabel = 'USB Audio Device: USB Audio #1:1,1') {
+	async connectStream(trackWithStream, deviceLabel = 'USB Audio Device: USB Audio:1,0: Speaker') {
 		console.debug('connectStream:', trackWithStream)
 		this._track = trackWithStream.track
 
