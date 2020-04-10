@@ -75,6 +75,7 @@ export class AudioProcessor extends LitElement {
 		this._remoteAudio.muted = true
 		this._remoteAudio.autoplay = true
 		this._remoteAudio.srcObject = stream
+		// this._remoteAudio.play()
 
 		this._buildAudioChain(stream)
 		this._drawSpectrum()
@@ -85,6 +86,7 @@ export class AudioProcessor extends LitElement {
 		// this._stream = null
 		this._track = null
 		this._remoteAudio && this._remoteAudio.remove()
+		this._audioOutput && this._audioOutput.remove()
 		// if (this._remoteAudio) {
 		// 	this._remoteAudio.removeAttribute("src")
 		// 	this._remoteAudio.removeAttribute("srcObject")
@@ -126,14 +128,20 @@ export class AudioProcessor extends LitElement {
 		this._gain = this._audioCtx.createGain()
 		this._gain.connect(this._analyser)
 
-		this._buildFilterChain()
+		const destination = this._audioCtx.createMediaStreamDestination()
+		this._buildFilterChain(destination)
 
 		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
 
 		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
+
+		this._audioOutput = document.createElement('audio')
+		this._audioOutput.autoplay = true
+		this._audioOutput.src = URL.createObjectURL(destination.stream)
+		this._audioOutput.play()
 	}
 
-	_buildFilterChain() {
+	_buildFilterChain(destination) {
 		if (!this._audioCtx) return
 		console.debug(`building ${this._filterCount} filters...`)
 		const hpf = this._audioCtx.createBiquadFilter()
@@ -152,7 +160,7 @@ export class AudioProcessor extends LitElement {
 	
 		this._analyser.connect(hpf)
 		hpf.connect(this._filterArray[0])
-		this._filterArray[this._filterCount - 1].connect(this._audioCtx.destination)
+		this._filterArray[this._filterCount - 1].connect(/* this._audioCtx. */destination)
 		console.debug("filters build done")
 	}
 	
