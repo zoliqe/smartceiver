@@ -59,7 +59,7 @@ export class AudioProcessor extends LitElement {
 		this._canvas.height = 256
 	}
 
-	async connectStream(trackWithStream, deviceLabel = 'USB Audio Device: USB Audio:1,0: Speaker') {
+	async connectStream(trackWithStream, deviceLabels = ['USB Audio Device: USB Audio:1,0: Speaker', 'Speakers (USB Audio Device) (040d:3417)']) {
 		console.debug('connectStream:', trackWithStream)
 		this._track = trackWithStream.track
 
@@ -74,7 +74,7 @@ export class AudioProcessor extends LitElement {
 		this._audioOutput = document.createElement('audio')
 		this._audioOutput.autoplay = true
 		this._audioOutput.srcObject = outStream
-		const deviceId = await this._findDeviceIdByLabel(deviceLabel)
+		const deviceId = await this._findDeviceIdByLabel(deviceLabels)
 		if (deviceId != null) {
 			this._audioOutput.setSinkId(deviceId)
 		}
@@ -82,12 +82,12 @@ export class AudioProcessor extends LitElement {
 		this._drawSpectrum()
 	}
 
-	async _findDeviceIdByLabel(label) {
+	async _findDeviceIdByLabel(labels) {
 		try {
 			const allDevices = await navigator.mediaDevices.enumerateDevices()
 			const devices = allDevices
 				.filter(device => device.kind === 'audiooutput')
-				.filter(device => device.label === label)
+				.filter(device => labels.includes(device.label))
 			console.debug('AudioProcessor: Found these audioout devices (using first):', devices)
 			return devices.length > 0 ? devices[0].deviceId : null
 		} catch (e) {
