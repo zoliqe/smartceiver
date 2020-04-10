@@ -73,6 +73,7 @@ export class AudioProcessor extends LitElement {
 		const stream = trackWithStream.streams[0]
 		this._remoteAudio = document.createElement('audio')
 		this._remoteAudio.muted = true
+		this._remoteAudio.autoplay = true
 		this._remoteAudio.srcObject = stream
 
 		this._buildAudioChain(stream)
