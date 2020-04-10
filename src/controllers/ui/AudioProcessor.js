@@ -50,16 +50,10 @@ export class AudioProcessor extends LitElement {
 	}
 
   render() {
-		return html`
-			<!-- <div> -->
-			<canvas id="fft" class="fft" ?hidden=${this.hidden}></canvas>
-			<!-- </div> -->
-			<!-- <audio id="remoteAudio" autoplay hidden></audio> -->
-			`
+		return html`<canvas id="fft" class="fft" ?hidden=${this.hidden}></canvas>`
 	}
 
 	firstUpdated() {
-		// this._remoteAudio = this.shadowRoot.getElementById('remoteAudio')
 		this._canvas = this.shadowRoot.getElementById('fft')
 		this._canvasCtx = this._canvas.getContext('2d')
 		this._canvas.height = 256
@@ -75,9 +69,12 @@ export class AudioProcessor extends LitElement {
 		this._remoteAudio.muted = true
 		this._remoteAudio.autoplay = true
 		this._remoteAudio.srcObject = stream
-		// this._remoteAudio.play()
 
-		this._buildAudioChain(stream)
+		const outStream = this._buildAudioChain(stream)
+		this._audioOutput = document.createElement('audio')
+		this._audioOutput.autoplay = true
+		this._audioOutput.srcObject = outStream
+
 		this._drawSpectrum()
 	}
 
@@ -87,10 +84,6 @@ export class AudioProcessor extends LitElement {
 		this._track = null
 		this._remoteAudio && this._remoteAudio.remove()
 		this._audioOutput && this._audioOutput.remove()
-		// if (this._remoteAudio) {
-		// 	this._remoteAudio.removeAttribute("src")
-		// 	this._remoteAudio.removeAttribute("srcObject")
-		// }
 		// this.tcvr.unbind('audio')
 	}
 
@@ -134,11 +127,7 @@ export class AudioProcessor extends LitElement {
 		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
 
 		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
-
-		this._audioOutput = document.createElement('audio')
-		this._audioOutput.autoplay = true
-		this._audioOutput.srcObject = destination.stream
-		// this._audioOutput.play()
+		return destination.stream
 	}
 
 	_buildFilterChain(destination) {
@@ -205,9 +194,9 @@ export class AudioProcessor extends LitElement {
 		this._canvasCtx.fillStyle = '#aaa'
 		this._canvasCtx.lineCap = 'round'
 		let bw = Math.max(this._bw, 600)
-		bw = bw / binFreq
+		bw /= binFreq
 		if (this._bw > 1000)
-			bw = bw - 4
+			bw -= 4
 		const lf = this._hpfCutoff / binFreq - 1
 		this._canvasCtx.fillRect(lf, this._canvas.height, bw, -this._canvas.height)
 
