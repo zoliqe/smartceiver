@@ -74,7 +74,7 @@ export class AudioProcessor extends LitElement {
 		this._audioOutput = document.createElement('audio')
 		this._audioOutput.autoplay = true
 		this._audioOutput.srcObject = outStream
-		const deviceId = this._findDeviceIdByLabel(deviceLabel)
+		const deviceId = await this._findDeviceIdByLabel(deviceLabel)
 		if (deviceId != null) {
 			this._audioOutput.setSinkId(deviceId)
 		}
