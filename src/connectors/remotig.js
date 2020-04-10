@@ -116,8 +116,7 @@ class RemotigConnector {
 			},
 			mode: async (value) => this._con.sendCommand(`mode=${value}`),
 			filter: async (value) => {
-				this._con.sendCommand(`filter=${value.filter}`)
-				// this._audio.updateFilter({bandwidth: value.filter * 1.0})
+				// this._con.sendCommand(`filter=${value.filter}`)
 			},
 			gain: async (value) => this._con.sendCommand(`gain=${value}`),
 			agc: async (value) => this._con.sendCommand(`agc=${value.agc}`),
