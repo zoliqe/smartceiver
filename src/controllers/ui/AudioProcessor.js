@@ -137,8 +137,8 @@ export class AudioProcessor extends LitElement {
 
 		this._audioOutput = document.createElement('audio')
 		this._audioOutput.autoplay = true
-		this._audioOutput.src = URL.createObjectURL(destination.stream)
-		this._audioOutput.play()
+		this._audioOutput.srcObject = destination.stream
+		// this._audioOutput.play()
 	}
 
 	_buildFilterChain(destination) {
