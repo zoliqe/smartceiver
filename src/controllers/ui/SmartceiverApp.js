@@ -14,6 +14,7 @@ import { Microphone } from '../../utils/mic.js'
 // import { template } from './templateMain.js';
 
 const _vfos = ['main', 'rit', 'split']
+const _muteRigOnTX = true // when PTT or KeyTX is active, mute TCVR audio stream
 
 export class SmartceiverApp extends LitElement {
   static get properties() {
@@ -453,13 +454,17 @@ export class SmartceiverApp extends LitElement {
 		this.signals = new SignalsBinder('ui', {
 			ptt: value => {
 				this.ptt = value
-				if (value) this.audioProcessor.mute()
-				else this.audioProcessor.unmute()
+				if (_muteRigOnTX) {
+					if (value) this.audioProcessor.mute()
+					else this.audioProcessor.unmute()
+				}
 			},
 			keyTx: value => {
 				this.ptt = value
-				if (value) this.audioProcessor.mute()
-				else this.audioProcessor.unmute()
+				if (_muteRigOnTX) {
+					if (value) this.audioProcessor.mute()
+					else this.audioProcessor.unmute()
+				}
 				// TODO handle mic / rxin
 			},
 			wpm: value => {this.wpm = value},
