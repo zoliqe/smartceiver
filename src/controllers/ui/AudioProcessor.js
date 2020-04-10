@@ -54,11 +54,12 @@ export class AudioProcessor extends LitElement {
 			<!-- <div> -->
 			<canvas id="fft" class="fft" ?hidden=${this.hidden}></canvas>
 			<!-- </div> -->
-			<audio id="remoteAudio" autoplay hidden></audio>`
+			<!-- <audio id="remoteAudio" autoplay hidden></audio> -->
+			`
 	}
 
 	firstUpdated() {
-		this._remoteAudio = this.shadowRoot.getElementById('remoteAudio')
+		// this._remoteAudio = this.shadowRoot.getElementById('remoteAudio')
 		this._canvas = this.shadowRoot.getElementById('fft')
 		this._canvasCtx = this._canvas.getContext('2d')
 		this._canvas.height = 256
@@ -70,8 +71,9 @@ export class AudioProcessor extends LitElement {
 
 		// hook for https://bugs.chromium.org/p/chromium/issues/detail?id=121673
 		const stream = trackWithStream.streams[0]
-		this._remoteAudio && (this._remoteAudio.srcObject = stream)
+		this._remoteAudio = document.createElement('audio')
 		this._remoteAudio.muted = true
+		this._remoteAudio.srcObject = stream
 
 		this._buildAudioChain(stream)
 		this._drawSpectrum()
@@ -81,10 +83,11 @@ export class AudioProcessor extends LitElement {
 		this._track && this._track.stop()
 		// this._stream = null
 		this._track = null
-		if (this._remoteAudio) {
-			this._remoteAudio.removeAttribute("src")
-			this._remoteAudio.removeAttribute("srcObject")
-		}
+		this._remoteAudio && this._remoteAudio.remove()
+		// if (this._remoteAudio) {
+		// 	this._remoteAudio.removeAttribute("src")
+		// 	this._remoteAudio.removeAttribute("srcObject")
+		// }
 		// this.tcvr.unbind('audio')
 	}
 
