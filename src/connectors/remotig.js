@@ -109,15 +109,9 @@ class RemotigConnector {
 			keySpace: async () => this._con.sendCommand('_'),
 			keyMsg: async (value) => this._con.sendCommand(`keymsg=${value}`),
 			wpm: async (value) => this._con.sendCommand(`wpm=${value}`),
-			ptt: async (value) => {
-				this._con.sendCommand(`ptt${value ? 'on' : 'off'}`)
-				// if (value) this._audio.mute()
-				// else this._audio.unmute()
-			},
+			ptt: async (value) => this._con.sendCommand(`ptt${value ? 'on' : 'off'}`),
 			mode: async (value) => this._con.sendCommand(`mode=${value}`),
-			filter: async (value) => {
-				// this._con.sendCommand(`filter=${value.filter}`)
-			},
+			filter: async (value) => this._con.sendCommand(`filter=${value.filter}`),
 			gain: async (value) => this._con.sendCommand(`gain=${value}`),
 			agc: async (value) => this._con.sendCommand(`agc=${value.agc}`),
 			freq: async (value) => this._con.sendCommand(`f=${value}`),
