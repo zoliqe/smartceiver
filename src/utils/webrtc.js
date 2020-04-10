@@ -21,7 +21,8 @@ class WebRTC {
 					volume: 1.0,
 					autoGainControl: false,
 					echoCancellation: false,
-					noiseSuppression: false
+					noiseSuppression: false,
+					deviceId: null,
 				}
 			}
 		}
