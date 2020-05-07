@@ -110,8 +110,8 @@ export class AudioProcessor extends LitElement {
 	// }
 
 	mute() {
-		if (this._track) 
-			this._track.enabled = false
+		// if (this._track) 
+		// 	this._track.enabled = false
 	}
 
 	unmute() {

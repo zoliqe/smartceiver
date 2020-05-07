@@ -512,7 +512,7 @@ export class SmartceiverApp extends LitElement {
 				this.powerState = value
 				this.pwrbtnDisable = false
 				this._wakeLock.changeState(value)
-				if (!value)
+				if (!value) // TODO is this required?
 					this.audioProcessor.close()
 				// this.pwrbtn.className = value ? 'conbtn on' : 'conbtn'
 			},
