@@ -79,7 +79,7 @@ export class AudioProcessor extends LitElement {
 			this._audioOutput.setSinkId(deviceId)
 		}
 
-		this._drawSpectrum()
+// 		this._drawSpectrum()
 	}
 
 	async _findDeviceIdByLabel(labels) {
