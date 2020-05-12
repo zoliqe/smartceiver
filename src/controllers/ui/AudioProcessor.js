@@ -79,7 +79,7 @@ export class AudioProcessor extends LitElement {
 			this._audioOutput.setSinkId(deviceId)
 		}
 
-		this._drawSpectrum()
+// 		this._drawSpectrum()
 	}
 
 	async _findDeviceIdByLabel(labels) {
@@ -133,18 +133,19 @@ export class AudioProcessor extends LitElement {
 
 	_buildAudioChain(stream) {
 		this._audioCtx = new AudioContext()
-		this._analyser = this._audioCtx.createAnalyser()
-		this._analyser.fftSize = 512
-		this._analyser.smoothingTimeConstant = 0.82
-		this._gain = this._audioCtx.createGain()
-		this._gain.connect(this._analyser)
+// 		this._analyser = this._audioCtx.createAnalyser()
+// 		this._analyser.fftSize = 512
+// 		this._analyser.smoothingTimeConstant = 0.82
+// 		this._gain = this._audioCtx.createGain()
+// 		this._gain.connect(this._analyser)
 
 		const destination = this._audioCtx.createMediaStreamDestination()
-		this._buildFilterChain(destination)
+// 		this._buildFilterChain(destination)
 
-		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
+// 		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
 
-		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
+// 		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
+		this._audioCtx.createMediaStreamSource(stream).connect(destination)
 		return destination.stream
 	}
 
