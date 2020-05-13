@@ -136,18 +136,18 @@ export class AudioProcessor extends LitElement {
 // 		this._analyser = this._audioCtx.createAnalyser()
 // 		this._analyser.fftSize = 512
 //fixed 		this._analyser.smoothingTimeConstant = 0.82
-		this._gain = this._audioCtx.createGain()
+// 		this._gain = this._audioCtx.createGain()
 // 		this._gain.connect(this._analyser)
 
 		const destination = this._audioCtx.createMediaStreamDestination()
 // 		this._buildFilterChain(destination)
 // 		this._analyser.connect(destination)
-		this._gain.connect(destination)
+// 		this._gain.connect(destination)
 
 // 		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
 
-		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
-// 		this._audioCtx.createMediaStreamSource(stream).connect(destination)
+// 		this._audioCtx.createMediaStreamSource(stream).connect(this._gain)
+		this._audioCtx.createMediaStreamSource(stream).connect(destination)
 		return destination.stream
 	}
 
