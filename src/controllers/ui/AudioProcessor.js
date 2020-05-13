@@ -140,8 +140,8 @@ export class AudioProcessor extends LitElement {
 // 		this._gain.connect(this._analyser)
 
 		const destination = this._audioCtx.createMediaStreamDestination()
-// 		this._buildFilterChain(destination)
-		this._analyser.connect(destination)
+		this._buildFilterChain(destination)
+// 		this._analyser.connect(destination)
 // 		this._gain.connect(destination)
 
 		this._canvas.width = this._analyser.frequencyBinCount / this._cutoffDiv / 2
@@ -183,11 +183,11 @@ export class AudioProcessor extends LitElement {
 		this._bw = tcvrFilter.bandwidth > 300 ? tcvrFilter.bandwidth : 300
 		const lpfCutoff = this._bw + this._hpfCutoff // add hpf cutoff to bandwidth
 		console.debug(`tcvr.bandwidth=${tcvrFilter.bandwidth}, lpfCutoff=${lpfCutoff}`)
-// 		for (let i = 0; i < this._filterCount; i += 1) {
-// 			const filter = this._filterArray[i]
-// 			filter.frequency.setValueAtTime(lpfCutoff, 0)
-// 			filter.Q.setValueAtTime(this._Q/* centerFreq / bandwidth */, 0)
-// 		}
+		for (let i = 0; i < this._filterCount; i += 1) {
+			const filter = this._filterArray[i]
+			filter.frequency.setValueAtTime(lpfCutoff, 0)
+			filter.Q.setValueAtTime(this._Q/* centerFreq / bandwidth */, 0)
+		}
 	}
 	
 	_drawSpectrum() {
