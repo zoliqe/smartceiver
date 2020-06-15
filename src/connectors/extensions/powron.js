@@ -68,6 +68,7 @@ class Powron {
 		}, keyerConfig)
 
 		this._initSignals()
+		window.powron = this
 	}
 
 	get tcvrProps() {
