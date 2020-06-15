@@ -107,9 +107,9 @@ class Powron {
 		await delay(startSeqDelay)
 		this._send(startSeq)
 		await delay(serialInitDelay)
-		await this._initPwrSwitch()
-		await this._initSerial()
-		await this._initKeyer()
+// 		await this._initPwrSwitch()
+// 		await this._initSerial()
+// 		await this._initKeyer()
 	}
 
 	async _initSerial() {
