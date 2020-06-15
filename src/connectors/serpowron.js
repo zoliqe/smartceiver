@@ -21,10 +21,10 @@ class PowronConnector {
 
 	#devopts = {
 		baudrate: 4800,
-//     databits: 8,
-//     parity: 'none',
-//     stopbits: 1,
-//     rtscts: false
+    databits: 8,
+    parity: 'none',
+    stopbits: 1,
+    rtscts: false
 	}
 
 	constructor(tcvrAdapter, {options, keyerConfig}) {
@@ -43,12 +43,12 @@ class PowronConnector {
 		}
 		try {
 			this.#device = await navigator.serial.requestPort({filters: devFilters})
-			console.debug(`POWRON device: ${this.#device}, options: ${this.#devopts}`)
+			console.debug(`POWRON device: ${JSON.stringify(this.#device)}, options: ${JSON.stringify(this.#devopts)}`)
 			await this.#device.open(this.#devopts)
 			console.info('POWRON Connected')
 			window.powronDevice = this.#device
-// 			this._readLoop()
-// 			await this.#powron.init()
+			this._readLoop()
+			await this.#powron.init()
 		} catch (error) {
 			console.error('POWRON Connection error:', error)
 			throw error
@@ -59,6 +59,7 @@ class PowronConnector {
 	async _readLoop() {
 		while (this.#device.readable) {
 			this.#reader = this.#device.readable.getReader()
+			console.debug('reader get')
 			while (true) {
 				let value, done
 				try {
@@ -72,6 +73,7 @@ class PowronConnector {
 				value && this.#powron.onReceive(decoder.decode(value))
 				if (done) break
 			}
+			console.debug('reader releaseLock')
 			this.#reader.releaseLock()
 			this.#reader = null
 		}
@@ -108,12 +110,12 @@ class PowronConnector {
 		console.debug(`POWRON <= ${data} `)
 		if (this.connected && this.#device.writable) {
 			const writer = this.#device.writable.getWriter()
-			const bytes = typeof data === 'string' ? encoder.encode(`${data}`) : data
-			const res = await writer.write(bytes)
+			const bytes = typeof data === 'string' ? encoder.encode(data) : data
+			await writer.write(bytes)
 			writer.releaseLock()
 			return true
 		}
-		console.error(`POWRON: data not sent ${ data }`)
+		console.error(`POWRON: data not sent ${data}`)
 		return false
 	}
 
