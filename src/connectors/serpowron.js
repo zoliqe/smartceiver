@@ -3,10 +3,11 @@ import { delay } from '../utils/time.js'
 import { Powron, Pins } from './extensions/powron.js'
 
 // not supported by navigator
-// const devFilters = [
-// 	{ 'vendorId': 0x2341, 'productId': 0x8036 },
-// 	{ 'vendorId': 0x2341, 'productId': 0x8037 },
-// ]
+const devFilters = [
+	{ 'vendorId': 0x2341, 'productId': 0x8036 },
+	{ 'vendorId': 0x2341, 'productId': 0x8037 },
+	{ 'vendorId': 0x1A86, 'productId': 0x7523 },
+]
 const encoder = new TextEncoder()
 const decoder = new TextDecoder()
 
@@ -41,7 +42,7 @@ class PowronConnector {
 			throw new Error('POWRON: WebSerial is not supported!')
 		}
 		try {
-			this.#device = await navigator.serial.requestPort({})
+			this.#device = await navigator.serial.requestPort({filters: devFilters})
 			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
 			await this.#device.open(this.#devopts)
 			console.info('POWRON Connected', this.#device.productName)
