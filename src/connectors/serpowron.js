@@ -57,19 +57,22 @@ class PowronConnector {
 	
 	async _readLoop() {
 		while (this.#device.readable) {
-			try {
-				this.#reader = this.#device.readable.getReader()
-				while (true) {
+			this.#reader = this.#device.readable.getReader()
+			while (true) {
+				let value, done
+				try {
 					// eslint-disable-next-line no-await-in-loop
-					const {value, done} = await this.#reader.read()
-					console.debug('POWRON RAW:', value)
-					this.#powron.onReceive(decoder.decode(value))
-					if (done) break
+					({value, done} = await this.#reader.read())
+				} catch (e) {
+					this.#powron.onReceiveError(e)
+					break;
 				}
-				this.#reader = null
-			} catch (e) {
-				this.#powron.onReceiveError(e)
+				console.debug('POWRON RAW:', value)
+				value && this.#powron.onReceive(decoder.decode(value))
+				if (done) break
 			}
+			this.#reader.releaseLock()
+			this.#reader = null
 		}
 	}
 
@@ -78,7 +81,7 @@ class PowronConnector {
 
 		await delay(1000) // for poweroff signals 
 		if (this.#reader)
-			this.#reader.cancel()
+			await this.#reader.cancel()
 		await this.#device.close()
 		this.#device = null
 	}
@@ -105,7 +108,7 @@ class PowronConnector {
 		if (this.connected && this.#device.writable) {
 			const writer = this.#device.writable.getWriter()
 			const bytes = typeof data === 'string' ? encoder.encode(`${data}\n`) : data
-			writer.write(bytes)
+			await writer.write(bytes)
 			writer.releaseLock()
 			return true
 		}
