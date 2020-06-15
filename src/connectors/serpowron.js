@@ -43,10 +43,11 @@ class PowronConnector {
 		}
 		try {
 			this.#device = await navigator.serial.requestPort({filters: devFilters})
-			console.debug(`POWRON device: ${this.#device.productName} (${this.#device.manufacturerName})`)
+			console.debug(`POWRON device: ${this.#device}, options: ${this.#devopts}`)
 			await this.#device.open(this.#devopts)
-			console.info('POWRON Connected', this.#device.productName)
-			this._readLoop()
+			console.info('POWRON Connected')
+			window.powronDevice = this.#device
+// 			this._readLoop()
 			await this.#powron.init()
 		} catch (error) {
 			console.error('POWRON Connection error:', error)
