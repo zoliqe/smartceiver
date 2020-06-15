@@ -28,7 +28,6 @@ class PowronConnector {
 	}
 
 	constructor(tcvrAdapter, {options, keyerConfig}) {
-		this.#devopts.baudrate = tcvrAdapter.baudrate
 		this.#powron = new Powron(tcvrAdapter, async (cmd) => this._send(cmd), {options, keyerConfig})
 	}
 
@@ -59,7 +58,7 @@ class PowronConnector {
 	async _readLoop() {
 		while (this.#device.readable) {
 			this.#reader = this.#device.readable.getReader()
-			console.debug('reader get')
+// 			console.debug('reader get')
 			while (true) {
 				let value, done
 				try {
@@ -69,11 +68,11 @@ class PowronConnector {
 					this.#powron.onReceiveError(e)
 					break;
 				}
-				console.debug('POWRON RAW:', value)
+// 				console.debug('POWRON RAW:', value)
 				value && this.#powron.onReceive(decoder.decode(value))
 				if (done) break
 			}
-			console.debug('reader releaseLock')
+// 			console.debug('reader releaseLock')
 			this.#reader.releaseLock()
 			this.#reader = null
 		}
@@ -110,7 +109,7 @@ class PowronConnector {
 		console.debug(`POWRON <= ${data} `)
 		if (this.connected && this.#device.writable) {
 			const writer = this.#device.writable.getWriter()
-			const bytes = typeof data === 'string' ? encoder.encode(data) : data
+			const bytes = typeof data === 'string' ? encoder.encode(`${data}\n`) : data
 			await writer.write(bytes)
 			writer.releaseLock()
 			return true
