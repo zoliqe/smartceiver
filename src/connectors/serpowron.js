@@ -20,10 +20,10 @@ class PowronConnector {
 
 	#devopts = {
 		baudrate: 4800,
-    databits: 8,
-    parity: 'none',
-    stopbits: 1,
-    rtscts: false
+//     databits: 8,
+//     parity: 'none',
+//     stopbits: 1,
+//     rtscts: false
 	}
 
 	constructor(tcvrAdapter, {options, keyerConfig}) {
@@ -61,6 +61,7 @@ class PowronConnector {
 				while (true) {
 					// eslint-disable-next-line no-await-in-loop
 					const {value, done} = await this.#reader.read()
+					console.debug('POWRON RAW:', value)
 					this.#powron.onReceive(decoder.decode(value))
 					if (done) break
 				}
