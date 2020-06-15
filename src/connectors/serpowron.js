@@ -48,7 +48,7 @@ class PowronConnector {
 			console.info('POWRON Connected')
 			window.powronDevice = this.#device
 // 			this._readLoop()
-			await this.#powron.init()
+// 			await this.#powron.init()
 		} catch (error) {
 			console.error('POWRON Connection error:', error)
 			throw error
