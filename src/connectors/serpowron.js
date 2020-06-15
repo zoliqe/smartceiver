@@ -108,7 +108,8 @@ class PowronConnector {
 	async _send(data) {
 		console.debug(`POWRON <= ${data} `)
 		if (this.connected && this.#device.writable) {
-			const writer = this.#device.writable.getWriter()
+			const writer = this.#device.writable.getWriter() // get WritableStreamDefaultWriter
+			await writer.ready // wait while stream locked
 			const bytes = typeof data === 'string' ? encoder.encode(`${data}\n`) : data
 			await writer.write(bytes)
 			writer.releaseLock()
