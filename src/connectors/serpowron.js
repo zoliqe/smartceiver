@@ -107,8 +107,8 @@ class PowronConnector {
 		console.debug(`POWRON <= ${data} `)
 		if (this.connected && this.#device.writable) {
 			const writer = this.#device.writable.getWriter()
-			const bytes = typeof data === 'string' ? encoder.encode(`${data}\n`) : data
-			await writer.write(bytes)
+			const bytes = typeof data === 'string' ? encoder.encode(`${data}`) : data
+			const res = await writer.write(bytes)
 			writer.releaseLock()
 			return true
 		}
