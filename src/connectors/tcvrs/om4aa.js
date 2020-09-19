@@ -77,7 +77,7 @@ export class Adapter {
 	}
 
 	async agc({agc, mode}) {
-//		await this._uart(`GT00${resolveAgc(agc, mode) === AgcTypes.SLOW ? 4 : 2}`)
+		await this._uart(`GT00${resolveAgc(agc, mode) === AgcTypes.OFF ? 0 : 1}`)
 	}
 
 	async gain(gain) {
