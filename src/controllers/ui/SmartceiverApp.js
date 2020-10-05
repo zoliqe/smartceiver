@@ -558,6 +558,7 @@ export class SmartceiverApp extends LitElement {
 		const usbpowron = this._params.get('usbpowron')
 		const serpowron = this._params.get('serpowron')
 		const sercat = this._params.get('sercat')
+		const bluecat = this._params.get('bluecat')
 		const remote = this._params.get('remote')
 		if (remotig && remotig.includes('@')) {
 			[this.kredence.rig, this.kredence.qth] = 
@@ -572,6 +573,8 @@ export class SmartceiverApp extends LitElement {
 		}
 		if (sercat === '1') {
 			await this._resolveConnector('sercat', connectorParams, 'cat')
+		} else if (bluecat == '1') {
+			await this._resolveConnector('bluecat', connectorParams, 'cat')
 		}
 		if (serpowron === '1') {
 			await this._resolveConnector('serpowron', connectorParams, 'pwr')
