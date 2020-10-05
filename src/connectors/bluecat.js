@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {BluetoothTerminal} from '../utils/BluetoothTerminal.mjs'
+import {BluetoothTerminal} from '../utils/BluetoothTerminal.js'
 import {SignalsBinder} from '../utils/signals.js'
 
 // Sky is blue and your CAT is looking for another mouse...
