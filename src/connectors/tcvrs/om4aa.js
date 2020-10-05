@@ -12,8 +12,8 @@ MD[Modes.USB] = 2
 
 export class Adapter {
 
-	static async smartcvr(options) {
-		return new Adapter(await tcvrOptions(this.manufacturer, 'smartcvr', options))
+	static async bobik(options) {
+		return new Adapter(await tcvrOptions(this.manufacturer, 'bobik', options))
 	}
 
 	static async forTcvr(model, options) {
@@ -25,7 +25,7 @@ export class Adapter {
 	}
 
 	static get models() {
-		return ['smartcvr']
+		return ['bobik']
 	}
 
 	_splitState = false
@@ -107,13 +107,45 @@ export class Adapter {
 	}
 
 	async ptt(state) {
-//		await this._uart(state ? 'TX' : 'RX')
+		await this._uart(state ? 'TX' : 'RX')
 	}
 
 	async split(value) {
+		const state = value !== 0
+		if (!state) {
+			await this._uart('FR0') // set VFO A as RX VFO
+			await this._uart('FT0') // set VFO A as TX VFO - cancel SPLIT
+			this._splitState = false
+			return
+		}
+		if (!this._splitState) {
+			await this._uart('FR0') // set VFO A as RX VFO
+			await this._uart('FT1') // set VFO B as TX VFO - enable SPLIT
+			this._splitState = true
+		}
+
+		let cmd = 'FB000'
+		if (value < 10000000) cmd += '0'
+		await this._uart(cmd + value)
 	}
 
 	async rit(value) {
+		// TODO use split and retune FA
+// 		if (!value) {
+// 			//			this.clearRit()
+// 			this._rit = 0
+// 			await this._uart('RT0')
+// 			return
+// 		}
+// 		if (!this._rit) {
+// 			// this._xit && (await this.xit(0))
+// 			await this._uart('RT1')
+// 		}
+
+// 		if (value === this._rit) return
+// 		const sign = value >= 0 ? '+' : '-'
+// 		await this._uart(`RO${sign}${String(value).padStart(4, '0')}`)
+// 		this._rit = value
 	}
 
 }
