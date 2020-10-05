@@ -10,14 +10,14 @@ const gains = {}
 bands.forEach(b => {gains[b] = [-10]})
 
 export default {
-	model: 'smartcvr',
+	model: 'bobik',
 	baudrate: 115200,
 	props: new TransceiverProperties({
 		bands,
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
-		agcTypes: [AgcTypes.OFF, AgcTypes.AUTO],
+		agcTypes: [AgcTypes.AUTO, AgcTypes.OFF],
 		bandGains: gains,
 		modeFilters: filters
 	}),
-	defaults: {band: 20, mode: Modes.CW/*, agc: AgcTypes.FAST*/}
+	defaults: {band: 20, mode: Modes.CW, agc: AgcTypes.AUTO}
 }
