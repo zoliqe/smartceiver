@@ -71,7 +71,7 @@ class BlueCatConnector {
 	async checkState() {
 		return {id: this.id} // this.connected ? {id: this.id} : null
 	}
-g	
+	
 	get tcvrProps() {
 		return this.#adapter.properties
 	}
