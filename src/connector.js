@@ -39,7 +39,7 @@ export const get = async (connector, params) => {
 	if (connector === 'bluecat') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connectors/bluecat.mjs')
+		const conn = await import('./connectors/bluecat.js')
 		return new conn.BlueCatConnector(adapter, params)
 	}
 
