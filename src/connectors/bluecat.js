@@ -45,8 +45,11 @@ class BlueCatConnector {
 		this.#device = null
 	}
 
-	_send(data) {
-		this.#device && this.#device.send(data) && console.debug(`BLUECAT sent: ${data}`)
+	async _send(data) {
+		if (this.#device) { 
+				await this.#device.send(data)
+				console.debug(`BLUECAT sent: ${data}`)
+		}
 	}
 
 	async _on() {
