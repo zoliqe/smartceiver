@@ -46,7 +46,8 @@ class BlueCatConnector {
 	}
 
 	async _send(data) {
-		if (this.#device) { 
+		if (this.#device) {
+				// TODO send data using buffered writer
 				await this.#device.send(data)
 				console.debug(`BLUECAT sent: ${data}`)
 		}
