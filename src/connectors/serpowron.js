@@ -42,7 +42,8 @@ class PowronConnector {
 		}
 		try {
 			this.#device = await navigator.serial.requestPort({filters: devFilters})
-			console.debug(`POWRON device: ${JSON.stringify(this.#device)}, options: ${JSON.stringify(this.#devopts)}`)
+			const info = this.#device.getInfo()
+			console.debug(`POWRON device: num=${info.serialNumber} ${info.product} (${info.manufacturer})`)
 			await this.#device.open(this.#devopts)
 			console.info('POWRON Connected')
 			window.powronDevice = this.#device
