@@ -19,11 +19,11 @@ class SercatConnector {
 	#signals
 
 	#devopts = {
-		baudrate: 4800,
-    databits: 8,
-    parity: 'none',
-    stopbits: 1,
-    rtscts: false
+		baudRate: 4800,
+//     dataBits: 8,
+//     parity: 'none',
+//     stopBits: 1,
+//     flowControl: 'none'
 	}
 
 	constructor(tcvrAdapter) {
