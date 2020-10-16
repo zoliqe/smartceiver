@@ -44,9 +44,10 @@ class SercatConnector {
 		}
 		try {
 			this.#device = await navigator.serial.requestPort({})
-			console.debug(`SERCAT device: ${this.#device.productName} (${this.#device.manufacturerName})`)
+			const info = this.#device.getInfo()
+			console.debug(`SERCAT device: num=${info.serialNumber} ${info.product} (${info.manufacturer})`)
 			await this.#device.open(this.#devopts)
-			console.info('SERCAT Connected', this.#device.productName)
+			console.info('SERCAT Connected', info.product)
 			await this._on()
 			this._readLoop()
 		} catch (error) {
