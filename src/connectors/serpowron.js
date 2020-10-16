@@ -20,11 +20,11 @@ class PowronConnector {
 	#reader
 
 	#devopts = {
-		baudrate: 4800,
-    databits: 8,
-    parity: 'none',
-    stopbits: 1,
-    rtscts: false
+		baudRate: 4800,
+//     dataBits: 8,
+//     stopBits: 1,
+//     parity: 'none',
+//     flowControl: 'none'
 	}
 
 	constructor(tcvrAdapter, {options, keyerConfig}) {
