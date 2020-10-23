@@ -1,23 +1,24 @@
 /* eslint-disable class-methods-use-this */
 
-// const devFilters = [
-// 	{ 'vendorId': 0x2341, 'productId': 0x8036 },
-// 	{ 'vendorId': 0x2341, 'productId': 0x8037 },
-// ]
+const devFilters = [
+	{ usbVendorId: 0x2341, usbProductId: 0x8036 },
+	{ usbVendorId: 0x2341, usbProductId: 0x8037 },
+	{ usbVendorId: 0x1A86, usbProductId: 0x7523 },
+]
 const _encoder = new TextEncoder()
 const _decoder = new TextDecoder()
 
 export class SerialInterface {
 	_devopts = {
-		baudrate: 4800,
-    databits: 8,
-    parity: 'none',
-    stopbits: 1,
-    rtscts: false
+		baudRate: 4800,
+//     dataBits: 8,
+//     parity: 'none',
+//     stopBits: 1,
+//     flowControl: 'none'
 	}
 
 	constructor(baudrate = 4800, receiveSeparator = '\n', sendSeparator = '\n') {
-		this._devopts.baudrate = baudrate
+		this._devopts.baudRate = baudrate
 		this._receiveSeparator = receiveSeparator
 		this._sendSeparator = _encoder.encode(sendSeparator)
 		this._receiveBuffer = ''
@@ -32,7 +33,9 @@ export class SerialInterface {
 			throw new Error('unsupported')
 		}
 
-		this._device = await navigator.serial.requestPort({})
+		this._device = await navigator.serial.requestPort({filters: devFilters})
+		const info = this._device.getInfo()
+		console.debug(`device: num=${info.serialNumber} ${info.product} (${info.manufacturer})`)
 		await this._device.open(this._devopts)
 		this._readLoop() // do not await
 		return this
