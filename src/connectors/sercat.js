@@ -28,7 +28,7 @@ class SercatConnector {
 
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
-		this.#devopts.baudRate = this.#adapter.baudRate
+		this.#devopts.baudRate = this.#adapter.baudrate
 
 		this._initSignals()
 	}
