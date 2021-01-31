@@ -83,7 +83,7 @@ export class SmartceiverApp extends LitElement {
       main {
         flex-grow: 1;
 				width: 100%;
-				background-color: #333;
+				background-color: #212121;
       }
 
       .app-footer {
@@ -102,26 +102,26 @@ export class SmartceiverApp extends LitElement {
 				font-weight: bold;
 				font-family: Courier New, Courier, monospace;
 				text-align: left;
-				color: lightgreen;
+				color: #19a319;
 				height: fit-content;
 				user-select: none;
 				z-index: 1;
 			}
 
 			.rit {
-				color: lightskyblue;
+				color: #18a1f5;
 			}
 
 			.split {
-				color: #dd6b88;
+				color: #8d2027; //#dd6b88;
 			}
 
 			.tx {
-				color: #dd6b88;
+				color: #8d2027; //#dd6b88;
 			}
 
 			.band {
-				color: lightsteelblue;
+				color: #5983b9;
 				flex-grow: 1;
 			}
 
