@@ -36,7 +36,9 @@ export class USBInterface {
 		} else {
 			this._device = await navigator.usb.requestDevice({ 'filters': this._deviceFilters })
 		}
+		console.debug(`USB device: ${this._device.productName} (${this._device.manufacturerName})`)
 		await this._open()
+		console.info(`USB Connected ${this._device.productName}`)
 		return this
   }
 
@@ -94,6 +96,7 @@ export class USBInterface {
 			'value': 0x00,
 			'index': this._interfaceNumber
 		})
+		console.debug('USB close()')
 		await this._device.close()
 		this._device = null
 	}
@@ -111,12 +114,16 @@ export class USBInterface {
 		}
 	}
 
+	get connected() {
+		return this._device != null
+	}
+
 	receive(data) {
 		// callback
 	}
 
 	receiveError(error) {
-		console.error('USBTerminal receive error:', error)
+		console.error('USB receive error:', error)
 	}
 	
 	getDeviceName() {
@@ -124,7 +131,8 @@ export class USBInterface {
 	}
 
 	async send(data) {
-		if (this._device) {
+		console.debug(`USB <= ${data}`)
+		if (this.connected) {
 			const bytes = typeof data === 'string' ? _encoder.encode(`${data}${this._sendSeparator}`) : data
 			await this._device.transferOut(this._endpointOut, bytes)
 			return true
