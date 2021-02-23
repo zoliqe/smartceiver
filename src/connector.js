@@ -42,6 +42,12 @@ export const get = async (connector, params) => {
 		const conn = await import('./connectors/bluecat.js')
 		return new conn.BlueCatConnector(adapter, params)
 	}
+	if (connector === 'usbcat') {
+		requireTcvr(params)
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connector/usbcat.js')
+		return new conn.UsbcatConnector(adapter, params)
+	}
 
 	throw new Error(`Unknown connector=${connector}`)
 }
