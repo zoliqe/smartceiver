@@ -7,7 +7,11 @@ export class USBInterface {
 	_endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
 	_endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
 
-	constructor(deviceFilters = [{ 'vendorId': 0x2341, 'productId': 0x8036 }, { 'vendorId': 0x2341, 'productId': 0x8037 }], 
+	constructor(deviceFilters = [
+			{ 'vendorId': 0x2341, 'productId': 0x8036 }, 
+			{ 'vendorId': 0x2341, 'productId': 0x8037 },
+			{ 'vendorId': 0x2886, 'productId': 0x802F }, // Seeed XIAO M0
+		], 
 		receiveSeparator = '\n', sendSeparator = '\n') 
 	{
 		this._deviceFilters = deviceFilters
