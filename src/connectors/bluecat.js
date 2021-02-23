@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {BluetoothTerminal} from '../utils/BluetoothTerminal.js'
+import {BluetoothInterface} from '../interfaces/bluetooth.js'
 import {SignalsBinder} from '../utils/signals.js'
 
 // Sky is blue and your CAT is looking for another mouse...
@@ -20,11 +20,12 @@ class BlueCatConnector {
 	}
 
 	async connect() {
-		if (!BluetoothTerminal || !navigator.bluetooth) {
+		if (!BluetoothInterface || !navigator.bluetooth) {
+			window.alert('Bluetooth connection supported. Cannot connect to transceiver.')
 			throw new Error('BLUECAT: WebBluetooth is not supported!')
 		}
 
-		this.#device = new BluetoothTerminal()
+		this.#device = new BluetoothInterface()
 
 		try {
 			await this.#device.connect()
