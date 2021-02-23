@@ -136,7 +136,8 @@ export class USBInterface {
 			const bytes = typeof data === 'string' ? _encoder.encode(`${data}${this._sendSeparator}`) : data
 			await this._device.transferOut(this._endpointOut, bytes)
 			return true
-		} 
+		}
+		console.error(`USB: data not sent ${data}`)
 		return false
 	}
 }
