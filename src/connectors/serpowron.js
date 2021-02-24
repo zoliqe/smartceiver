@@ -27,9 +27,9 @@ class PowronConnector {
 		} catch (error) {
       if (error === 'unsupported') {
         window.alert('Serial not supported by browser. Cannot connect to transceiver.')
-        throw new Error('SERCAT: API is not supported!')
+        throw new Error('SERPWRON: API is not supported!')
       }
-			console.error('SERCAT Connection error:', error)
+			console.error('SERPWRON Connection error:', error)
 			throw error
 		}
 		return this
