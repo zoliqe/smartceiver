@@ -7,12 +7,10 @@ class PowronConnector {
 
 	#iface
 	
-	#device
-	
 	#powron
 
 	constructor(tcvrAdapter, {options, keyerConfig}) {
-		this.#powron = new Powron(tcvrAdapter, async (cmd) => this._send(cmd), {options, keyerConfig})
+		this.#powron = new Powron(tcvrAdapter, async (cmd) => this.#iface.send(cmd), {options, keyerConfig})
     this.#iface = new USBInterface()
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
