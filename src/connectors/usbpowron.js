@@ -29,9 +29,9 @@ class PowronConnector {
 		} catch (error) {
       if (error === 'unsupported') {
         window.alert('USB not supported by browser. Cannot connect to transceiver.')
-        throw new Error('WebUSB: API is not supported!')
+        throw new Error('USBPWRON: API is not supported!')
       }
-			console.error('WebUSB Connection error:', error)
+			console.error('USBPWRON Connection error:', error)
 			throw error
 		}
 		return this
@@ -51,7 +51,15 @@ class PowronConnector {
 		return {id: this.id} // this.connected ? {id: this.id} : null
 	}
 	
-	get tcvrProps() {
+	onReceive(data) {
+		console.debug('USBPWRON rcvd:', data)
+	}
+
+	onReceiveError(error) {
+		console.error('USBPWRON error:', error)
+	}
+	
+	get tcvrProps() {9
 		return this.#powron.tcvrProps
 	}
 
