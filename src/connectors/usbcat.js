@@ -32,9 +32,9 @@ class UsbcatConnector {
 		} catch (error) {
       if (error === 'unsupported') {
         window.alert('USB not supported by browser. Cannot connect to transceiver.')
-        throw new Error('WebUSB: API is not supported!')
+        throw new Error('USBCAT: API is not supported!')
       }
-			console.error('WebUSB Connection error:', error)
+			console.error('USBCAT Connection error:', error)
 			throw error
 		}
 		return this
@@ -78,7 +78,7 @@ class UsbcatConnector {
 	}
 
 	onReceiveError(error) {
-		console.error('SUBCAT error:', error)
+		console.error('USBCAT error:', error)
 	}
 	
 	_initSignals() {
