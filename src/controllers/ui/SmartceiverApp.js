@@ -555,14 +555,11 @@ export class SmartceiverApp extends LitElement {
 		this.audioproc = this._params.get('audioproc')
 
 		const remotig = this._params.get('remotig')
-		const usbpowron = this._params.get('usbpowron')
-		const serpowron = this._params.get('serpowron')
-		const sercat = this._params.get('sercat')
-		const bluecat = this._params.get('bluecat')
+		const powron = this._params.get('powron')
+		const cat = this._params.get('cat')
 		const remote = this._params.get('remote')
 		if (remotig && remotig.includes('@')) {
-			[this.kredence.rig, this.kredence.qth] = 
-				remotig.trim().toLowerCase().split('@', 2)
+			[this.kredence.rig, this.kredence.qth] = remotig.trim().toLowerCase().split('@', 2)
 			await this._resolveConnector('remotig', connectorParams, 'pwr')
 
 			this.audioproc = null // force disable startAudioProcessor()
@@ -571,15 +568,11 @@ export class SmartceiverApp extends LitElement {
 				this.connectors.pwr.onDisconnect = () => this.audioProcessor.close()
 			}
 		}
-		if (sercat === '1') {
-			await this._resolveConnector('sercat', connectorParams, 'cat')
-		} else if (bluecat == '1') {
-			await this._resolveConnector('bluecat', connectorParams, 'cat')
+		if (cat) {
+			await this._resolveConnector(cat, connectorParams, 'cat')
 		}
-		if (serpowron === '1') {
-			await this._resolveConnector('serpowron', connectorParams, 'pwr')
-		} else if (usbpowron === '1') {
-			await this._resolveConnector('usbpowron', connectorParams, 'pwr')
+		if (powron) {
+			await this._resolveConnector(powron, connectorParams, 'pwr')
 		}
 		if (!this.connectors.cat) {
 			this.connectors.cat = this.connectors.pwr
