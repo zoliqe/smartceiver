@@ -45,7 +45,7 @@ export const get = async (connector, params) => {
 	if (connector === 'usbcat') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connector/usbcat.js')
+		const conn = await import('./connectors/usbcat.js')
 		return new conn.UsbcatConnector(adapter, params)
 	}
 
