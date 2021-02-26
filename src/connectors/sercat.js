@@ -6,6 +6,8 @@ import {SerialInterface} from '../interfaces/serial.js'
 class SercatConnector {
 
 	#iface
+	
+	#adapter
 
 	#signals
 
