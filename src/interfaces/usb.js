@@ -3,9 +3,12 @@ const _decoder = new TextDecoder()
 
 export class USBInterface {
 
-	_interfaceNumber = 2  // original interface number of WebUSB Arduino demo
-	_endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
-	_endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
+// 	_interfaceNumber = 2  // original interface number of WebUSB Arduino demo
+// 	_endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
+// 	_endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
+	_interfaceNumber = 0  // TinyUSB
+	_endpointIn = 0       // TinyUSB
+	_endpointOut = 0      // TinyUSB
 
 	constructor(deviceFilters = [
 			{ 'vendorId': 0x2341, 'productId': 0x8036 }, 
