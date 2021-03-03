@@ -426,7 +426,7 @@ class Transceiver {
 	// }
 
 	get steps() {
-		return [10, 100, 1000, /* 10_000 */]
+		return [10, 100, /* 1000, 10_000 */]
 	}
 
 	get step() {
