@@ -18,7 +18,7 @@ export class AudioProcessor extends LitElement {
 				border-style: solid;
 				top: 44px; */
 				position: absolute;
-				left: 130px;
+				left: 120px;
 				top: 35px;
 				/* right: 20px; */
 				/* padding: 2px; */
