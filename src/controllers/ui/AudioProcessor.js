@@ -212,7 +212,7 @@ export class AudioProcessor extends LitElement {
 		}
 	
 		this._canvasCtx.globalAlpha = 0.1
-		this._canvasCtx.fillStyle = '#333'
+		this._canvasCtx.fillStyle = '#555'
 		this._canvasCtx.lineCap = 'round'
 		let bw = Math.max(this._bw, 600)
 		bw /= binFreq
