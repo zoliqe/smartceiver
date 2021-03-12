@@ -127,8 +127,9 @@ export class SmartceiverApp extends LitElement {
 
 			.rxfreq {
 				padding-left: 10px;
-				width: 100%;
+//				width: 100%;
 				flex-grow: 100;
+				z-index: 1;
 			}
 			.txfreq {
 				font-size: 2.5em;
@@ -252,10 +253,10 @@ export class SmartceiverApp extends LitElement {
 			input-knob {
 				width: 10rem;
 				height: 10rem;
-        margin: 1.5em;
+        margin: 0em;
 				/* margin-top: 4em; */
-				margin-left: 0;
-				display: block;
+// 				margin-left: 0;
+// 				display: block;
 				border-radius: 100%;
 				box-shadow: 0 0.3rem 0.3rem rgba(0, 0, 0, 0.5);
 				background: #777;
