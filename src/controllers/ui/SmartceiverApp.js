@@ -159,7 +159,7 @@ export class SmartceiverApp extends LitElement {
       .card {
         /* border-radius: 30px;  */
         /* background-color: #333; */
-        min-height: 400px;
+        min-height: 330px;
         display: flex;
 				align-content: flex-start;
 				justify-content: flex-start;
@@ -189,7 +189,7 @@ export class SmartceiverApp extends LitElement {
       }
 
       button {
-        font-size: 1.5em;
+        font-size: 1.1em;
         font-weight: bold;
         color: white;
         text-align: center;
