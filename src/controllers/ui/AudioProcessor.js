@@ -19,12 +19,12 @@ export class AudioProcessor extends LitElement {
 				top: 44px; */
 				position: absolute;
 				left: 130px;
-				top: 110px;
+				top: 80px;
 				/* right: 20px; */
 				/* padding: 2px; */
 				width: 500px;
 				height: 300px;
-				background-color: #333;
+				background-color: #212121;
 				color: #cfcfcf;
 				z-index: 0;
 			}`
@@ -207,12 +207,12 @@ export class AudioProcessor extends LitElement {
 // 				this._canvasCtx.fillRect(i, this._canvas.height, 1, -this._canvas.height)
 // 			}
 			const magnitude = freqByteData[i]
-			this._canvasCtx.fillStyle = `rgb(60,60,${magnitude*0.5 + 150})` // `rgb(50,${magnitude},80)`
+			this._canvasCtx.fillStyle = `rgb(40,40,${magnitude*0.4 + 150})` // `rgb(50,${magnitude},80)`
 			this._canvasCtx.fillRect(i, this._canvas.height, 1, -magnitude)
 		}
 	
 		this._canvasCtx.globalAlpha = 0.1
-		this._canvasCtx.fillStyle = '#aaa'
+		this._canvasCtx.fillStyle = '#333'
 		this._canvasCtx.lineCap = 'round'
 		let bw = Math.max(this._bw, 600)
 		bw /= binFreq
