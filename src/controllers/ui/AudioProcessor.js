@@ -96,7 +96,7 @@ export class AudioProcessor extends LitElement {
 			console.debug('AudioProcessor: Found these ' + kind + ' devices:', allDevices)
 			const devices = allDevices
 				.filter(device => device.kind === kind)
-				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter))
+				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter)))
 			console.info('AudioProcessor: Selected these ' + kind + ' devices (using first, if one found):', devices)
 			return devices.length === 1 ? devices[0].deviceId : null // only when exactly one device found, otherwise user must select default device in OS
 		} catch (e) {
