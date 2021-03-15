@@ -63,7 +63,7 @@ export class AudioProcessor extends LitElement {
 // 											deviceOutLabels = ['USB Audio Device: USB Audio:2,0: Speaker', 'Speakers (USB Audio Device) (040d:3417)', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Analog Stereo', 'Generic USB Audio Device: USB Audio:2,0: Speaker'],
 											deviceOutLabels = ['USB Audio Device', 'Audio Adapter'],
 // 											deviceInLabels = ['Wired Headset', 'USB Audio Device: USB Audio:2,0: Mic', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Mono', 'Generic USB Audio Device: USB Audio:3,0: Mic']) {
-											deviceInLabels = ['Wired Headset', 'USB Audio Device', 'Audio Adapter']) {
+											deviceInLabels = ['Wired headset', 'USB Audio Device', 'Audio Adapter']) {
 		console.debug('connectStream:', trackWithStream)
 		this._track = trackWithStream.track
 
