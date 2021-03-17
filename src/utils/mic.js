@@ -7,10 +7,10 @@ class Microphone {
 	#userMediaConstraints = {
 		video: false,
 		audio: {
-			sampleRate: 8000,
+// 			sampleRate: 8000,
 // 			// sampleSize: 16,
-// 			channelCount: 1,
-// 			volume: 1.0,
+			channelCount: 1,
+			volume: 1.0,
 			autoGainControl: false,
 			echoCancellation: false,
 			noiseSuppression: false
@@ -58,7 +58,7 @@ class Microphone {
 				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter)))
 			console.info('Microphone: Selected these audioinput devices (using first, if one found):', devices)
 			if (devices.length === 1 && navigator.userAgent.includes('Android')) {
-				alert(`Selected audio input: ${this.#userMediaConstraints}`)
+				alert(`Selected audio input: ${JSON.stringify(this.#userMediaConstraints)}`)
 			}
 			return devices.length === 1 ? devices[0].deviceId : null // only when exactly one device found, otherwise user must select default device in OS
 		} catch (e) {
