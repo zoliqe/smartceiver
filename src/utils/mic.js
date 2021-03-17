@@ -27,7 +27,7 @@ class Microphone {
 
 	async request(
 // 		deviceLabels = ['Wired headset', 'USB Audio Device: USB Audio:2,0: Mic', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Mono', 'Generic USB Audio Device: USB Audio:3,0: Mic']) {
-		deviceLabels = ['headset', 'Headset', 'USB Audio Device', 'Audio Adapter']
+		deviceLabels = ['headset', 'Headset', 'Microphone', 'USB Audio Device', 'Audio Adapter']
 	) {
 		this.#userMediaConstraints.audio.audioId = await this._findDeviceIdByLabel(deviceLabels)
 		console.debug('Requesting user microphone with constraints', this.#userMediaConstraints)
@@ -67,26 +67,26 @@ class Microphone {
 	}
 
 	close() {
-		this._track && this._track.stop()
-		this._stream = null
-		this._track = null
+		this.#track && this._track.stop()
+		this.#stream = null
+		this.#track = null
 		// this.tcvr.unbind('mic')
 	}
 
 	mute() {
-		this._track && (this._track.enabled = false)
+		this.#track && (this.#track.enabled = false)
 	}
 
 	unmute() {
-		this._track && (this._track.enabled = true)
+		this.#track && (this.#track.enabled = true)
 	}
 
 	get track() {
-		return this._track
+		return this.#track
 	}
 	
 	get stream() {
-		return this._stream
+		return this.#stream
 	}
 }
 
