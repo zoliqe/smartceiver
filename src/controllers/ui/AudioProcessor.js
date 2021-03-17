@@ -60,10 +60,9 @@ export class AudioProcessor extends LitElement {
 	}
 
 	async connectStream(trackWithStream, 
-// 											deviceOutLabels = ['USB Audio Device: USB Audio:2,0: Speaker', 'Speakers (USB Audio Device) (040d:3417)', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Analog Stereo', 'Generic USB Audio Device: USB Audio:2,0: Speaker'],
-											deviceOutLabels = ['USB Audio Device', 'Audio Adapter'],
-// 											deviceInLabels = ['Wired headset', 'USB Audio Device: USB Audio:2,0: Mic', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Mono', 'Generic USB Audio Device: USB Audio:3,0: Mic']) {
-											deviceInLabels = ['headset', 'Headset', 'USB Audio Device', 'Audio Adapter']) {
+// 		deviceLabels = ['USB Audio Device: USB Audio:2,0: Speaker', 'Speakers (USB Audio Device) (040d:3417)', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Analog Stereo', 'Generic USB Audio Device: USB Audio:2,0: Speaker'],
+		deviceLabels = ['USB Audio Device', 'Audio Adapter'],
+	) {
 		console.debug('connectStream:', trackWithStream)
 		this._track = trackWithStream.track
 
@@ -73,16 +72,12 @@ export class AudioProcessor extends LitElement {
 		this._remoteAudio.muted = true
 		this._remoteAudio.autoplay = true
 		this._remoteAudio.srcObject = stream
-		let deviceId = await this._findDeviceIdByLabel('audioinput', deviceInLabels)
-		if (deviceId != null) {
-			this._remoteAudio.setSinkId(deviceId)
-		}
 
 		const outStream = this._buildAudioChain(stream)
 		this._audioOutput = document.createElement('audio')
 		this._audioOutput.autoplay = true
 		this._audioOutput.srcObject = outStream
-		deviceId = await this._findDeviceIdByLabel('audiooutput', deviceOutLabels)
+		const deviceId = await this._findDeviceIdByLabel(deviceLabels)
 		if (deviceId != null) {
 			this._audioOutput.setSinkId(deviceId)
 		}
@@ -90,17 +85,14 @@ export class AudioProcessor extends LitElement {
 		this._drawSpectrum()
 	}
 
-	async _findDeviceIdByLabel(kind, labelsFilter) {
+	async _findDeviceIdByLabel(labelsFilter) {
 		try {
 			const allDevices = await navigator.mediaDevices.enumerateDevices()
-			console.debug('AudioProcessor: Found these ' + kind + ' devices:', allDevices)
+			console.debug('AudioProcessor: Found these audiooutput devices:', allDevices)
 			const devices = allDevices
-				.filter(device => device.kind === kind)
+				.filter(device => device.kind === 'audiooutput')
 				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter)))
-			console.info('AudioProcessor: Selected these ' + kind + ' devices (using first, if one found):', devices)
-			if (devices.length === 1 && kind === 'audioinput' && navigator.userAgent.includes('Android')) {
-				alert('Selected audio input: ' + devices[0].label)
-			}
+			console.info('AudioProcessor: Selected these audiooutput devices (using first, if one found):', devices)
 			return devices.length === 1 ? devices[0].deviceId : null // only when exactly one device found, otherwise user must select default device in OS
 		} catch (e) {
 			console.error('Error enumerating mediaDevices:', e)
