@@ -12,7 +12,7 @@ class Microphone {
 // 			channelCount: 1,
 // 			volume: 1.0,
 			autoGainControl: {exact: false},
-// 			echoCancellation: false,
+			echoCancellation: {exact: false},
 			noiseSuppression: {exact: false}
 		}
 	}
