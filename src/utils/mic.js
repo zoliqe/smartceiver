@@ -11,9 +11,9 @@ class Microphone {
 // 			// sampleSize: 16,
 // 			channelCount: 1,
 // 			volume: 1.0,
-			autoGainControl: false,
-			echoCancellation: false,
-			noiseSuppression: false
+// 			autoGainControl: false,
+// 			echoCancellation: false,
+// 			noiseSuppression: false
 		}
 	}
 	
