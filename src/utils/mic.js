@@ -29,7 +29,8 @@ class Microphone {
 // 		deviceLabels = ['Wired headset', 'USB Audio Device: USB Audio:2,0: Mic', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Mono', 'Generic USB Audio Device: USB Audio:3,0: Mic']) {
 		deviceLabels = ['Wired headset', 'USB Audio Device', 'Audio Adapter']
 	) {
-		this.#userMediaConstraints.audio.deviceId = await this._findDeviceIdByLabel(deviceLabels)
+		const deviceId = await this._findDeviceIdByLabel(deviceLabels)
+		this.#userMediaConstraints.audio.deviceId = deviceId != null ? {exact: deviceId} : null
 		console.debug('Microphone: Requesting user microphone with constraints', this.#userMediaConstraints)
 		
 		try {
