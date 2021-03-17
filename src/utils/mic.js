@@ -30,7 +30,7 @@ class Microphone {
 		deviceLabels = ['headset', 'Headset', 'USB Audio Device', 'Audio Adapter']
 	) {
 		this.#userMediaConstraints.audio.deviceId = await this._findDeviceIdByLabel(deviceLabels)
-		console.debug('Requesting user microphone with constraints', this.#userMediaConstraints)
+		console.debug('Microphone: Requesting user microphone with constraints', this.#userMediaConstraints)
 		
 		try {
 			this.#stream = await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints)
@@ -40,7 +40,7 @@ class Microphone {
 		}
 		
 		this.#track = this.#stream.getAudioTracks()[0]
-		console.debug('Adding microphone', this.#stream, this.#track)
+		console.debug('Microphone: Adding microphone', this.#stream, this.#track)
 		this.#track && console.info('Microphone constraints:', this.#track.getSettings())
 		// this.mute()
 		// this.tcvr.bind(SignalType.ptt, 'mic', 
@@ -51,11 +51,11 @@ class Microphone {
 	async _findDeviceIdByLabel(labelsFilter) {
 		try {
 			const allDevices = await navigator.mediaDevices.enumerateDevices()
-			console.debug('AudioProcessor: Found these audioinput devices:', allDevices)
+			console.debug('Microphone: Found these audioinput devices:', allDevices)
 			const devices = allDevices
 				.filter(device => device.kind === 'audioinput')
 				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter)))
-			console.info('AudioProcessor: Selected these audioinput devices (using first, if one found):', devices)
+			console.info('Microphone: Selected these audioinput devices (using first, if one found):', devices)
 			if (devices.length === 1 && navigator.userAgent.includes('Android')) {
 				alert('Selected audio input: ' + devices[0].label)
 			}
