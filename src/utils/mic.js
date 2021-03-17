@@ -35,7 +35,7 @@ class Microphone {
 		try {
 			this.#stream = await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints)
 		} catch (error) {
-			window.alert(`Request to access your microphone was unsucessfull.\nSSB transmit will not be available.\nError: ${error.name}`))
+			window.alert(`Request to access your microphone was unsucessfull.\nAudio processing / SSB transmit will not be available.\nError: ${error.name}`))
 			throw error
 		}
 		
