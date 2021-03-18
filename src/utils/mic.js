@@ -10,7 +10,7 @@ class Microphone {
 			sampleRate: {ideal: 8000},
 // 			// sampleSize: 16,
 			channelCount: {ideal: 1},
-			volume: {ideal: 1.0},
+			volume: {ideal: 0.8},
 			autoGainControl: {exact: false},
 // 			echoCancellation: {ideal: false}, // on Android causes to ignore deviceID and use internal mic
 			noiseSuppression: {exact: false}
@@ -51,7 +51,7 @@ class Microphone {
 
 	async _findDeviceIdByLabel(labelsFilter) {
 		try {
-			await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints) // request permisions to audio devices for enumerateDevices()
+			const stream = await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints) // request permisions to audio devices for enumerateDevices()
 	
 			const allDevices = await navigator.mediaDevices.enumerateDevices()
 			console.debug('Microphone: Found these audioinput devices:', allDevices)
