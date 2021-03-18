@@ -7,7 +7,7 @@ class Microphone {
 	#userMediaConstraints = {
 		video: false,
 		audio: {
-// 			sampleRate: {ideal: 8000},
+			sampleRate: {ideal: 8000},
 // 			// sampleSize: 16,
 // 			channelCount: {ideal: 1},
 // 			volume: {ideal: 1.0},
