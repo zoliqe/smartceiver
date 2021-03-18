@@ -29,7 +29,6 @@ class Microphone {
 // 		deviceLabels = ['Wired headset', 'USB Audio Device: USB Audio:2,0: Mic', 'USB Audio Device Analog Stereo', 'Audio Adapter (Planet UP-100, Genius G-Talk) Mono', 'Generic USB Audio Device: USB Audio:3,0: Mic']) {
 		deviceLabels = ['Wired headset', 'USB Audio Device', 'Audio Adapter']
 	) {
-// 		await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints)
 		const deviceId = await this._findDeviceIdByLabel(deviceLabels)
 		this.#userMediaConstraints.audio.deviceId = deviceId != null ? {exact: deviceId} : null
 		console.debug('Microphone: Requesting user microphone with constraints', this.#userMediaConstraints)
@@ -52,11 +51,14 @@ class Microphone {
 
 	async _findDeviceIdByLabel(labelsFilter) {
 		try {
+			await navigator.mediaDevices.getUserMedia(this.#userMediaConstraints) // request permisions to audio devices for enumerateDevices()
+	
 			const allDevices = await navigator.mediaDevices.enumerateDevices()
 			console.debug('Microphone: Found these audioinput devices:', allDevices)
 			const devices = allDevices
 				.filter(device => device.kind === 'audioinput')
 				.filter(device => labelsFilter.some(labelFilter => device.label.includes(labelFilter)))
+			
 			console.info('Microphone: Selected these audioinput devices (using first, if one found):', devices)
 			if (devices.length === 1 && navigator.userAgent.includes('Android')) {
 				alert(`cstrs: ${JSON.stringify(this.#userMediaConstraints)}`)
