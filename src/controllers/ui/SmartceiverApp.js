@@ -366,16 +366,19 @@ export class SmartceiverApp extends LitElement {
                 ${this.mode}
               </button>
               <button @click=${this.switchGain} class="toggles toggle-btn" ?hidden=${!this.powerState}>
-                ${this.gain}
+                ${this.gain}dB
               </button>
               <button @click=${this.switchAgc} class="toggles toggle-btn" ?hidden=${!this.powerState}>
                 ${this.agc}
               </button>
               <button @click=${this.switchFilter} class=${this._toggleBtnClass('filter')} ?hidden=${!this.powerState}>
-                ${this.filter}
+                ${this.filter}Hz
               </button>
-              <button class=${this._toggleBtnClass('wpm')} ?hidden=${!this.powerState}>
-                ${this.wpm}
+              <button @click=${this.increaseWpm} class="toggles toggle-btn" ?hidden=${!this.powerState}>
+                ++${this.wpm}WPM
+              </button>
+              <button @click=${this.decreaseWpm} class="toggles toggle-btn" ?hidden=${!this.powerState}>
+                --{this.wpm}WPM
               </button>
 					</li>
 					<li class="card knob-card">
