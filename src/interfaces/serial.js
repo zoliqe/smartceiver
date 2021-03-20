@@ -37,7 +37,7 @@ export class SerialInterface {
 
 		this._device = await navigator.serial.requestPort({filters: this._devicefilters})
 		const info = this._device.getInfo()
-		console.debug(`device: num=${info.serialNumber} ${info.product} (${info.manufacturer})`)
+		console.debug(`device: num=${info.serialNumber} ${info.product} (${info.manufacturer}) options=${JSON.stringify(this._devopts)}`)
 		await this._device.open(this._devopts)
 		this._readLoop() // do not await
 		return this
