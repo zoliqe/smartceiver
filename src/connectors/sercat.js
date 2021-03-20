@@ -13,7 +13,7 @@ class SercatConnector {
 
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
-		this.#iface = new SerialInterface(this.#adapter.baudrate, null)
+		this.#iface = new SerialInterface(this.#adapter.baudrate, [])
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
 
