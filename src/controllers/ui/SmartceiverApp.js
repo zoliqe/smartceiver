@@ -127,7 +127,7 @@ export class SmartceiverApp extends LitElement {
 
 			.rxfreq {
 				padding-left: 10px;
-//				width: 100%;
+				width: 100%;
 				flex-grow: 100;
 				z-index: 1;
 			}
@@ -189,7 +189,7 @@ export class SmartceiverApp extends LitElement {
       }
 
       button {
-        font-size: 1.1em;
+        font-size: 1.0em;
         font-weight: bold;
         color: white;
         text-align: center;
@@ -375,10 +375,10 @@ export class SmartceiverApp extends LitElement {
                 ${this.filter}Hz
               </button>
               <button @click=${this.increaseWpm} class="toggles toggle-btn" ?hidden=${!this.powerState}>
-                ++${this.wpm}WPM
+                +${this.wpm}WPM
               </button>
               <button @click=${this.decreaseWpm} class="toggles toggle-btn" ?hidden=${!this.powerState}>
-                --${this.wpm}WPM
+                -${this.wpm}WPM
               </button>
 					</li>
 					<li class="card knob-card">
