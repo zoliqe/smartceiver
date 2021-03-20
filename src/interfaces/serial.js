@@ -98,7 +98,8 @@ export class SerialInterface {
 	}
 	
 	async send(data) {
-		if (this._device && this._device.writable) {
+		console.debug(`SERIAL <= ${data}`)
+		if (this.connected && this._device.writable) {
 			const writer = this._device.writable.getWriter()
 			const bytes = typeof data === 'string' ? _encoder.encode(data) : data
 			writer.write(bytes)
