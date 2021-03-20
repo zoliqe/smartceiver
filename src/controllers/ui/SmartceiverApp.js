@@ -378,7 +378,7 @@ export class SmartceiverApp extends LitElement {
                 ++${this.wpm}WPM
               </button>
               <button @click=${this.decreaseWpm} class="toggles toggle-btn" ?hidden=${!this.powerState}>
-                --{this.wpm}WPM
+                --${this.wpm}WPM
               </button>
 					</li>
 					<li class="card knob-card">
