@@ -83,6 +83,10 @@ export class SerialInterface {
 		}
 	}
 
+	get connected() {
+		return this._device != null
+	}
+
 	receive(data) {
 		// callback
 	}
