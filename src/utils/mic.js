@@ -30,8 +30,8 @@ class Microphone {
 		deviceLabels = ['Wired headset', 'USB Audio Device', 'Audio Adapter']
 	) {
 // 		if (!navigator.userAgent.includes('Android')) {
-// 			const deviceId = await this._findDeviceIdByLabel(deviceLabels)
-			this.#userMediaConstraints.audio.deviceId = deviceId != null ? {exact: deviceId} : null
+			const deviceId = await this._findDeviceIdByLabel(deviceLabels)
+// 			this.#userMediaConstraints.audio.deviceId = deviceId != null ? {exact: deviceId} : null
 // 		}
 		console.debug('Microphone: Requesting user microphone with constraints', this.#userMediaConstraints)
 		
