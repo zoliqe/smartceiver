@@ -537,6 +537,11 @@ export class SmartceiverApp extends LitElement {
 	}
 		
 	_knobParamsByBand() {
+		if (this.gencov) {
+			this.knob.min = 1_000_000
+			this.knob.max = 10_000_000
+			return
+		}
 		const b = Bands[this.band]
 		this.bandMHz = Math.floor(b.name).toString().padStart(2, '_')
 		this.knob.min = b.freqFrom
@@ -554,6 +559,7 @@ export class SmartceiverApp extends LitElement {
 
 		this.remoddle = this._params.get('remoddle')
 		this.audioproc = this._params.get('audioproc')
+		this.gencov = this._params.get('gencov')
 
 		const remotig = this._params.get('remotig')
 		const powron = this._params.get('powron')
