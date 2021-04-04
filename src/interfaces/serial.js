@@ -15,6 +15,7 @@ export class SerialInterface {
 	constructor(baudrate = 4800, deviceFilters = [
 			{ usbVendorId: 0x2341, usbProductId: 0x8036 },
 			{ usbVendorId: 0x2341, usbProductId: 0x8037 },
+			{ usbVendorId: 0x2341, usbProductId: 0x0043 }, // ArduinoUNO
 			{ usbVendorId: 0x1A86, usbProductId: 0x7523 },
 		], 
 		receiveSeparator = '\n', sendSeparator = '\n'
