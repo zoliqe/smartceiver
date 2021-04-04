@@ -11,7 +11,7 @@ class PowronConnector {
 	
 	constructor(tcvrAdapter, {options, keyerConfig}) {
 		this.#powron = new Powron(tcvrAdapter, async (cmd) => this.#iface.send(cmd), {options, keyerConfig})
-		this.#iface = new SerialInterface(4800)
+		this.#iface = new SerialInterface(4800, [])
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
 	}
