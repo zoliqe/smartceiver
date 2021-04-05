@@ -35,3 +35,4 @@ Currently tested:
 - add login form for remote
 - create settings page for connectors (with persistance)
 - check: Hide unchangeable values (values.length <= 1)
+- show loaded version: await fetch('https://api.github.com/repos/zoliqe/Smartceiver/commits/master')
