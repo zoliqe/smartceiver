@@ -7,13 +7,13 @@ class Microphone {
 	#userMediaConstraints = {
 		video: false,
 		audio: {
-			sampleRate: {ideal: 8000},
-// 			// sampleSize: 16,
-			channelCount: {ideal: 1},
-			volume: {exact: 1.0},
-			autoGainControl: {exact: false},
-// 			echoCancellation: {ideal: false}, // on Android causes to ignore deviceID and use internal mic
-			noiseSuppression: {exact: false}
+			sampleRate: 8000, //{ideal: 8000},
+// 			sampleSize: 16,
+			channelCount: 1,
+			volume: 1.0 // {exact: 1.0},
+			autoGainControl: false,
+// 			echoCancellation: false, // on Android causes to ignore deviceID and use internal mic
+			noiseSuppression: false
 		}
 	}
 	
