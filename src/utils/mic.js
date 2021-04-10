@@ -10,7 +10,7 @@ class Microphone {
 			sampleRate: {ideal: 8000},
 // 			// sampleSize: 16,
 			channelCount: {ideal: 1},
-			volume: {exact: 0.2},
+			volume: {exact: 1.0},
 			autoGainControl: {exact: false},
 // 			echoCancellation: {ideal: false}, // on Android causes to ignore deviceID and use internal mic
 			noiseSuppression: {exact: false}
@@ -30,8 +30,8 @@ class Microphone {
 		deviceLabels = ['Wired headset', 'USB Audio Device', 'Audio Adapter']
 	) {
 // 		if (!navigator.userAgent.includes('Android')) {
-			const deviceId = await this._findDeviceIdByLabel(deviceLabels)
-			this.#userMediaConstraints.audio.deviceId = /*deviceId != null ? {exact: deviceId} :*/ null
+// 			const deviceId = await this._findDeviceIdByLabel(deviceLabels)
+// 			this.#userMediaConstraints.audio.deviceId = /*deviceId != null ? {exact: deviceId} :*/ null
 // 		}
 		console.debug('Microphone: Requesting user microphone with constraints', this.#userMediaConstraints)
 		
