@@ -5,7 +5,7 @@
 class Microphone {
 	#audioTrackConstraints = {
 		'sampleRate': 8000, //{ideal: 8000},
-		'sampleSize': 16,
+// 		'sampleSize': 16,
 		'channelCount': 1,
 		'volume': 1.0, // {exact: 1.0},
 		'autoGainControl': false,
@@ -42,11 +42,11 @@ class Microphone {
 			throw error
 		}
 		
+		this.#stream.getAudioTracks().forEach(track => track.applyConstraints(this.#audioTrackConstraints))
 		this.#track = this.#stream.getAudioTracks()[0]
 		console.debug('Microphone: Adding microphone', this.#stream, this.#track)
 		this.#track && console.info('Microphone constraints:', this.#track.getSettings())
-		this.#track.applyConstraints(this.#audioTrackConstraints)
-		alert(this.#track.label + ' ' + JSON.stringify(this.#track.getConstraints()))
+// 		alert(this.#track.label + ' ' + JSON.stringify(this.#track.getConstraints()))
 		// this.mute()
 		// this.tcvr.bind(SignalType.ptt, 'mic', 
 		// 	event => event.value ? this.unmute() : this.mute())
