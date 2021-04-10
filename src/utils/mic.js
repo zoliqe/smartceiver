@@ -8,11 +8,11 @@ class Microphone {
 		video: false,
 		audio: {
 			sampleRate: 8000, //{ideal: 8000},
-// 			sampleSize: 16,
+			sampleSize: 16,
 			channelCount: 1,
 			volume: 1.0, // {exact: 1.0},
 			autoGainControl: false,
-// 			echoCancellation: false, // on Android causes to ignore deviceID and use internal mic
+			echoCancellation: false, // on Android causes to ignore deviceID and use internal mic
 			noiseSuppression: false
 		}
 	}
