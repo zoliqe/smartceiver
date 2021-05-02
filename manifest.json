@@ -1,8 +1,8 @@
 {
-  "short_name": "Smartceiver",
-  "name": "Transceiver Controller",
-  "theme_color": "#666",
-  "background_color": "#333",
+  "short_name": "wcvr",
+  "name": "WCVR - Webceiver",
+  "theme_color": "#333",
+  "background_color": "#212121",
   "display": "fullscreen",
   "orientation": "landscape",
   "scope": "https://zoliqe.github.io/smartceiver/",
