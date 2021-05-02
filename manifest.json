@@ -6,7 +6,7 @@
   "display": "fullscreen",
   "orientation": "landscape",
   "scope": "https://zoliqe.github.io/smartceiver/",
-	"start_url": "/?cat=usbcat&tcvr=om4aa-bobik",
+	"start_url": "/smartceiver/?cat=usbcat&tcvr=om4aa-bobik",
   "icons": [
     {
       "src": "icon-small.png",
