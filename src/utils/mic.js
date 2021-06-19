@@ -47,7 +47,7 @@ class Microphone {
 		this.#track = this.#stream.getAudioTracks()[0]
 		console.debug('Microphone: Adding microphone', this.#stream, this.#track)
 		this.#track && console.info('Microphone constraints:', this.#track.getSettings())
-		this.#track && navigator.userAgent.includes('Android') && alert(JSON.stringify(this.#track.getSettings())
+		this.#track && navigator.userAgent.includes('Android') && alert(JSON.stringify(this.#track.getSettings()))
 // 		alert(this.#track.label + ' ' + JSON.stringify(this.#track.getConstraints()))
 		// this.mute()
 		// this.tcvr.bind(SignalType.ptt, 'mic', 
