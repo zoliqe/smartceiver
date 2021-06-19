@@ -55,7 +55,7 @@ export const get = async (connector, params) => {
     params.tcvr.model = params.tcvr.model || 'none'
 		const adapter = await adapterFor(params.tcvr)
 		const conn = await import('./connectors/nocat.js')
-		return new conn.UsbcatConnector(adapter, params)
+		return new conn.NocatConnector(adapter, params)
 	}
 
 	throw new Error(`Unknown connector=${connector}`)
