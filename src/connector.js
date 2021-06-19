@@ -48,6 +48,15 @@ export const get = async (connector, params) => {
 		const conn = await import('./connectors/usbcat.js')
 		return new conn.UsbcatConnector(adapter, params)
 	}
+	if (connector === 'nocat') {
+//		requireTcvr(params)
+    params.tcvr = params.tcvr || {}
+    params.tcvr.manufacturer = params.tcvr.manufacturer || 'none'
+    params.tcvr.model = params.tcvr.model || 'none'
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connectors/nocat.js')
+		return new conn.UsbcatConnector(adapter, params)
+	}
 
 	throw new Error(`Unknown connector=${connector}`)
 }
