@@ -4,13 +4,14 @@
 
 class Microphone {
 	#audioTrackConstraints = {
-		'sampleRate': 8000, //{ideal: 8000},
-// 		'sampleSize': 16,
-		'channelCount': 1,
-		'volume': 1.0, // {exact: 1.0},
-		'autoGainControl': false,
-// 		'echoCancellation': false, // on Android causes to ignore deviceID and use internal mic
-		'noiseSuppression': false
+		echoCancellation: {exact: false}
+// 		'sampleRate': 8000, //{ideal: 8000},
+// // 		'sampleSize': 16,
+// 		'channelCount': 1,
+// 		'volume': 1.0, // {exact: 1.0},
+// 		'autoGainControl': false,
+// // 		'echoCancellation': false, // on Android causes to ignore deviceID and use internal mic
+// 		'noiseSuppression': false
 	}
 	#userMediaConstraints = {
 		'video': false,
@@ -46,6 +47,7 @@ class Microphone {
 		this.#track = this.#stream.getAudioTracks()[0]
 		console.debug('Microphone: Adding microphone', this.#stream, this.#track)
 		this.#track && console.info('Microphone constraints:', this.#track.getSettings())
+		this.#track && navigator.userAgent.includes('Android') && alert(JSON.stringify(this.#track.getSettings())
 // 		alert(this.#track.label + ' ' + JSON.stringify(this.#track.getConstraints()))
 		// this.mute()
 		// this.tcvr.bind(SignalType.ptt, 'mic', 
