@@ -6,8 +6,11 @@ import { tcvrOptions } from './tcvr/utils.js'
 class NocatConnector {
 
 	#signals
+	
+	#adapter
 
 	constructor(tcvrAdapter) {
+		this.#adapter = tcvrAdapter
 		this.#signals = new SignalsBinder(this.id, {})
 	}
 
