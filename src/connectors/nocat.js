@@ -1,7 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import {SignalsBinder} from '../utils/signals.js'
-import { tcvrOptions } from './tcvr/utils.js'
 
 class NocatConnector {
 
