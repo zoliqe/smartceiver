@@ -4,7 +4,7 @@
 
 class Microphone {
 	#audioTrackConstraints = {
-		echoCancellation: {exact: false} // on Android causes to always use internal mic
+		echoCancellation: {exact: false}, // on Android causes to always use internal mic
 		'sampleRate': 8000, //{ideal: 8000},
 // 		'sampleSize': 16,
 		'channelCount': 1,
