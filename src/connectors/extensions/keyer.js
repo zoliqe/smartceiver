@@ -27,7 +27,7 @@ export class Keyer {
 	}
 
 	async ptt(state, timeout = this.#pttTimeout) {
-		if (state) {
+		if (!state) {
 			await this.#connector.ptt(false)
 			this.#pttTimer != null && clearTimeout(this.#pttTimer)
 			this.#pttTimer = null
