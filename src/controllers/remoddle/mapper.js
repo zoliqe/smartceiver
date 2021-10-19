@@ -155,7 +155,7 @@ class RemoddleMapper {
 	// changeFilter = dir => this._tcvr.filter = dir === '+' ? (this._tcvr.filter + 50) : (this._tcvr.filter - 50)
 	// this._tcvr.filters[this._rotateByDir(dir, this._tcvr.filters, this._tcvr.filters.indexOf(this._tcvr.filter))]
 	
-	setPtt = state => { this._tcvr.ptt = state }
+	setPtt = state => { /*this._tcvr.ptt = state*/ } // FIXME: need more testing on powron side
 	
 	switchStep = () => {
 		// this._tcvr.step = this._tcvr.steps[this._shiftIndex(this._tcvr.steps, this._tcvr.steps.indexOf(this._tcvr.step))]
