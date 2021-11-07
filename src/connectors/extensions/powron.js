@@ -6,7 +6,7 @@ import {SignalsBinder} from '../../utils/signals.js'
 import { Keyer } from './keyer.js'
 import { PowrSwitch } from './powrsw.js'
 
-const cmdByState = state => (state && 'H') || 'L'
+const cmdByState = state => (state && 'WH') || 'WL'
 const startSeq = '$OM4AA#'
 const startSeqDelay = 3000
 const serialInitDelay = 1000
