@@ -61,7 +61,7 @@ class Powron {
 		})
 		this.#keyer = new Keyer({
 			send: async (cmd) => this._send(cmd),
-			speed: async (wpm) => this._send(`S${wpm}`),
+			speed: async (wpm) => this._send(`KS${wpm}`),
 			state: () => this.#keyerPin != null,
 			key: async (state) => this.pinState(this.#keyerPin, state),
 			ptt: async (state) => this.pinState(this.#pttPins, state)
@@ -114,27 +114,27 @@ class Powron {
 
 	async _initSerial() {
 		if (this.#adapter.baudrate >= 1200 && this.#adapter.baudrate <= 115200)
-			await this._send(`P${ this.#adapter.baudrate / 100 }`)
+			await this._send(`PO${ this.#adapter.baudrate / 100 }`)
 		else
 			console.error(`POWRON: serial baudrate = ${this.#adapter.baudrate} not in range, value not set`)
 	}
 
 	async _initPwrSwitch() {
-		await this._send(`T${this.#powr.watchdogTimeout > 0 ? this.#powr.watchdogTimeout + 30 : 0}`)
+		await this._send(`WT${this.#powr.watchdogTimeout > 0 ? this.#powr.watchdogTimeout + 30 : 0}`)
 	}
 
 	async _initKeyer() {
 		if (!this.#keyerPin || !Object.values(Pins).includes(this.#keyerPin)) {
 			console.info('POWRON: Disabling keyer')
-			await this._send('K0')
+			await this._send('KK0')
 			return
 		}
 		console.info('POWRON: Enabling keyer on pin', this.#keyerPin)
-		await this._send(`K${this.#keyerPin}`)
-		await this._send(`D${this.#keyer.coefs.dit}`) // ditCoef
-		await this._send(`A${this.#keyer.coefs.dah}`) // dahCoef
-		await this._send(`E${this.#keyer.coefs.elementSpace}`)  // elementSpaceCoef
-		await this._send(`C${this.#keyer.coefs.letterSpace}`)  // letterSpaceCoef
+		await this._send(`KK${this.#keyerPin}`)
+		await this._send(`KD${this.#keyer.coefs.dit}`) // ditCoef
+		await this._send(`KA${this.#keyer.coefs.dah}`) // dahCoef
+		await this._send(`KE${this.#keyer.coefs.elementSpace}`)  // elementSpaceCoef
+		await this._send(`KC${this.#keyer.coefs.letterSpace}`)  // letterSpaceCoef
 	}
 
 	async pinState(pin, state) {
