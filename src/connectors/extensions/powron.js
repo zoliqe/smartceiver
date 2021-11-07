@@ -38,7 +38,7 @@ class Powron {
 	constructor(tcvrAdapter, send, {
 		options = {
 			keyerPin: Pins.pin5, pttPins: [Pins.pin6],
-			powerPins: [Pins.pin2, Pins.pin4], 
+			powerPins: Pins.pin2,//[Pins.pin2, Pins.pin4], 
 			powerTimeout: 30
 		},
 		keyerConfig = { 
