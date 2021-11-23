@@ -182,7 +182,6 @@ class WebRTC {
 			this._doCall()
 		} else if (message.type === 'offer' && this._isReady) {
 			!this._isStarted && this._maybeStart()
-			this._pc.setRemoteDescription(new RTCSessionDescription(message))
 			this._doAnswer()
 		} else if (message.type === 'answer' && this._isStarted && this._server) {
 			this._pc.setRemoteDescription(new RTCSessionDescription(message))
@@ -229,6 +228,11 @@ class WebRTC {
 
 	_doAnswer() {
 		console.debug('WebRTC: Sending answer to peer.')
+		if (!this._isStarted) {
+			console.error('WebRTC: PeerConnection not ready yet!')
+			return
+		}
+		this._pc.setRemoteDescription(new RTCSessionDescription(message))
 		this._pc.createAnswer().then(
 			desc => this._setLocalAndSendMessage(desc),
 			error => console.error('WebRTC: doAnswer(): Failed to create session description:', error)
@@ -237,6 +241,10 @@ class WebRTC {
 
 	_doCall() {
 		console.debug('WebRTC: Sending offer to peer');
+		if (!this._isStarted) {
+			console.error('WebRTC: PeerConnection not ready yet!')
+			return
+		}
 		this._pc.createOffer().then(
 			desc => this._setLocalAndSendMessage(desc),
 			error => console.error('WebRTC: createOffer() error:', error))
