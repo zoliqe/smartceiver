@@ -15,8 +15,7 @@ class PowronConnector {
     this.#iface.receiveError = this.onReceiveError
     this.#powron = new Powron(tcvrAdapter, 
       async (cmd) => this.#iface.send(cmd + ';'), 
-      { options, keyerConfig },
-      true)
+      { options, keyerConfig })
   }
 
   get id() {

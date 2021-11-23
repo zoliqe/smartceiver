@@ -35,19 +35,19 @@ class Powron {
 
   #timeout
 
-  #ng
+  #useStartSeq
 
   constructor(tcvrAdapter, send, {
     options = {
       keyerPin: Pins.pin5, pttPins: [Pins.pin6],
       powerPins: [Pins.pin4, Pins.pin2],
-      powerTimeout: 30
+      powerTimeout: 30,
+      useStartSeq: false,
     },
     keyerConfig = {
       pttTimeout: 5000,
       ditCoef: 120, dahCoef: 120, elementSpaceCoef: 60, letterSpaceCoef: 60,
-    } },
-    ng
+    } }
   ) {
     this._send = async (data) => send(data)
     const opts = options || {}
@@ -55,6 +55,7 @@ class Powron {
     this.#pttPins = opts.pttPins || []
     this.#powerPins = opts.powerPins || []
     this.#timeout = opts.powerTimeout || 0
+    this.#useStartSeq = opts.useStartSeq
     // this.keyerState(true)
     // this.pttState(false)
 
@@ -73,7 +74,6 @@ class Powron {
 
     this._initSignals()
     window.powron = this
-    this.#ng = ng
   }
 
   get tcvrProps() {
@@ -109,7 +109,7 @@ class Powron {
   }
 
   async init() {
-    if (!this.#ng) {
+    if (this.#useStartSeq) {
       await delay(startSeqDelay)
       await this._send(startSeq)
       await delay(serialInitDelay)
