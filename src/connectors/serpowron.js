@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 import { delay } from '../utils/time.js'
-import { Powron, Pins } from './extensions/powron.js'
+import { Powron, Pins, defaultOptions } from './extensions/powron.js'
 import { SerialInterface } from '../interfaces/serial.js'
 
 class PowronConnector {
@@ -13,6 +13,7 @@ class PowronConnector {
 		this.#iface = new SerialInterface(4800)
 		this.#iface.receive = this.onReceive
 		this.#iface.receiveError = this.onReceiveError
+		options = options || defaultOptions
 		options.useStartSeq = true
 		this.#powron = new Powron(tcvrAdapter, 
 			async (cmd) => this.#iface.send(cmd), {options, keyerConfig})

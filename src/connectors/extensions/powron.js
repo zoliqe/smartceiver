@@ -17,6 +17,13 @@ const Pins = Object.freeze({
   pinA6: 6, pinA7: 7
 })
 
+const defaultOptions = Object.freeze({
+  keyerPin: Pins.pin5, pttPins: [Pins.pin6],
+  powerPins: [Pins.pin4, Pins.pin2],
+  powerTimeout: 30,
+  useStartSeq: false,
+})
+
 class Powron {
 
   #powerPins
@@ -38,12 +45,7 @@ class Powron {
   #useStartSeq
 
   constructor(tcvrAdapter, send, {
-    options = {
-      keyerPin: Pins.pin5, pttPins: [Pins.pin6],
-      powerPins: [Pins.pin4, Pins.pin2],
-      powerTimeout: 30,
-      useStartSeq: false,
-    },
+    options = defaultOptions,
     keyerConfig = {
       pttTimeout: 5000,
       ditCoef: 120, dahCoef: 120, elementSpaceCoef: 60, letterSpaceCoef: 60,
@@ -187,4 +189,4 @@ class Powron {
   }
 }
 
-export { Powron, Pins }
+export { Powron, Pins, defaultOptions }
