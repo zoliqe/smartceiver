@@ -182,7 +182,7 @@ class WebRTC {
 			this._doCall()
 		} else if (message.type === 'offer' && this._isReady) {
 			!this._isStarted && this._maybeStart()
-			this._doAnswer()
+			this._doAnswer(message)
 		} else if (message.type === 'answer' && this._isStarted && this._server) {
 			this._pc.setRemoteDescription(new RTCSessionDescription(message))
 		} else if (message.type === 'candidate' && this._isStarted) {
@@ -226,7 +226,7 @@ class WebRTC {
 		}
 	}
 
-	_doAnswer() {
+	_doAnswer(message) {
 		console.debug('WebRTC: Sending answer to peer.')
 		if (!this._isStarted) {
 			console.error('WebRTC: PeerConnection not ready yet!')
