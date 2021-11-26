@@ -13,7 +13,7 @@ class PowronConnector {
 		this.#iface = new SerialInterface(4800)
 		this.#iface.receive = this.onReceive
 		this.#iface.receiveError = this.onReceiveError
-		options = options || defaultOptions
+		options = options || {...defaultOptions}
 		options.useStartSeq = true
 		this.#powron = new Powron(tcvrAdapter, 
 			async (cmd) => this.#iface.send(cmd), {options, keyerConfig})
