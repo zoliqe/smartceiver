@@ -306,7 +306,7 @@ export class SmartceiverApp extends LitElement {
 	}
 	
 	static step2scale(step) {
-		return step * 10
+		return step * 20
 	}
 
   constructor() {
