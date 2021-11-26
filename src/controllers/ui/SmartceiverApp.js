@@ -433,9 +433,10 @@ export class SmartceiverApp extends LitElement {
 		this.knob = this.shadowRoot.getElementById('freq-knob')
 		// this.knob = this.$['freq-knob']
 		this.knob.addEventListener('knob-move-change', () => {
-			if (!this.tcvr) return 
+			if (!this.tcvr) return
+			const step = this.knobVfo == 'rit' ? 10 : this.knob.scale / SmartceiverApp.step2scale(1)
 			const curValue = Math.floor(
-				Number.parseFloat(this.knob.value) / 10) * 10
+				Number.parseFloat(this.knob.value) / step) * step
 
 			if (this.knobVfo === 'split')
 				this.tcvr.split = curValue
