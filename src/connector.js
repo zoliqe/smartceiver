@@ -30,6 +30,12 @@ export const get = async (connector, params) => {
 		const conn = await import('./connectors/serpowron.js')
 		return new conn.PowronConnector(adapter, params)
 	}
+	if (connector == 'bluepowron') {
+		requireTcvr(params)
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connectors/bluepowron.js')
+		return new conn.PowronConnector(adapter, params)
+	}
 	if (connector === 'sercat') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
