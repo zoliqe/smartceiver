@@ -60,7 +60,7 @@ class PowronConnector {
 	}
 
 	get connected() {
-		return this.#iface.connected
+		return this.#iface.getDeviceName()
 	}
 
 	async checkState() {
