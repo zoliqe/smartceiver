@@ -80,10 +80,6 @@ class PowronConnector {
 	// 	this.#adapter.close && (await this.#adapter.close())
 	// }
 
-	get connected() {
-		return this.#iface != null
-	}
-
 	async checkState() {
 		return { id: this.id } // this.connected ? {id: this.id} : null
 	}
