@@ -125,7 +125,7 @@ class Powron {
   }
 
   async _initKeyer() {
-    if (!this.#keyerPin || !Object.values(Pins).includes(this.#keyerPin)) {
+    if (!this.#keyerPin) {
       console.info('POWRON: Disabling keyer')
       await this._send('KK0')
       return
