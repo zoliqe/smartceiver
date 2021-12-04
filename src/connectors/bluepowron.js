@@ -4,13 +4,14 @@ import { delay } from '../utils/time.js'
 import { Powron, Pins } from './extensions/powron.js'
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../utils/signals.js'
+import { BufferedWriter } from '../utils/bufwriter.js'
 
 // Sky is blue and your CAT is looking for another mouse...
 
 class PowronConnector {
 	#iface
-
 	#powron
+	#writer
 
 	constructor(tcvrAdapter, { options, keyerConfig }) {
 		if (!BluetoothInterface || !navigator.bluetooth) {
@@ -24,6 +25,7 @@ class PowronConnector {
 		this.#powron = new Powron(tcvrAdapter,
 			async (cmd) => this._send(cmd),
 			{ options, keyerConfig })
+		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
 	}
 
 	get id() {
@@ -55,7 +57,8 @@ class PowronConnector {
 	async _send(data) {
 		if (this.#iface) {
 			// TODO send data using buffered writer
-			await this.#iface.send(data)
+			// await this.#iface.send(data)
+			await this.#writer.write(data)
 			console.debug(`BLUEPOWRON sent: ${data}`)
 		}
 	}

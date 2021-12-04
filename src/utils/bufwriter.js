@@ -1,3 +1,5 @@
+import { delay } from 'time.js'
+
 class BufferedWriter {
     #buffer = []
     #state = false
@@ -13,7 +15,18 @@ class BufferedWriter {
 
         this.#state = true
         while (len) {
-            await this.#writer(this.#buffer.shift())
+            const data = this.#buffer.shift()
+            try {
+                await this.#writer(data)
+            } catch (error) {
+                if (error.indexOf('GATT operation already in progress') > -1) {
+                    console.debug(`BufferedWriter: delayed write of '${data}'`)
+                    this.#buffer.unshift(data)
+                    await delay(200)
+                    continue
+                }
+                console.error(error)
+            }
             len = this.#buffer.length
         }
         this.#state = false
