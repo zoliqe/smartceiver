@@ -1,4 +1,4 @@
-import { delay } from 'time.js'
+import { delay } from './time.js'
 
 class BufferedWriter {
     #buffer = []
