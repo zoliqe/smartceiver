@@ -18,7 +18,7 @@ const serialInitDelay = 1000
 // })
 
 const defaultOptions = Object.freeze({
-  keyerPin: 2, pttPins: [1],
+  keyerPin: 3, pttPins: [2],
   powerPins: [0],
   powerTimeout: 30,
   useStartSeq: false,
