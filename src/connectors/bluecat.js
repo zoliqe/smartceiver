@@ -9,6 +9,7 @@ class BlueCatConnector {
 	#adapter
 	#device
 	#signals
+	#writer
 	
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
@@ -34,6 +35,7 @@ class BlueCatConnector {
 			throw error
 		}
 		console.info(`BLUECAT device ${this.#device.getDeviceName()} connected :-)`)
+		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
 		await this._on()
 		this.#device.receive = data => this.onReceive(data)
 
@@ -42,15 +44,15 @@ class BlueCatConnector {
 
 	async disconnect() {
 		await this._off()
+		this.#writer = null
 		this.#device && this.#device.disconnect()
 		this.#device = null
 	}
 
 	async _send(data) {
 		if (this.#device) {
-				// TODO send data using buffered writer
-				await this.#device.send(data)
-				console.debug(`BLUECAT sent: ${data}`)
+			await this.#writer.write(data)
+			console.debug(`BLUECAT sent: ${data}`)
 		}
 	}
 

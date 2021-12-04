@@ -10,16 +10,16 @@ const cmdByState = state => (state && 'WH') || 'WL'
 const startSeq = '$OM4AA#'
 const startSeqDelay = 3000
 const serialInitDelay = 1000
-const Pins = Object.freeze({
-  pin2: 0, pin3: 1, pin4: 2, pin5: 3,
-  pin6: 4, pin7: 5, pin8: 6, pin9: 7, pin10: 8,
-  pinA0: 0, pinA1: 1, pinA2: 2, pinA3: 3, pinA4: 4, pinA5: 5,
-  pinA6: 6, pinA7: 7
-})
+// const Pins = Object.freeze({
+//   pin2: 0, pin3: 1, pin4: 2, pin5: 3,
+//   pin6: 4, pin7: 5, pin8: 6, pin9: 7, pin10: 8,
+//   pinA0: 0, pinA1: 1, pinA2: 2, pinA3: 3, pinA4: 4, pinA5: 5,
+//   pinA6: 6, pinA7: 7
+// })
 
 const defaultOptions = Object.freeze({
-  keyerPin: Pins.pin5, pttPins: [Pins.pin6],
-  powerPins: [Pins.pin4, Pins.pin2],
+  keyerPin: 2, pttPins: [1],
+  powerPins: [0],
   powerTimeout: 30,
   useStartSeq: false,
 })
@@ -27,21 +27,13 @@ const defaultOptions = Object.freeze({
 class Powron {
 
   #powerPins
-
   #pttPins
-
   #keyerPin
-
   #adapter
-
   #powr
-
   #keyer
-
   #signals
-
   #timeout
-
   #useStartSeq
 
   constructor(tcvrAdapter, send, {
@@ -100,8 +92,8 @@ class Powron {
 
   async on() {
     console.debug('POWRON: poweron')
-    this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
     await this.#powr.on()
+    this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
   }
 
   async off() {
@@ -151,7 +143,7 @@ class Powron {
       for (const p of pin) await this.pinState(p, state)
       return
     }
-    if (pin != null && Object.values(Pins).includes(pin))
+    if (pin >= 0 && pin <= 50)
       await this._send(cmdByState(state) + pin)
     else
       console.error(`POWRON pinState: pin ${pin} not known`)
@@ -189,4 +181,4 @@ class Powron {
   }
 }
 
-export { Powron, Pins, defaultOptions }
+export { Powron, defaultOptions }

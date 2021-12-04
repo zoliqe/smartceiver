@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { delay } from '../utils/time.js'
-import { Powron, Pins, defaultOptions } from './extensions/powron.js'
+// import { delay } from '../utils/time.js'
+import { Powron, defaultOptions } from './extensions/powron.js'
 import { SerialInterface } from '../interfaces/serial.js'
 
 class PowronConnector {
@@ -41,8 +41,9 @@ class PowronConnector {
 	async disconnect() {
 		if (!this.connected) return
 
-		await delay(1000) // for poweroff signals 
-    await this.#iface.disconnect()
+		await this.#powron.off()
+		// await delay(1000) // for poweroff signals 
+    	await this.#iface.disconnect()
 	}
 
 	get connected() {
@@ -77,4 +78,4 @@ class PowronConnector {
 }
 
 
-export {PowronConnector, Pins as PowronPins}
+export {PowronConnector}

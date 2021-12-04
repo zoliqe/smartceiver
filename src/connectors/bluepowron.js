@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { delay } from '../utils/time.js'
-import { Powron, Pins } from './extensions/powron.js'
+// import { delay } from '../utils/time.js'
+import { Powron } from './extensions/powron.js'
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../utils/signals.js'
 import { BufferedWriter } from '../utils/bufwriter.js'
@@ -35,29 +35,25 @@ class PowronConnector {
 	async connect() {
 		try {
 			await this.#iface.connect()
-			await delay(1000) // wait for gatt server ready
+			// await delay(1000) // wait for gatt server ready
 			await this.#powron.init()
 		} catch (error) {
 			console.error('BLUECAT: Connection error', error)
 			throw error
 		}
 		console.info(`BLUECAT device ${this.#iface.getDeviceName()} connected :-)`)
-		// await this._on()
-		// this.#iface.receive = data => this.onReceive(data)
 
 		return this
 	}
 
 	async disconnect() {
-		// await this._off()
-		await delay(1000) // for poweroff signals TODO
+		await this.#powron.off()
+		// await delay(1000) // for poweroff signals TODO
 		this.#iface && this.#iface.disconnect()
 	}
 
 	async _send(data) {
-		if (this.#iface) {
-			// TODO send data using buffered writer
-			// await this.#iface.send(data)
+		if (this.connected) {
 			await this.#writer.write(data)
 			console.debug(`BLUEPOWRON sent: ${data}`)
 		}
@@ -69,22 +65,6 @@ class PowronConnector {
 
 	async checkState() {
 		// TODO maybe check present device by navigator.usb.getDevices()?
-		return { id: this.id } // this.connected ? {id: this.id} : null
-	}
-
-	// async _on() {
-	// 	this.#adapter.init && (await this.#adapter.init(async (data) => this._send(data)))
-	// }
-
-	// async _keepAlive() {
-	// 	// do nothing
-	// }
-
-	// async _off() {
-	// 	this.#adapter.close && (await this.#adapter.close())
-	// }
-
-	async checkState() {
 		return { id: this.id } // this.connected ? {id: this.id} : null
 	}
 
@@ -110,4 +90,4 @@ class PowronConnector {
 
 }
 
-export { PowronConnector, Pins as PowronPins }
+export { PowronConnector }
