@@ -100,8 +100,8 @@ class Powron {
 
   async on() {
     console.debug('POWRON: poweron')
-    await this.#powr.on()
     this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
+    await this.#powr.on()
   }
 
   async off() {

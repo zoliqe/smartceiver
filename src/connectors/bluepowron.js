@@ -33,6 +33,7 @@ class PowronConnector {
 	async connect() {
 		try {
 			await this.#iface.connect()
+			await delay(1000) // wait for gatt server ready
 			await this.#powron.init()
 		} catch (error) {
 			console.error('BLUECAT: Connection error', error)
