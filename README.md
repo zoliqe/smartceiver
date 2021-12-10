@@ -25,7 +25,6 @@ Currently tested:
 - Android 7+ with Chrome
 
 *TODO*
-- Powron: try remove Serial.begin() (it's optional) and change baudrate to 115200
 - Remoddle functions enc2Hold (switch NAR/WIDE filter; switch PaddleReverse), enc3Hold (RIT clear)
 - Refactor WebRTC to use Microphone module
 - Reimplement support for SSB mic (bidir audio transfer)

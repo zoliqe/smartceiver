@@ -12,6 +12,7 @@ class PowronConnector {
 	#iface
 	#powron
 	#writer
+	#heartbeatTimer
 
 	constructor(tcvrAdapter, { options, keyerConfig }) {
 		if (!BluetoothInterface || !navigator.bluetooth) {
@@ -37,6 +38,7 @@ class PowronConnector {
 			await this.#iface.connect()
 			// await delay(1000) // wait for gatt server ready
 			await this.#powron.init()
+			this.#enableHeartbeat()
 		} catch (error) {
 			console.error('BLUECAT: Connection error', error)
 			throw error
@@ -46,7 +48,15 @@ class PowronConnector {
 		return this
 	}
 
+	#enableHeartbeat() {
+		this.#heartbeatTimer = setInterval(() => {
+			this.connected && this._send('?')
+		}, 30000);
+	}
+
 	async disconnect() {
+		this.#heartbeatTimer && clearInterval(this.#heartbeatTimer)
+		this.#heartbeatTimer = null
 		await this.#powron.off()
 		// await delay(1000) // for poweroff signals TODO
 		this.#iface && this.#iface.disconnect()
