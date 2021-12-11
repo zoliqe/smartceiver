@@ -20,13 +20,10 @@ class PowronConnector {
 			throw new Error('BLUEPOWRON: WebBluetooth is not supported!')
 		}
 
-		this.#iface = new BluetoothInterface()
-		this.#iface.receive = this.onReceive
-		this.#iface.receiveError = this.onReceiveError
 		this.#powron = new Powron(tcvrAdapter,
 			async (cmd) => this._send(cmd),
 			{ options, keyerConfig })
-		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
+		this.#writer = new BufferedWriter(async (data) => this.connected && this.#iface.send(data))
 	}
 
 	get id() {
@@ -34,15 +31,19 @@ class PowronConnector {
 	}
 
 	async connect() {
+		this.#iface = new BluetoothInterface()
+		this.#iface.receive = this.onReceive
+		this.#iface.receiveError = this.onReceiveError
 		try {
 			await this.#iface.connect()
 			// await delay(1000) // wait for gatt server ready
 			await this.#powron.init()
-			this.#enableHeartbeat()
 		} catch (error) {
 			console.error('BLUECAT: Connection error', error)
+			this.disconnect()
 			throw error
 		}
+		this.#enableHeartbeat()
 		console.info(`BLUECAT device ${this.#iface.getDeviceName()} connected :-)`)
 
 		return this
@@ -60,6 +61,7 @@ class PowronConnector {
 		await this.#powron.off()
 		// await delay(1000) // for poweroff signals TODO
 		this.#iface && this.#iface.disconnect()
+		this.#iface = null
 	}
 
 	async _send(data) {
@@ -70,7 +72,7 @@ class PowronConnector {
 	}
 
 	get connected() {
-		return this.#iface.getDeviceName()
+		return this.#iface && this.#iface.getDeviceName()
 	}
 
 	async checkState() {
