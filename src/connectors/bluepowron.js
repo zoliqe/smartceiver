@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-// import { delay } from '../utils/time.js'
+import { delay } from '../utils/time.js'
 import { Powron } from './extensions/powron.js'
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../utils/signals.js'
@@ -59,7 +59,7 @@ class PowronConnector {
 		this.#heartbeatTimer && clearInterval(this.#heartbeatTimer)
 		this.#heartbeatTimer = null
 		await this.#powron.off()
-		// await delay(1000) // for poweroff signals TODO
+		await delay(1000) // for poweroff signals TODO
 		this.#iface && this.#iface.disconnect()
 		this.#iface = null
 	}
