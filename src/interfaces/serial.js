@@ -17,6 +17,7 @@ export class SerialInterface {
 			{ usbVendorId: 0x2341, usbProductId: 0x8037 },
 			{ usbVendorId: 0x2341, usbProductId: 0x0043 }, // ArduinoUNO
 			{ usbVendorId: 0x1A86, usbProductId: 0x7523 },
+			{ usbVendorId: 0x2e8a, usbProductId: 0x000a }, // RaspberryPi Pico
 		], 
 		receiveSeparator = '\n', sendSeparator = '\n'
 	) {
