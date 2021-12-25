@@ -5,6 +5,7 @@ import {delay} from '../utils/time.js'
 import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
+import { BufferedWriter } from '../utils/bufwriter.js'
 
 const _serialBaudrate = 115200
 
