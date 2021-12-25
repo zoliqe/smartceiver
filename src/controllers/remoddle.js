@@ -9,6 +9,10 @@ import { TcvrEmulator } from './remoddle/tcvremu.js'
 const _serialBaudrate = 115200
 
 export class RemoddleController {
+
+	#writer = null
+	heartbeatTimer
+
 	constructor(tcvr, params) {
 		this._iface = (params || '').trim().toLowerCase()
 		this._port = null
@@ -37,6 +41,7 @@ export class RemoddleController {
 			this._iface = navigator.appVersion.indexOf('Win') === -1 ? 'usb' : 'serial'
 		}
 		if (this._iface === 'bt') {
+			this.#writer = new BufferedWriter(async (data) => this._port && this._port.send(data))
 			const module = await import('../interfaces/bluetooth.js')
 			return new module.BluetoothInterface()
 		}
@@ -63,15 +68,24 @@ export class RemoddleController {
 
 		await delay(1000)
 		this.leadSpaces = 4
+		this.#enableHeartbeat()
 		resolve(this)
 	}
 
 	async disconnect() {
+		this.#heartbeatTimer && clearInterval(this.#heartbeatTimer)
+		this.#heartbeatTimer = null
 		if (!this._port) return
 		this.signals.out.unbind()
 		this._port.disconnect()
 		this._port = null
 		await delay(1000)
+	}
+
+	#enableHeartbeat() {
+		this.#heartbeatTimer = setInterval(() => {
+			this.connected && this._send('?')
+		}, 30000);
 	}
 
 	_bindSignals(tcvr) {
@@ -100,7 +114,11 @@ export class RemoddleController {
 
 	async _send(data) {
 		if (!this._port) return
-		await this._port.send(data)
+		if (this.#writer) {
+			await this.#writer.write(data)
+		} else {
+			await this._port.send(data)
+		}
 		console.debug(`Remoddle sent: ${data}`)
 	}
 
