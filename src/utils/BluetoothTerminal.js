@@ -143,9 +143,9 @@ class BluetoothTerminal {
     data = String(data || '');
 
     // Return rejected promise immediately if data is empty.
-    if (!data) {
-      return Promise.reject('Data must be not empty');
-    }
+    // OM4AA if (!data) {
+    // OM4AA   return Promise.reject('Data must be not empty');
+    // OM4AA }
 
     data += this._sendSeparator;
 
