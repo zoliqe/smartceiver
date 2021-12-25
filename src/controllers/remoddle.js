@@ -11,7 +11,7 @@ const _serialBaudrate = 115200
 export class RemoddleController {
 
 	#writer = null
-	heartbeatTimer
+	#heartbeatTimer
 
 	constructor(tcvr, params) {
 		this._iface = (params || '').trim().toLowerCase()
