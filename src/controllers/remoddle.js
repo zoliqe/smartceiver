@@ -84,7 +84,7 @@ export class RemoddleController {
 	}
 
 	#enableHeartbeat() {
-		this.#heartbeatTimer = setInterval(_ => this._send('?'), 30000);
+		this.#heartbeatTimer = setInterval(_ => this._send(''), 30000);
 	}
 
 	_bindSignals(tcvr) {
