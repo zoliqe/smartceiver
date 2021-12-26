@@ -51,7 +51,7 @@ class PowronConnector {
 
 	#enableHeartbeat() {
 		this.#heartbeatTimer = setInterval(() => {
-			this.connected && this._send('?')
+			this.connected && this._send('')
 		}, 30000);
 	}
 
