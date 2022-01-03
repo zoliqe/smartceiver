@@ -18,23 +18,23 @@ export const get = async (connector, params) => {
 		const conn = await import('./connectors/remotig.js')
 		return new conn.RemotigConnector(params.kredence, params)
 	}
-	if (connector === 'usbpowron') {
+	if (connector === 'usbpowron' || connector === 'remotig-usb') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connectors/usbpowron.js')
-		return new conn.PowronConnector(adapter, params)
+		const conn = await import('./connectors/remotig-usb.js')
+		return new conn.RemotigConnector(adapter, params)
 	}
-	if (connector === 'serpowron') {
+	if (connector === 'serpowron' || connector === 'remotig-serial') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connectors/serpowron.js')
-		return new conn.PowronConnector(adapter, params)
+		const conn = await import('./connectors/remotig-serial.js')
+		return new conn.RemotigConnector(adapter, params)
 	}
-	if (connector == 'bluepowron') {
+	if (connector == 'bluepowron' || connector === 'remotig-blue') {
 		requireTcvr(params)
 		const adapter = await adapterFor(params.tcvr)
-		const conn = await import('./connectors/bluepowron.js')
-		return new conn.PowronConnector(adapter, params)
+		const conn = await import('./connectors/remotig-blue.js')
+		return new conn.RemotigConnector(adapter, params)
 	}
 	if (connector === 'sercat') {
 		requireTcvr(params)

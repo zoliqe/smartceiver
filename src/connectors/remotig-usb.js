@@ -1,37 +1,37 @@
 /* eslint-disable class-methods-use-this */
 // import { delay } from '../utils/time.js'
-import { Powron } from './extensions/powron.js'
+import { Remotig } from './extensions/remotig.js'
 import { USBInterface } from '../interfaces/usb.js'
 
-class PowronConnector {
+class RemotigConnector {
 
   #iface
 
-  #powron
+  #remotig
 
   constructor(tcvrAdapter, { options, keyerConfig }) {
     this.#iface = new USBInterface()
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
-    this.#powron = new Powron(tcvrAdapter, 
+    this.#remotig = new Remotig(tcvrAdapter, 
       async (cmd) => this.#iface.send(cmd + ';'), 
       { options, keyerConfig })
   }
 
   get id() {
-    return 'usbpowron'
+    return 'remotig-usb'
   }
 
   async connect() {
     try {
       await this.#iface.connect()
-      await this.#powron.init()
+      await this.#remotig.init()
     } catch (error) {
       if (error === 'unsupported') {
         window.alert('USB not supported by browser. Cannot connect to transceiver.')
-        throw new Error('USBPWRON: API is not supported!')
+        throw new Error('UsbRemotig: API is not supported!')
       }
-      console.error('USBPWRON Connection error:', error)
+      console.error('UsbRemotig Connection error:', error)
       throw error
     }
     return this
@@ -39,7 +39,7 @@ class PowronConnector {
 
   async disconnect() {
     if (!this.connected) return
-		await this.#powron.off()
+		await this.#remotig.off()
     // await delay(1000) // for poweroff signals TODO
     await this.#iface.disconnect()
   }
@@ -54,25 +54,25 @@ class PowronConnector {
   }
 
   onReceive(data) {
-    console.debug('USBPWRON rcvd:', data)
+    console.debug('UsbRemotig rcvd:', data)
   }
 
   onReceiveError(error) {
-    console.error('USBPWRON error:', error)
+    console.error('UsbRemotig error:', error)
   }
 
   get tcvrProps() {
     9
-    return this.#powron.tcvrProps
+    return this.#remotig.tcvrProps
   }
 
   get tcvrDefaults() {
-    return this.#powron.tcvrDefaults
+    return this.#remotig.tcvrDefaults
   }
 
   get signals() {
-    return this.#powron.signals
+    return this.#remotig.signals
   }
 }
 
-export { PowronConnector }
+export { RemotigConnector }

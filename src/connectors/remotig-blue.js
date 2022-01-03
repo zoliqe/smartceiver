@@ -1,33 +1,33 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import { delay } from '../utils/time.js'
-import { Powron } from './extensions/powron.js'
+import { Remotig } from './extensions/remotig.js'
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../utils/signals.js'
 import { BufferedWriter } from '../utils/bufwriter.js'
 
 // Sky is blue and your CAT is looking for another mouse...
 
-class PowronConnector {
+class RemotigConnector {
 	#iface
-	#powron
+	#remotig
 	#writer
 	#heartbeatTimer
 
 	constructor(tcvrAdapter, { options, keyerConfig }) {
 		if (!BluetoothInterface || !navigator.bluetooth) {
-			window.alert('Bluetooth connection supported. Cannot connect to transceiver.')
-			throw new Error('BLUEPOWRON: WebBluetooth is not supported!')
+			window.alert('Bluetooth connection not supported. Cannot connect to transceiver.')
+			throw new Error('BlueRemotig: WebBluetooth is not supported!')
 		}
 
-		this.#powron = new Powron(tcvrAdapter,
+		this.#remotig = new Remotig(tcvrAdapter,
 			async (cmd) => this._send(cmd),
 			{ options, keyerConfig })
 		this.#writer = new BufferedWriter(async (data) => this.connected && this.#iface.send(data))
 	}
 
 	get id() {
-		return 'bluepowron'
+		return 'remotig-blue'
 	}
 
 	async connect() {
@@ -37,14 +37,14 @@ class PowronConnector {
 		try {
 			await this.#iface.connect()
 			// await delay(1000) // wait for gatt server ready
-			await this.#powron.init()
+			await this.#remotig.init()
 		} catch (error) {
-			console.error('BLUECAT: Connection error', error)
+			console.error('BlueRemotig: Connection error', error)
 			this.disconnect()
 			throw error
 		}
 		this.#enableHeartbeat()
-		console.info(`BLUECAT device ${this.#iface.getDeviceName()} connected :-)`)
+		console.info(`BlueRemotig device ${this.#iface.getDeviceName()} connected :-)`)
 
 		return this
 	}
@@ -58,7 +58,7 @@ class PowronConnector {
 	async disconnect() {
 		this.#heartbeatTimer && clearInterval(this.#heartbeatTimer)
 		this.#heartbeatTimer = null
-		await this.#powron.off()
+		await this.#remotig.off()
 		await delay(1000) // for poweroff signals TODO
 		this.#iface && this.#iface.disconnect()
 		this.#iface = null
@@ -67,7 +67,7 @@ class PowronConnector {
 	async _send(data) {
 		if (this.connected) {
 			await this.#writer.write(data)
-			console.debug(`BLUEPOWRON sent: ${data}`)
+			console.debug(`BlueRemotig sent: ${data}`)
 		}
 	}
 
@@ -81,25 +81,25 @@ class PowronConnector {
 	}
 
 	get tcvrProps() {
-		return this.#powron.tcvrProps
+		return this.#remotig.tcvrProps
 	}
 
 	get tcvrDefaults() {
-		return this.#powron.tcvrDefaults
+		return this.#remotig.tcvrDefaults
 	}
 
 	get signals() {
-		return this.#powron.signals
+		return this.#remotig.signals
 	}
 
 	onReceive(data) {
-		console.debug('BLUEPWRON rcvd:', data)
+		console.debug('BlueRemotig rcvd:', data)
 	}
 
 	onReceiveError(error) {
-		console.error('BLUEPWRON error:', error)
+		console.error('BlueRemotig error:', error)
 	}
 
 }
 
-export { PowronConnector }
+export { RemotigConnector }

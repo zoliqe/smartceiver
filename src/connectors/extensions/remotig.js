@@ -25,7 +25,7 @@ const defaultOptions = Object.freeze({
   useStartSeq: false,
 })
 
-class Powron {
+class Remotig {
 
   #powerPins
   #pttPins
@@ -70,7 +70,7 @@ class Powron {
     this.#ant = new AntennaSwitch({ pinState: this.pinState, timeout: this.#timeout })
 
     this._initSignals()
-    window.powron = this
+    window.remotig = this
   }
 
   get tcvrProps() {
@@ -86,21 +86,21 @@ class Powron {
   }
 
   onReceive(data) {
-    console.debug('POWRON rcvd:', data)
+    console.debug('Remotig rcvd:', data)
   }
 
   onReceiveError(error) {
-    console.error('POWRON error:', error)
+    console.error('Remotig error:', error)
   }
 
   async on() {
-    console.debug('POWRON: poweron')
+    console.debug('Remotig: poweron')
     await this.#powr.on()
     this.#adapter.init && (await this.#adapter.init(async (data) => this.serialData(data)))
   }
 
   async off() {
-    console.debug('POWRON: poweroff')
+    console.debug('Remotig: poweroff')
     this.#adapter.close && (await this.#adapter.close())
     await this.#powr.off()
   }
@@ -120,7 +120,7 @@ class Powron {
     if (this.#adapter.baudrate >= 1200 && this.#adapter.baudrate <= 115200)
       await this._send(`PO${this.#adapter.baudrate / 100}`)
     else
-      console.error(`POWRON: serial baudrate = ${this.#adapter.baudrate} not in range, value not set`)
+      console.error(`Remotig: serial baudrate = ${this.#adapter.baudrate} not in range, value not set`)
   }
 
   async _initPwrSwitch() {
@@ -129,11 +129,11 @@ class Powron {
 
   async _initKeyer() {
     if (!this.#keyerPin) {
-      console.info('POWRON: Disabling keyer')
+      console.info('Remotig: Disabling keyer')
       await this._send('KK0')
       return
     }
-    console.info('POWRON: Enabling keyer on pin', this.#keyerPin)
+    console.info('Remotig: Enabling keyer on pin', this.#keyerPin)
     await this._send(`KK${this.#keyerPin}`)
     await this._send(`KD${this.#keyer.coefs.dit}`) // ditCoef
     await this._send(`KA${this.#keyer.coefs.dah}`) // dahCoef
@@ -149,7 +149,7 @@ class Powron {
     if (pin >= 0 && pin <= 50)
       await this._send(cmdByState(state) + pin)
     else
-      console.error(`POWRON pinState: pin ${pin} not known`)
+      console.error(`Remotig pinState: pin ${pin} not known`)
   }
 
   _initSignals() {
@@ -185,4 +185,4 @@ class Powron {
   }
 }
 
-export { Powron, defaultOptions }
+export { Remotig, defaultOptions }

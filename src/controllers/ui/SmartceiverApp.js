@@ -566,7 +566,7 @@ export class SmartceiverApp extends LitElement {
 		this.gencov = this._params.get('gencov')
 
 		const remotig = this._params.get('remotig')
-		const powron = this._params.get('powron')
+		const conns = this._params.get('powron') // TODO connector=remotig-serial,sercat
 		const cat = this._params.get('cat')
 		const remote = this._params.get('remote')
 		if (remotig && remotig.includes('@')) {
@@ -582,8 +582,8 @@ export class SmartceiverApp extends LitElement {
 		if (cat) {
 			await this._resolveConnector(cat, connectorParams, 'cat')
 		}
-		if (powron) {
-			await this._resolveConnector(powron, connectorParams, 'pwr')
+		if (conns) {
+			await this._resolveConnector(conns, connectorParams, 'pwr')
 		}
 		if (!this.connectors.cat) {
 			this.connectors.cat = this.connectors.pwr
