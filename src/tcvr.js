@@ -20,11 +20,8 @@ const _bandChangeDelay = 2000
 
 class Band {
 	#name
-
 	#id
-
 	#freqFrom
-
 	#freqTo
 
 	constructor(name, id, minFreq, maxFreq) {
@@ -104,17 +101,11 @@ const AgcTypes = Object.freeze(_agcTypes)
 class Transceiver {
 
 	#props
-
 	#defaultProps
-
 	#state = {}
-
 	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
-
 	#connectors = {}
-
 	#bus = new SignalBus()
-
 	#acl = [this]
 
 	get id() {

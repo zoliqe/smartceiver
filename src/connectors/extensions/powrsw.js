@@ -4,9 +4,7 @@ const State = {on: 'active', starting: 'starting', off: 'off', stoping: 'stoping
 export class PowrSwitch {
 
 	#state = State.off
-
 	#connector
-	
 	#watchdog
 
 	constructor(powerConnector = {state: () => {}, timeout: 60}) {

@@ -5,6 +5,7 @@ import { delay } from '../../utils/time.js'
 import { SignalsBinder } from '../../utils/signals.js'
 import { Keyer } from './keyer.js'
 import { PowrSwitch } from './powrsw.js'
+import { AntennaSwitch } from './antsw.js'
 
 const cmdByState = state => (state && 'WH') || 'WL'
 const startSeq = '$OM4AA#'
@@ -31,6 +32,7 @@ class Powron {
   #keyerPin
   #adapter
   #powr
+  #ant
   #keyer
   #signals
   #timeout
@@ -65,6 +67,7 @@ class Powron {
       key: async (state) => this.pinState(this.#keyerPin, state),
       ptt: async (state) => this.pinState(this.#pttPins, state)
     }, keyerConfig)
+    this.#ant = new AntennaSwitch({ pinState: this.pinState, timeout: this.#timeout })
 
     this._initSignals()
     window.powron = this
@@ -168,6 +171,7 @@ class Powron {
       gain: async (value) => this.#adapter.gain(value),
       agc: async (value) => this.#adapter.agc(value),
       freq: async (value) => this.#adapter.frequency(value),
+      band: async (value) => this.#ant.band = value,
       split: async (value) => this.#adapter.split(value),
       rit: async (value) => this.#adapter.rit(value),
       xit: async (value) => this.#adapter.xit(value),
