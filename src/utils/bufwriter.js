@@ -19,7 +19,7 @@ class BufferedWriter {
             try {
                 await this.#writer(data)
             } catch (error) {
-                if (error.indexOf('GATT operation already in progress') > -1) {
+                if (error.toString().indexOf('GATT operation already in progress') > -1) {
                     console.debug(`BufferedWriter: delayed write of '${data}'`)
                     this.#buffer.unshift(data)
                     await delay(200)
