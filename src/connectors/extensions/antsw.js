@@ -17,11 +17,14 @@ export class AntennaSwitch {
 		this.#reset()
 		this.#pin = b ? bandPins[b] : b
 		if (this.#pin) {
-			this.#timer = setInterval(_ => {
-				console.debug(`AntennaSwitch: ant pin ${this.#pin} set active`)
-				this.#connector.pinState(this.#pin, true)
-			}, this.#connector.timeout * 1000)
+			this.#activate()
+			this.#timer = setInterval(_ => this.#activate(), this.#connector.timeout * 1000)
 		}
+	}
+
+	#activate() {
+		console.debug(`AntennaSwitch: ant pin ${this.#pin} set active`)
+		this.#connector.pinState(this.#pin, true)
 	}
 
 	#reset() {
