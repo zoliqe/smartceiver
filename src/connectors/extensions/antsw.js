@@ -13,7 +13,7 @@ export class AntennaSwitch {
 	}
 
 	set band(b) {
-		console.log(`AntennaSwitch: set band ${b}`)
+		console.info(`AntennaSwitch: set band ${b}`)
 		this.#reset()
 		this.#pin = b ? bandPins[b] : b
 		if (this.#pin) {
