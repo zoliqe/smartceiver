@@ -28,6 +28,6 @@ export class AntennaSwitch {
 		console.debug('AntennaSwitch: pinState reset')
 		this.#timer && clearInterval(this.#timer)
 		this.#timer = null
-		bandPins.values().forEach(pin => this.#connector.pinState(pin, false))
+		Object.values(bandPins).forEach(pin => this.#connector.pinState(pin, false))
 	}
 }
