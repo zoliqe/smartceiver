@@ -20,7 +20,7 @@ export class AntennaSwitch {
 			this.#timer = setInterval(_ => {
 				console.debug(`AntennaSwitch: ant pin ${this.#pin} set active`)
 				this.#connector.pinState(this.#pin, true)
-			}, this.#connector.timeout)
+			}, this.#connector.timeout * 1000)
 		}
 	}
 
