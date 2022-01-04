@@ -67,7 +67,9 @@ class Remotig {
       key: async (state) => this.pinState(this.#keyerPin, state),
       ptt: async (state) => this.pinState(this.#pttPins, state)
     }, keyerConfig)
-    this.#ant = new AntennaSwitch({ pinState: this.pinState, timeout: this.#timeout })
+    this.#ant = new AntennaSwitch({ 
+      pinState: async (pin, state) => this.pinState(pin, state), 
+      timeout: this.#timeout })
 
     this._initSignals()
     window.remotig = this
