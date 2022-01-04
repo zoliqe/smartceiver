@@ -101,6 +101,7 @@ class Remotig {
 
   async off() {
     console.debug('Remotig: poweroff')
+    this.#ant.band = null // disconnect ant
     this.#adapter.close && (await this.#adapter.close())
     await this.#powr.off()
   }

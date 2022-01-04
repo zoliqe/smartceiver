@@ -15,7 +15,7 @@ export class AntennaSwitch {
 	set band(b) {
 		console.log(`AntennaSwitch: set band ${b}`)
 		this.#reset()
-		this.#pin = bandPins[b]
+		this.#pin = b ? bandPins[b] : b
 		if (this.#pin) {
 			this.#timer = setInterval(_ => {
 				console.debug(`AntennaSwitch: ant pin ${this.#pin} set active`)
