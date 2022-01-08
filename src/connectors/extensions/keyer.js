@@ -1,23 +1,32 @@
 /* eslint-disable no-unused-expressions */
 
+export const defaultOptions = {
+	ratio: 3,
+	 // CT-spaces: 60, normal: 80
+	pttTimeout: 5000, ditCoef: 120, dahCoef: 120, elementSpaceCoef: 60, letterSpaceCoef: 60}
+
+const wpmCoef = 12000
+const calcLength = (wpm, coef) => Math.floor(coef * wpmCoef / wpm)
+export const ditLength = wpm => calcLength(wpm, defaultOptions.ditCoef)
+export const dahLength = wpm => calcLength(wpm, defaultOptions.ratio * defaultOptions.dahCoef)
+export const elementSpaceLength = wpm => calcLength(wpm, defaultOptions.elementSpaceCoef)
+export const letterSpaceLength = wpm => calcLength(wpm, defaultOptions.ratio * defaultOptions.letterSpaceCoef)
+
 export class Keyer {
 
 	#wpm = 0
-
 	#connector
-
 	#pttTimeout
-
 	#pttTimer
-
 	#keyTimer
 
 	constructor(
 		keyerConnector = {send: () => {}, speed: () => {}, state: () => {}, key: () => {}, ptt: () => {}}, 
-		options = {pttTimeout: 5000, ditCoef: 120, dahCoef: 120, elementSpaceCoef: 80, letterSpaceCoef: 80} // CT-spaces: 60, normal: 80
+		options = defaultOptions
 	) {
 		this.#pttTimeout = options.pttTimeout
-		this.coefs = {dit: options.ditCoef, dah: options.dahCoef, elementSpace: options.elementSpaceCoef, letterSpace: options.letterSpaceCoef}
+		this.coefs = {dit: options.ditCoef, dah: options.dahCoef, 
+			elementSpace: options.elementSpaceCoef, letterSpace: options.letterSpaceCoef}
 		this.#connector = keyerConnector
 	}
 

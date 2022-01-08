@@ -6,6 +6,7 @@ import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
 import { BufferedWriter } from '../utils/bufwriter.js'
+import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from '../connectors/extensions/keyer.js'
 
 const _serialBaudrate = 115200
 
@@ -97,6 +98,10 @@ export class RemoddleController {
 
 	set wpm(value) {
 		this._send(`S${value}`)
+		this._send(`A${dahLength(value)}`)
+		this._send(`I${ditLength(value)}`)
+		this._send(`E${elementSpaceLength(value)}`)
+		this._send(`C${letterSpaceLength(value)}`)
 	}
 
 	set sidetone(value) {
