@@ -32,6 +32,9 @@ export class TcvrEmulator {
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
 			else if (cmd.startsWith('IF')) this._send(`IF${this._info}`)
 			else if (cmd.startsWith('KS')) this._send(`KS${this._keywpm}`)
+			else if (cmd.startsWith('PC')) this._send(`PC${this.#pwr}`)
+			else if (cmd.startsWith('RG')) this._send(`RG${this.#rfg}`)
+			else if (cmd.startsWith('AG')) this._send(`AG${this.#afg}`)
 			else if (cmd.startsWith('RX')) this._ptt = false
 			else if (cmd.startsWith('TX')) this._ptt = true
 			return
@@ -45,7 +48,10 @@ export class TcvrEmulator {
 		else if (cmd.startsWith('MD')) this._mode = p
 		else if (cmd.startsWith('KY')) this._keymsg = p
 		else if (cmd.startsWith('KS')) this._keywpm = p
-	}
+		else if (cmd.startsWith('PC')) this.#pwr = p
+		else if (cmd.startsWith('RG')) this.#rfg = p
+		else if (cmd.startsWith('AG')) this.#afg = p
+}
 
 	get _freq() {
 		return this._freqcat(this._tcvr.freq)
@@ -120,7 +126,37 @@ export class TcvrEmulator {
 	set _ptt(p) {
 		this._tcvr.ptt = p
 	}
-	
+
+	get #pwr() {
+		return ('' + this._tcvr.pwr).padStart(3, '0')
+	}
+
+	set #pwr(p) {
+		const pwr = parseInt(p, 10)
+		if (isNaN(pwr)) return
+		this._tcvr.pwr = pwr
+	}
+
+	get #afg() {
+		return ('' + this._tcvr.afg).padStart(3, '0')
+	}
+
+	set #afg(p) {
+		const afg = parseInt(p, 10)
+		if (isNaN(afg)) return
+		this._tcvr.afg = afg
+	}
+
+	get #rfg() {
+		return ('' + this._tcvr.rfg).padStart(3, '0')
+	}
+
+	set #rfg(p) {
+		const rfg = parseInt(p, 10)
+		if (isNaN(rfg)) return
+		this._tcvr.rfg = rfg
+	}
+
 	get _info() {
 		// example: IF00007015660     -000000 0003000001 ;
 		const ritfrq = String(this._tcvr.rit).padStart(4, '0')

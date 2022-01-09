@@ -57,6 +57,12 @@ export class Adapter {
 	async txpower(level) {
 	}
 
+	async afgain(level) {
+	}
+
+	async rfgain(level) {
+	}
+
 	async wpm(wpm) {
 	}
 

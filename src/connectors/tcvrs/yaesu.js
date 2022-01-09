@@ -10,11 +10,11 @@ const hex2dec = (h) => {
 export class Adapter {
 
 	static async FT1000MP(options) {
-		return new Adapter(await tcvrOptions('yeasu', 'ft1000', options))
+		return new Adapter(await tcvrOptions('yaesu', 'ft1000', options))
 	}
 
 	static async FT817(options) {
-		return new Adapter(await tcvrOptions('yeasu', 'ft817', options))
+		return new Adapter(await tcvrOptions('yaesu', 'ft817', options))
 	}
 
 	static async forTcvr(model, options) {
@@ -22,7 +22,7 @@ export class Adapter {
 	}
 
 	static get manufacturer() {
-		return 'yeasu'
+		return 'yaesu'
 	}
 
 	static get models() {
@@ -82,7 +82,7 @@ export class Adapter {
 	async mode(mode) {
 		const data = this.#options.modedata(mode)
 		if (data == null) {
-			console.error('YeasuTcvr: Unknown mode', mode)
+			console.error('YaesuTcvr: Unknown mode', mode)
 			return
 		}
 		await this._uart(data)
@@ -93,7 +93,7 @@ export class Adapter {
 		const filt = selectFilter(this.properties.filters(mode), filter)
 		const data = this.#options.filterdata(filt)
 		if (data == null) {
-			console.error('YeasuTcvr: Unknown filter', filter)
+			console.error('YaesuTcvr: Unknown filter', filter)
 			return
 		}
 		await this._uart(data)
@@ -108,6 +108,12 @@ export class Adapter {
 	async rit(rit) {}
 
 	async wpm(wpm) {}
+
+	async txpower(level) {}
+
+	async afgain(level) {}
+
+	async rfgain(level) {}
 
 	async keymsg(msg) {}
 

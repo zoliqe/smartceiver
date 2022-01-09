@@ -178,6 +178,9 @@ class Remotig {
       split: async (value) => this.#adapter.split(value),
       rit: async (value) => this.#adapter.rit(value),
       xit: async (value) => this.#adapter.xit(value),
+      pwr: async (value) => this.#adapter.txpower(value),
+      afg: async (value) => this.#adapter.afgain(value),
+      rfg: async (value) => this.#adapter.rfgain(value),
       keepAlive: async () => this.#powr.resetWatchdog(),
       pwrsw: async (value) => value ? this.on() : this.off(),
     })

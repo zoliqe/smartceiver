@@ -124,6 +124,14 @@ export class Adapter {
 		await this._uart(`PC${String(level).padStart(3, '0')}`)
 	}
 
+	async afgain(level) {
+		await this._uart(`AG${String(level).padStart(3, '0')}`)
+	}
+
+	async rfgain(level) {
+		await this._uart(`RG${String(level).padStart(3, '0')}`)
+	}
+
 	async wpm(wpm) {
 		if (wpm < 8 || wpm > 50) return
 		await this._uart(`KS${String(wpm).padStart(3, '0')}`)

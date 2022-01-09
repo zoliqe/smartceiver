@@ -130,6 +130,14 @@ export class Adapter {
 		await this._uart(`PC${String(level).padStart(3, '0')}`)
 	}
 
+	async afgain(level) {
+		await this._uart(`AG${String(level).padStart(3, '0')}`)
+	}
+
+	async rfgain(level) {
+		await this._uart(`RG${String(level).padStart(3, '0')}`)
+	}
+
 	async split(value) {
 		const state = value !== 0
 		if (state !== this._splitState) {

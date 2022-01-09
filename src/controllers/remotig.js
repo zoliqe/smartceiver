@@ -92,6 +92,12 @@ export class RemotigController {
 			this.#local.gain = Number(msg.substring(5))
 		} else if (msg.startsWith('agc=')) {
 			this.#local.agc = msg.substring(4)
+		} else if (msg.startsWith('txpwr=')) {
+			this.#local.pwr = Number(msg.substring(6))
+		} else if (msg.startsWith('afg=')) {
+			this.#local.afg = Number(msg.substring(4))
+		} else if (msg.startsWith('rfg=')) {
+			this.#local.rfg = Number(msg.substring(4))
 		} else if (msg === 'info?') {
 			this.#remote.sendSignal('info', this.info)
 		} else if (msg.startsWith('ping=')) {

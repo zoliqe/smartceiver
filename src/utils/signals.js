@@ -18,6 +18,7 @@ const SignalType = Object.freeze({
 	keyMsg: 'keyMsg', reverse: 'reverse',
 	ptt: 'ptt', agc: 'agc', pwrsw: 'pwrsw', keepAlive: 'keepAlive', step: 'step', 
 	resetAudio: 'resetAudio', audioMute: 'audioMute',
+	pwr: 'pwr', afg: 'afg', rfg: 'rfg',
 })
 
 class SignalListener {
@@ -109,6 +110,7 @@ class SignalsBinder {
 				SignalType.mode, SignalType.filter, SignalType.gain, SignalType.agc, 
 				SignalType.pwrsw, SignalType.keepAlive, SignalType.audioMute,
 				SignalType.freq, SignalType.band, SignalType.rit, SignalType.xit, SignalType.split, SignalType.step,
+				SignalType.pwr, SignalType.afg, SignalType.rfg,
 			], outSignals, listenerId)
 	}
 

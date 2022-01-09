@@ -135,6 +135,12 @@ export class Adapter {
 
 	async keymsg(msg) {}
 
+	async txpower(level) {}
+
+	async afgain(level) {}
+
+	async rfgain(level) {}
+
 	async ptt(state) {}
 
 	// set attn(attn) {

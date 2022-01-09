@@ -1,5 +1,5 @@
 
-const manufacturers = ['elecraft', 'icom', 'kenwood', 'yeasu', 'om4aa', 'none']
+const manufacturers = ['elecraft', 'icom', 'kenwood', 'yaesu', 'om4aa', 'none']
 let tcvrs = null
 
 async function transceivers() {

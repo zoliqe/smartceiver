@@ -119,6 +119,9 @@ class RemotigConnector {
 			split: async (value) => this._con.sendCommand(`split=${value}`),
 			rit: async (value) => this._con.sendCommand(`rit=${value}`),
 			// xit: async (value) => this._con.sendCommand(`xit=${value}`),
+			pwr: async (value) => this._con.sendCommand(`txpwr=${value}`),
+			afg: async (value) => this._con.sendCommand(`afg=${value}`),
+			rfg: async (value) => this._con.sendCommand(`rfg=${value}`),
 			keepAlive: async () => this._con.sendCommand('poweron'),
 			// audioMute: async () => this._audio.switchMute(),
 		})

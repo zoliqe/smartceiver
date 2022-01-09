@@ -505,6 +505,42 @@ class Transceiver {
 		}
 	}
 
+	get pwr() {
+		return this.#state.pwr
+	}
+
+	setPwr(controller, pwr) {
+		if (!this.online || this._denieded(controller)) return
+		if (pwr < 0 || pwr > 150) return
+		this._d("pwr", pwr)
+		this.#state.pwr = pwr
+		this.fire(new TcvrSignal(SignalType.pwr, pwr))
+	}
+
+	get afg() {
+		return this.#state.afg
+	}
+
+	setAfg(controller, afg) {
+		if (!this.online || this._denieded(controller)) return
+		if (afg < 0 || afg > 255) return
+		this._d("afg", afg)
+		this.#state.afg = afg
+		this.fire(new TcvrSignal(SignalType.afg, afg))
+	}
+
+	get rfg() {
+		return this.#state.rfg
+	}
+
+	setRfg(controller, rfg) {
+		if (!this.online || this._denieded(controller)) return
+		if (rfg < 0 || rfg > 250) return
+		this._d("rfg", rfg)
+		this.#state.rfg = rfg
+		this.fire(new TcvrSignal(SignalType.rfg, rfg))
+	}
+
 	bind(type, owner, callback) {
 		this.#bus.bind(type, owner, callback)
 	}
