@@ -69,7 +69,7 @@ export class RemoddleController {
 		this._port.receive = data => this._evaluate(data)
 
 		await delay(1000)
-		this.leadSpaces = 4
+		this.leadSpaces = 0
 		this.#enableHeartbeat()
 		resolve(this)
 	}
