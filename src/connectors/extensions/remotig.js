@@ -166,8 +166,8 @@ class Remotig {
       },
       keyMsg: async (value) => this.#adapter.keymsg(value),
       ptt: async (value) => {
-        this.#adapter.ptt(value)
-        this.#keyer.ptt(value)
+        // this.#adapter.ptt(value)
+        // this.#keyer.ptt(value)
       },
       mode: async (value) => this.#adapter.mode(value),
       filter: async (value) => this.#adapter.filter(value),
