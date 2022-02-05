@@ -36,41 +36,41 @@ export class Keyer {
 	}
 
 	async ptt(state, timeout = this.#pttTimeout) {
-		if (!state) {
-			await this.#connector.ptt(false)
-			this.#pttTimer != null && clearTimeout(this.#pttTimer)
-			this.#pttTimer = null
-			return
-		}
+		// if (!state) {
+		// 	await this.#connector.ptt(false)
+		// 	this.#pttTimer != null && clearTimeout(this.#pttTimer)
+		// 	this.#pttTimer = null
+		// 	return
+		// }
 
-		if (!timeout) return; // disable PTT
+		// if (!timeout) return; // disable PTT
 
-		this.#pttTimer != null && clearTimeout(this.#pttTimer)
-		await this.#connector.ptt(true) // this resets powron ptt watchdog counter
-		this.#pttTimer = setTimeout(async () => {
-			this.#pttTimer = null
-			await this.#connector.ptt(false)
-		}, timeout)
+		// this.#pttTimer != null && clearTimeout(this.#pttTimer)
+		// await this.#connector.ptt(true) // this resets powron ptt watchdog counter
+		// this.#pttTimer = setTimeout(async () => {
+		// 	this.#pttTimer = null
+		// 	await this.#connector.ptt(false)
+		// }, timeout)
 	}
 
 	async key(state, timeout = this.#pttTimeout) {
-		if (this.disabled) return
+		// if (this.disabled) return
 
-		if (!state) {
-			await this.#connector.key(false)
-			this.#keyTimer != null && clearTimeout(this.#keyTimer)
-			this.#keyTimer = null
-			return
-		}
+		// if (!state) {
+		// 	await this.#connector.key(false)
+		// 	this.#keyTimer != null && clearTimeout(this.#keyTimer)
+		// 	this.#keyTimer = null
+		// 	return
+		// }
 
-		if (!timeout) return;
+		// if (!timeout) return;
 
-		this.#keyTimer != null && clearTimeout(this.#keyTimer)
-		await this.#connector.key(true) // reset powron watchdog timer
-		this.#keyTimer = setTimeout(async () => {
-			this.#keyTimer = null
-			await this.#connector.key(false)
-		}, timeout)
+		// this.#keyTimer != null && clearTimeout(this.#keyTimer)
+		// await this.#connector.key(true) // reset powron watchdog timer
+		// this.#keyTimer = setTimeout(async () => {
+		// 	this.#keyTimer = null
+		// 	await this.#connector.key(false)
+		// }, timeout)
 	}
 
 	async setwpm(value) {
