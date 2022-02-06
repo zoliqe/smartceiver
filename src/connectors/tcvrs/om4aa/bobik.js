@@ -1,6 +1,6 @@
 import { Bands, Modes, AgcTypes, TransceiverProperties } from '../../../tcvr.js'
 
-const bands = [80] //[160, 80, 40, 30, 20, 17, 15, 12, 10]
+const bands = [80, 40, 30, 20, 17, 15] //[160, 80, 40, 30, 20, 17, 15, 12, 10]
 const filters = {}
 filters[Modes.CW]  = [1200, 500]
 filters[Modes.CWR] = filters[Modes.CW]
