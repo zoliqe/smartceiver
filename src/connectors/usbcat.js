@@ -5,18 +5,18 @@ import { USBInterface } from '../interfaces/usb.js'
 
 class UsbcatConnector {
 
-  #adapter
+	#adapter
 
 	#signals
-  
-  #iface
+
+	#iface
 
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
-    
-    this.#iface = new USBInterface()
-    this.#iface.receive = this.onReceive
-    this.#iface.receiveError = this.onReceiveError
+
+		this.#iface = new USBInterface()
+		this.#iface.receive = this.onReceive
+		this.#iface.receiveError = this.onReceiveError
 
 		this._initSignals()
 	}
@@ -27,22 +27,23 @@ class UsbcatConnector {
 
 	async connect() {
 		try {
-      await this.#iface.connect()
-      await this._on()
+			await this.#iface.connect()
+			await this._on()
 		} catch (error) {
-      if (error === 'unsupported') {
-        window.alert('USB not supported by browser. Cannot connect to transceiver.')
-        throw new Error('USBCAT: API is not supported!')
-      }
+			if (error === 'unsupported') {
+				window.alert('USB not supported by browser. Cannot connect to transceiver.')
+				throw new Error('USBCAT: API is not supported!')
+			}
 			console.error('USBCAT Connection error:', error)
 			throw error
 		}
+		window.sendCat = async data => this.#iface.send(data)
 		return this
 	}
 
 	async disconnect() {
-    await this._off()
-    await this.#iface.disconnect()
+		await this._off()
+		await this.#iface.disconnect()
 	}
 
 	async _on() {
@@ -62,9 +63,9 @@ class UsbcatConnector {
 	}
 
 	async checkState() {
-		return {id: this.id} // this.connected ? {id: this.id} : null
+		return { id: this.id } // this.connected ? {id: this.id} : null
 	}
-	
+
 	get tcvrProps() {
 		return this.#adapter.properties
 	}
@@ -80,7 +81,7 @@ class UsbcatConnector {
 	onReceiveError(error) {
 		console.error('USBCAT error:', error)
 	}
-	
+
 	_initSignals() {
 		this.#signals = new SignalsBinder(this.id, {
 			ptt: async (value) => this.#adapter.ptt(value),
@@ -103,4 +104,4 @@ class UsbcatConnector {
 }
 
 
-export {UsbcatConnector}
+export { UsbcatConnector }
