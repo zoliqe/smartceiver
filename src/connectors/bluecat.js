@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {BluetoothInterface} from '../interfaces/bluetooth.js'
-import {SignalsBinder} from '../utils/signals.js'
+import { BluetoothInterface } from '../interfaces/bluetooth.js'
+import { SignalsBinder } from '../utils/signals.js'
 
 // Sky is blue and your CAT is looking for another mouse...
 
@@ -10,7 +10,7 @@ class BlueCatConnector {
 	#device
 	#signals
 	#writer
-	
+
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
 		this._initSignals()
@@ -38,6 +38,7 @@ class BlueCatConnector {
 		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
 		await this._on()
 		this.#device.receive = data => this.onReceive(data)
+		window.sendCat = async data => this._send(data)
 
 		return this
 	}
@@ -73,9 +74,9 @@ class BlueCatConnector {
 	}
 
 	async checkState() {
-		return {id: this.id} // this.connected ? {id: this.id} : null
+		return { id: this.id } // this.connected ? {id: this.id} : null
 	}
-	
+
 	get tcvrProps() {
 		return this.#adapter.properties
 	}
@@ -109,4 +110,4 @@ class BlueCatConnector {
 	}
 }
 
-export {BlueCatConnector}
+export { BlueCatConnector }

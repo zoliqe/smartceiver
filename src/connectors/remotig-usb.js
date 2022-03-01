@@ -13,8 +13,8 @@ class RemotigConnector {
     this.#iface = new USBInterface()
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
-    this.#remotig = new Remotig(tcvrAdapter, 
-      async (cmd) => this.#iface.send(cmd + ';'), 
+    this.#remotig = new Remotig(tcvrAdapter,
+      async (cmd) => this.#iface.send(cmd + ';'),
       { options, keyerConfig })
   }
 
@@ -34,12 +34,13 @@ class RemotigConnector {
       console.error('UsbRemotig Connection error:', error)
       throw error
     }
+		window.sendRemotig = async data => this.#iface.send(data)
     return this
   }
 
   async disconnect() {
     if (!this.connected) return
-		await this.#remotig.off()
+    await this.#remotig.off()
     // await delay(1000) // for poweroff signals TODO
     await this.#iface.disconnect()
   }

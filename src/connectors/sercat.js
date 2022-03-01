@@ -1,12 +1,12 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {SignalsBinder} from '../utils/signals.js'
-import {SerialInterface} from '../interfaces/serial.js'
+import { SignalsBinder } from '../utils/signals.js'
+import { SerialInterface } from '../interfaces/serial.js'
 
 class SercatConnector {
 
 	#iface
-	
+
 	#adapter
 
 	#signals
@@ -14,8 +14,8 @@ class SercatConnector {
 	constructor(tcvrAdapter) {
 		this.#adapter = tcvrAdapter
 		this.#iface = new SerialInterface(this.#adapter.baudrate, [])
-    this.#iface.receive = this.onReceive
-    this.#iface.receiveError = this.onReceiveError
+		this.#iface.receive = this.onReceive
+		this.#iface.receiveError = this.onReceiveError
 
 		this._initSignals()
 	}
@@ -26,23 +26,24 @@ class SercatConnector {
 
 	async connect() {
 		try {
-      await this.#iface.connect()
-      await this._on()
+			await this.#iface.connect()
+			await this._on()
 		} catch (error) {
-      if (error === 'unsupported') {
-        window.alert('Serial not supported by browser. Cannot connect to transceiver.')
-        throw new Error('SERCAT: API is not supported!')
-      }
+			if (error === 'unsupported') {
+				window.alert('Serial not supported by browser. Cannot connect to transceiver.')
+				throw new Error('SERCAT: API is not supported!')
+			}
 			console.error('SERCAT Connection error:', error)
 			throw error
 		}
+		window.sendCat = async data => this.#iface.send(data)
 		return this
 	}
-	
+
 	async disconnect() {
 		if (!this.connected) return
 		await this._off()
-    await this.#iface.disconnect()
+		await this.#iface.disconnect()
 	}
 
 	async _on() {
@@ -62,9 +63,9 @@ class SercatConnector {
 	}
 
 	async checkState() {
-		return {id: this.id} // this.connected ? {id: this.id} : null
+		return { id: this.id } // this.connected ? {id: this.id} : null
 	}
-	
+
 	get tcvrProps() {
 		return this.#adapter.properties
 	}
@@ -80,7 +81,7 @@ class SercatConnector {
 	onReceiveError(error) {
 		console.error('SERCAT error:', error)
 	}
-	
+
 	_initSignals() {
 		this.#signals = new SignalsBinder(this.id, {
 			ptt: async (value) => this.#adapter.ptt(value),
@@ -103,4 +104,4 @@ class SercatConnector {
 }
 
 
-export {SercatConnector}
+export { SercatConnector }

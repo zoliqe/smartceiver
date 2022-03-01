@@ -45,6 +45,7 @@ class RemotigConnector {
 		}
 		this.#enableHeartbeat()
 		console.info(`BlueRemotig device ${this.#iface.getDeviceName()} connected :-)`)
+		window.sendRemotig = async data => this._send(data)
 
 		return this
 	}
