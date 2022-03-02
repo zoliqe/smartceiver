@@ -11,7 +11,7 @@ bands.forEach(b => {gains[b] = [-10]})
 
 export default {
 	model: 'bobik',
-	baudrate: 115200,
+	baudrate: 230400,
 	props: new TransceiverProperties({
 		bands,
 		modes: [Modes.CW, Modes.CWR, Modes.LSB, Modes.USB],
