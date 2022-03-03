@@ -35,7 +35,7 @@ class BlueCatConnector {
 			throw error
 		}
 		console.info(`BLUECAT device ${this.#device.getDeviceName()} connected :-)`)
-		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
+		this.#writer = new BufferedWriter(async (data) => this.#device.send(data))
 		await this._on()
 		this.#device.receive = data => this.onReceive(data)
 		window.sendCat = async data => this._send(data)
