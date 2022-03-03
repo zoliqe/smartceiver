@@ -2,6 +2,7 @@
 /* eslint-disable no-unused-expressions */
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../utils/signals.js'
+import { BufferedWriter } from '../utils/bufwriter.js'
 
 // Sky is blue and your CAT is looking for another mouse...
 
