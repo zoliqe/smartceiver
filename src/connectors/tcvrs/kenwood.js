@@ -136,7 +136,7 @@ export class Adapter {
 	async filter({filter, mode}) {
 		const filt = selectFilter(this.properties.filters(mode), filter)
 		if (this.#model == 'ts450') {
-			await this._uart(`FL${FL[filt].repeat(2)}`)
+			await this._uart(`FL005${FL[filt]}`) // TODO switch only 2nd IF filter
 		} else {
 			await this._uart(`FW${String(filt).padStart(4, '0')}`)
 		}
