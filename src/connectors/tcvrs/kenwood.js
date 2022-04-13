@@ -104,7 +104,10 @@ export class Adapter {
 	}
 
 	async gain(gain) {
-		if (this.#model != 'ts2000') return
+		if (this.#model == 'ts450') {
+			await this._uart(`MX${gain > 0 ? 0 : 1}`)
+			return
+		}
 		await this._uart(`PA${gain > 0 ? 1 : 0}`)
 		await this._uart(`RA0${gain < 0 ? 1 : 0}`)
 	}

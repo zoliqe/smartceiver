@@ -7,7 +7,7 @@ filters[Modes.CW]  = filters[Modes.CWR]
 filters[Modes.USB] = filters[Modes.CWR]
 filters[Modes.LSB] = filters[Modes.USB]
 const gains = {}
-bands.forEach(b => {gains[b] = [0]})
+bands.forEach(b => {gains[b] = [0, 10]})
 
 export default {
 	model: 'ts450',
