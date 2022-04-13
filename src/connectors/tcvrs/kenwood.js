@@ -12,10 +12,16 @@ MD[Modes.LSB] = 1
 MD[Modes.USB] = 2
 MD[Modes.RTTY] = 6
 
+const FL = {6000: '005', 2400: '007', 500: '009'}
+
 export class Adapter {
 
 	static async TS2000(options) {
 		return new Adapter(await tcvrOptions('kenwood', 'ts2000', options))
+	}
+
+	static async TS450(options) {
+		return new Adapter(await tcvrOptions('kenwood', 'ts450', options))
 	}
 
 	static async forTcvr(model, options) {
@@ -27,7 +33,7 @@ export class Adapter {
 	}
 
 	static get models() {
-		return ['ts2000']
+		return ['ts2000', 'ts450']
 	}
 
 	_splitState = false
@@ -37,10 +43,12 @@ export class Adapter {
 	_xit = 0
 	
 	#options
+	#model
 
 	constructor(options = {powerViaCat, baudrate, props}) {
 		this._uart = _ => {} // do nothing
 		this.#options = options || {}
+		this.#model = options.model || ''
 	}
 
 	async init(dataSender) {
@@ -86,6 +94,7 @@ export class Adapter {
 	}
 
 	async agc({agc, mode}) { // 000=OFF, 001 (min.) ~ 020 (max.)
+		if (this.#model != 'ts2000') return
 		let v = '001'
 		agc = resolveAgc(agc, mode)
 		if (agc === AgcTypes.SLOW) v = '020'
@@ -95,6 +104,7 @@ export class Adapter {
 	}
 
 	async gain(gain) {
+		if (this.#model != 'ts2000') return
 		await this._uart(`PA${gain > 0 ? 1 : 0}`)
 		await this._uart(`RA0${gain < 0 ? 1 : 0}`)
 	}
@@ -108,11 +118,13 @@ export class Adapter {
 	// }
 
 	async wpm(wpm) {
+		if (this.#model != 'ts2000') return
 		if (wpm < 8 || wpm > 50) return
 		await this._uart(`KS${String(wpm).padStart(3, '0')}`)
 	}
 
 	async keymsg(msg) {
+		if (this.#model != 'ts2000') return
 		if (!msg) return
 		await this._uart(`KY ${msg.length > 24 ? msg.substring(0, 24) : msg}`)
 	}
@@ -123,18 +135,25 @@ export class Adapter {
 
 	async filter({filter, mode}) {
 		const filt = selectFilter(this.properties.filters(mode), filter)
-		await this._uart(`FW${String(filt).padStart(4, '0')}`)
+		if (this.#model == 'ts450') {
+			await this._uart(`FL${FL[filt].repeat(2)}`)
+		} else {
+			await this._uart(`FW${String(filt).padStart(4, '0')}`)
+		}
 	}
 
 	async txpower(level) {
+		if (this.#model != 'ts2000') return
 		await this._uart(`PC${String(level).padStart(3, '0')}`)
 	}
 
 	async afgain(level) {
+		if (this.#model != 'ts2000') return
 		await this._uart(`AG${String(level).padStart(3, '0')}`)
 	}
 
 	async rfgain(level) {
+		if (this.#model != 'ts2000') return
 		await this._uart(`RG${String(level).padStart(3, '0')}`)
 	}
 
