@@ -318,13 +318,12 @@ export class SmartceiverApp extends LitElement {
 		this._wakeLock = new WakeLock()
 		this._params = new URLSearchParams(window.location.search)
 		this._mic = new Microphone()
-		this._initTcvr()
 
 		this.powerState = false
 		this.pwrbtnDisable = true
 		this.ptt = false
-    this.operator = ':::'
-    this.band = 20
+		this.operator = ':::'
+		this.band = 20
 		this.bandMHz = 14
 		this.wpm = 30
 		this.filter = 2000
@@ -334,6 +333,8 @@ export class SmartceiverApp extends LitElement {
 		this.knobVfo = _vfos[0]
 		// this.vfo = _vfos[0]
 		this.unackStateQueries = 0
+
+		this._initTcvr()
 		setInterval(() => this._fetchStatus(), 5000)
   }
 
@@ -538,6 +539,11 @@ export class SmartceiverApp extends LitElement {
 			this.tcvr.reversePaddle = this._params.get('reverse') === '1'
 			setInterval(() => this.tcvr.keepAlive(), 5000)
 		}
+
+		// instant connect
+		if (this.connectors.cat.connected) {
+			await this.connectPower()
+		}
 	}
 		
 	_knobParamsByBand() {
@@ -606,11 +612,6 @@ export class SmartceiverApp extends LitElement {
 		await this._fetchStatus()
 		this.pwrbtnDisable = false
 		this.requestUpdate()
-
-		// instant connect
-		if (this.connectors.cat.connected) {
-			await this.connectPower()
-		}
 	}
 
 	_parseTcvrName({value, connectorParams}) {
