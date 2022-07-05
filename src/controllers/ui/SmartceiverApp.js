@@ -338,9 +338,11 @@ export class SmartceiverApp extends LitElement {
 		setInterval(() => this._fetchStatus(), 5000)
 
 		// instant connect
-		if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
-			this.connectPower()
-		}
+		setTimeout(() => {
+			if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
+				this.connectPower()
+			}
+		}, 500)
   }
 
   render() {
