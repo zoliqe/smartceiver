@@ -1,6 +1,5 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-/* eslint-disable no-await-in-loop */
 /* eslint-disable no-return-assign */
 /* eslint-disable max-classes-per-file */
 import {TcvrSignal, SignalType, SignalBus } from './utils/signals.js'
@@ -122,21 +121,21 @@ class Transceiver {
 	}
 
 	async _disconnectAllConnectors() {
-		this.#connectors
-			.filter(connector => connector && connector.connected)
-			.forEach(connector => {
+		for (const connector of this.#connectors) {
+			if (connector && connector.connected) {
 				this._d('disconnect', connector.id)
 				connector.signals.out.unbind(this)
 				await connector.disconnect()
-			})
+			}
+		}
 	}
 
 	async connect(connectors) {
 		let connectedConnector // all connectors have adapter to same tcvr type
-		connectors.forEach(connector => {
+		for (const connector of connectors) {
 			connectedConnector = await this._connectConnector(connector)
 			this.#connectors.push(connectedConnector)
-		})
+		}
 		connectedConnector && this._bindSignals()
 		connectedConnector && await this._initState(connectedConnector)
 		// if (connectors.pwr) {
