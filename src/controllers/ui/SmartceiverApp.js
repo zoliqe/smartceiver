@@ -543,7 +543,7 @@ export class SmartceiverApp extends LitElement {
 		// instant connect
 		setTimeout(() => {
 			if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
-				await this.connectPower()
+				this.connectPower()
 			}
 		}, 500)
 	}
