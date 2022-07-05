@@ -541,7 +541,7 @@ export class SmartceiverApp extends LitElement {
 		}
 
 		// instant connect
-		if (this.connectors.cat.connected) {
+		if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
 			await this.connectPower()
 		}
 	}
@@ -591,9 +591,9 @@ export class SmartceiverApp extends LitElement {
 		if (conns) {
 			await this._resolveConnector(conns, connectorParams, 'pwr')
 		}
-		if (!this.connectors.cat) {
-			this.connectors.cat = this.connectors.pwr
-		}
+		// if (!this.connectors.cat) {
+		// 	this.connectors.cat = this.connectors.pwr
+		// }
 
 
 		if (remote && !remotig && remote.includes('@')) {
@@ -605,7 +605,7 @@ export class SmartceiverApp extends LitElement {
 		}
 
 
-		if (!this.connectors.cat) {
+		if (!Object.values(this.connectors).length) {
 			alert('No connector defined!')
 		}
 

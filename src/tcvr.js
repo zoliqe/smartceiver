@@ -151,7 +151,7 @@ class Transceiver {
 	}
 
 	async _connectConnector(connector) {
-		if (connector.connected) return connector
+		// if (connector.connected) return connector
 		this._d('connect connector', connector.id)
 		await connector.connect(this)
 		this._d('connected', connector.id)
