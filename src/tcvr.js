@@ -113,7 +113,7 @@ class Transceiver {
 
 	async disconnect() {
 		this.#props = null
-		this._unbindSignals()
+		this.unbind(this.id)
 
 		this._disconnectAllConnectors()
 		this.#connectors = []
@@ -136,8 +136,13 @@ class Transceiver {
 			connectedConnector = await this._connectConnector(connector)
 			this.#connectors.push(connectedConnector)
 		}
-		connectedConnector && this._bindSignals()
-		connectedConnector && await this._initState(connectedConnector)
+
+		if (connectedConnector) {
+			this.bind(SignalType.keyDit, this.id, _ => this._keyTx())
+			this.bind(SignalType.keyDah, this.id, _ => this._keyTx())
+			this.bind(SignalType.keySpace, this.id, _ => this._keyTx())
+			await this._initState(connectedConnector)
+		}
 		// if (connectors.pwr) {
 		// 	const connector = await this._connectConnector(connectors.pwr)
 		// 	this.#connectors.pwr = connector
@@ -228,16 +233,6 @@ class Transceiver {
 			const gain = this.#state.gains[band]
 			this.#state.gains[band] = (gain && props.gains(band).includes(gain)) || 0
 		})
-	}
-
-	_bindSignals() {
-		this.bind(SignalType.keyDit, 'tcvr', _ => this._keyTx())
-		this.bind(SignalType.keyDah, 'tcvr', _ => this._keyTx())
-		this.bind(SignalType.keySpace, 'tcvr', _ => this._keyTx())
-	}
-
-	_unbindSignals() {
-		this.unbind('tcvr')
 	}
 
 	keepAlive() {

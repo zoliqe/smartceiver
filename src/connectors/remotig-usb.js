@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-// import { delay } from '../utils/time.js'
+import { delay } from '../utils/time.js'
 import { Remotig } from './extensions/remotig.js'
 import { USBInterface } from '../interfaces/usb.js'
 
@@ -45,7 +45,7 @@ class RemotigConnector {
   async disconnect() {
     if (!this.connected) return
     await this.#remotig.off()
-    // await delay(1000) // for poweroff signals TODO
+    await delay(100) // for poweroff signals TODO
     await this.#iface.disconnect()
   }
 

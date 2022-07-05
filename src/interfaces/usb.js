@@ -97,16 +97,20 @@ export class USBInterface {
 	}
 
 	_readLoop() {
-		this._device.transferIn(this._endpointIn, 64).then(result => {
-			this._handleReceived(_decoder.decode(result.data))
-			this._readLoop()
-		}, error => this.receiveError(error))
+		if (this.connected) {
+			this._device.transferIn(this._endpointIn, 64).then(result => {
+				this._handleReceived(_decoder.decode(result.data))
+				this._readLoop()
+			}, error => this.receiveError(error))
+		}
 	}
 
 	async disconnect() {
 		if (!this._device) return
+		const device = this._device
+		this._device = null
 
-		await this._device.controlTransferOut({
+		await device.controlTransferOut({
 			'requestType': 'class',
 			'recipient': 'interface',
 			'request': 0x22,
@@ -114,8 +118,7 @@ export class USBInterface {
 			'index': this._interfaceNumber
 		})
 		console.debug('USB close()')
-		await this._device.close()
-		this._device = null
+		await device.close()
 	}
 
 	_handleReceived(data) {
