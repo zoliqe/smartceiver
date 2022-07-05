@@ -104,7 +104,7 @@ class Transceiver {
 	#defaultProps
 	#state = {}
 	#defaults = { rit: 0, xit: 0, step: 10, wpm: 28, paddleReverse: false }
-	#connectors = {}
+	#connectors = []
 	#bus = new SignalBus()
 	#acl = [this]
 
@@ -116,31 +116,39 @@ class Transceiver {
 		this.#props = null
 		this._unbindSignals()
 
-		await this._disconnect(this.#connectors.pwr)
-		await this._disconnect(this.#connectors.cat)
-		this.#connectors = {}
+		this._disconnectAllConnectors()
+		this.#connectors = []
 		this.fire(new TcvrSignal(SignalType.pwrsw, false), {force: true})
 	}
 
-	async _disconnect(connector) {
-		if (!connector || !connector.connected) return
-		this._d('disconnect', connector.id)
-		await connector.disconnect()
-		connector.signals.out.unbind(this)
+	async _disconnectAllConnectors() {
+		this.#connectors
+			.filter(connector => connector && connector.connected)
+			.forEach(connector => {
+				this._d('disconnect', connector.id)
+				connector.signals.out.unbind(this)
+				await connector.disconnect()
+			})
 	}
 
 	async connect(connectors) {
-		if (!connectors) return
-		if (connectors.pwr) {
-			const connector = await this._connectConnector(connectors.pwr)
-			this.#connectors.pwr = connector
-			this._bindSignals()
-		}
-		if (connectors.cat) {
-			const connector = await this._connectConnector(connectors.cat)
-			this.#connectors.cat = connector
-			await this._initState(connector)
-		}
+		let connectedConnector // all connectors have adapter to same tcvr type
+		connectors.forEach(connector => {
+			connectedConnector = await this._connectConnector(connector)
+			this.#connectors.push(connectedConnector)
+		})
+		connectedConnector && this._bindSignals()
+		connectedConnector && await this._initState(connectedConnector)
+		// if (connectors.pwr) {
+		// 	const connector = await this._connectConnector(connectors.pwr)
+		// 	this.#connectors.pwr = connector
+		// 	this._bindSignals()
+		// }
+		// if (connectors.cat) {
+		// 	const connector = await this._connectConnector(connectors.cat)
+		// 	this.#connectors.cat = connector
+		// 	await this._initState(connector)
+		// }
 	}
 
 	async _connectConnector(connector) {
@@ -304,7 +312,7 @@ class Transceiver {
 	}
 
 	get online() {
-		return this.properties && this.#connectors.cat && this.#connectors.cat.connected
+		return this.properties && this.#connectors.some(connector => connector.connected) //&& this.#connectors.cat.connected
 	}
 
 	get bands() {

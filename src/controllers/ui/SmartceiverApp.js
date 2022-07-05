@@ -594,18 +594,23 @@ export class SmartceiverApp extends LitElement {
 			[this.kredence.rig, this.kredence.qth] = remote.trim().toLowerCase().split('@', 2)
 			this.remote = new TcvrController('remotig')
 			const ctlModule = await import('../../controllers/remotig.js')
-			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence, this.connectors)
+			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence)
 			this.remoddle = null // disable remoddle controller
 		}
 
 
 		if (!this.connectors.cat) {
-			throw new Error('No connector defined!')
+			alert('No connector defined!')
 		}
 
 		await this._fetchStatus()
 		this.pwrbtnDisable = false
 		this.requestUpdate()
+
+		// instant connect
+		if (this.connectors.cat.connected) {
+			await this.connectPower()
+		}
 	}
 
 	_parseTcvrName({value, connectorParams}) {
@@ -690,15 +695,15 @@ export class SmartceiverApp extends LitElement {
 			return
 		}
 
-		const pwrWithCat = this.connectorPwrWithCat()
-		const connectors = pwrWithCat ? this.connectors : { pwr: this.connectors.pwr }
+		// const pwrWithCat = this.connectorPwrWithCat()
+		const connectors = Object.values(this.connectors) //pwrWithCat ? this.connectors : { pwr: this.connectors.pwr }
 		if (this.tcvr && this.tcvr.active) {
 			await this.tcvr.connect(connectors)
-			if (pwrWithCat) {
-				console.info('pwr connector contains cat - auto powering on')
-				this.tcvr.poweron()
+			// if (pwrWithCat) {
+			// 	console.info('pwr connector contains cat - auto powering on')
+			// 	this.tcvr.poweron()
 				await this.startAudioProcessor()
-			}
+			// }
 			// not working for Serial now (2020-02-05)
 			// if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
 			// 	// on remotig, click-event (user action) can be used to 'auto' connect remoddle
@@ -723,12 +728,14 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	connectorPwrWithCat() {
-		return !this.connectors.pwr || !this.connectors.cat 
-			|| this.connectors.pwr.id === this.connectors.cat.id
+		return true
+		// return !this.connectors.pwr || !this.connectors.cat 
+		// 	|| this.connectors.pwr.id === this.connectors.cat.id
 	}
 
 	connectorPwrConnected() {
-		return !this.connectors.pwr || this.connectors.pwr.connected
+		return true
+		// return !this.connectors.pwr || this.connectors.pwr.connected
 	}
 
 	_pwrbtnClass() {
@@ -739,19 +746,19 @@ export class SmartceiverApp extends LitElement {
 	}
 
 	async connectCat() {
-		if (this.tcvr && this.tcvr.active) {
-			await this.tcvr.connect({ cat: this.connectors.cat })
-			this.tcvr.poweron()
-			await this.startAudioProcessor()
-		} else if (this.remote && this.remote.active) {
-			this.remote.connect({ cat: this.connectors.cat })
-		}
+		// if (this.tcvr && this.tcvr.active) {
+		// 	await this.tcvr.connect({ cat: this.connectors.cat })
+		// 	this.tcvr.poweron()
+		// 	await this.startAudioProcessor()
+		// } else if (this.remote && this.remote.active) {
+		// 	this.remote.connect({ cat: this.connectors.cat })
+		// }
 	}
 
 	_catbtnClass() {
 		return classMap({
 			conbtn: true,
-			on: this.connectors.cat && this.connectors.cat.connected
+			on: false //this.connectors.cat && this.connectors.cat.connected
 		})
 	}
 

@@ -3,27 +3,36 @@ const _decoder = new TextDecoder()
 
 export class USBInterface {
 
-// 	_interfaceNumber = 2  // original interface number of WebUSB Arduino demo
-// 	_endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
-// 	_endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
+	// 	_interfaceNumber = 2  // original interface number of WebUSB Arduino demo
+	// 	_endpointIn = 5       // original in endpoint ID of WebUSB Arduino demo
+	// 	_endpointOut = 4      // original out endpoint ID of WebUSB Arduino demo
 	_interfaceNumber = 0  // TinyUSB
 	_endpointIn = 0       // TinyUSB
 	_endpointOut = 0      // TinyUSB
 
 	constructor(deviceFilters = [
-			{ 'vendorId': 0x2341, 'productId': 0x8036 }, 
-			{ 'vendorId': 0x2341, 'productId': 0x8037 },
-			{ 'vendorId': 0x2886, 'productId': 0x802F }, // Seeed XIAO M0
-			{ 'vendorId': 0xcafe, 'productId': 0x4011 }, // TinyUSB on RPi Pico
-			{ 'vendorId': 0x2e8a, 'productId': 0x000a }, // TinyUSB on arduino-pico
-		], 
-		receiveSeparator = '\n', sendSeparator = '\n') 
-	{
+		{ 'vendorId': 0x2341, 'productId': 0x8036 },
+		{ 'vendorId': 0x2341, 'productId': 0x8037 },
+		{ 'vendorId': 0x2886, 'productId': 0x802F }, // Seeed XIAO M0
+		{ 'vendorId': 0xcafe, 'productId': 0x4011 }, // TinyUSB on RPi Pico
+		{ 'vendorId': 0x2e8a, 'productId': 0x000a }, // TinyUSB on arduino-pico
+	],
+		receiveSeparator = '\n', sendSeparator = '\n') {
 		this._deviceFilters = deviceFilters
 		this._receiveSeparator = receiveSeparator
 		this._sendSeparator = sendSeparator
 		// this._sendSeparator = _encoder.encode(sendSeparator)
 		this._receiveBuffer = ''
+
+		if (!navigator.usb) {
+			window.alert('USB not supported by browser. Cannot connect to transceiver.')
+			throw new Error('unsupported')
+		}
+		const paired = await navigator.usb.getDevices()
+		if (paired.length === 1) {
+			[this._device] = paired
+			console.info('Found 1 paired device - could be opened instantly')
+		}
 	}
 
 	get name() {
@@ -35,24 +44,25 @@ export class USBInterface {
 			throw new Error('unsupported')
 		}
 
-		const paired = await navigator.usb.getDevices()
-		if (paired.length === 1) {
-			[this._device] = paired
-		} else {
-			this._device = await navigator.usb.requestDevice({ 'filters': this._deviceFilters })
-		}
+		// const paired = await navigator.usb.getDevices()
+		// if (paired.length === 1) {
+		// 	[this._device] = paired
+		// } else {
+		// 	this._device = await navigator.usb.requestDevice({ 'filters': this._deviceFilters })
+		// }
+		this.connected || (this._device = await navigator.usb.requestDevice({ 'filters': this._deviceFilters }))
 		console.debug(`USB device: ${this._device.productName} (${this._device.manufacturerName})`)
 		await this._open()
 		console.info(`USB Connected ${this._device.productName}`)
 		return this
-  }
+	}
 
-  _open() {
-    return this._device.open()
-      .then(() => {
-        if (this._device.configuration === null) {
-          return this._device.selectConfiguration(1)
-        }
+	_open() {
+		return this._device.open()
+			.then(() => {
+				if (this._device.configuration === null) {
+					return this._device.selectConfiguration(1)
+				}
 			})
 			.then(() => {
 				const configurationInterfaces = this._device.configuration.interfaces
@@ -72,23 +82,23 @@ export class USBInterface {
 					})
 				})
 			})
-      .then(() => this._device.claimInterface(this._interfaceNumber))
+			.then(() => this._device.claimInterface(this._interfaceNumber))
 			.then(() => this._device.selectAlternateInterface(this._interfaceNumber, 0))
-      .then(() => this._device.controlTransferOut({
-        'requestType': 'class',
-        'recipient': 'interface',
-        'request': 0x22,
-        'value': 0x01,
-        'index': this._interfaceNumber
-      }))
-      .then(() => this._readLoop())
-  }
+			.then(() => this._device.controlTransferOut({
+				'requestType': 'class',
+				'recipient': 'interface',
+				'request': 0x22,
+				'value': 0x01,
+				'index': this._interfaceNumber
+			}))
+			.then(() => this._readLoop())
+	}
 
 	_readLoop() {
-	  this._device.transferIn(this._endpointIn, 64).then(result => {
-	    this._handleReceived(_decoder.decode(result.data))
-	    this._readLoop()
-	  }, error => this.receiveError(error))
+		this._device.transferIn(this._endpointIn, 64).then(result => {
+			this._handleReceived(_decoder.decode(result.data))
+			this._readLoop()
+		}, error => this.receiveError(error))
 	}
 
 	async disconnect() {
@@ -130,7 +140,7 @@ export class USBInterface {
 	receiveError(error) {
 		console.error('USB receive error:', error)
 	}
-	
+
 	getDeviceName() {
 		return `${this._device.productName} (${this._device.manufacturerName})`
 	}
