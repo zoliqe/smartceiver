@@ -319,6 +319,7 @@ export class SmartceiverApp extends LitElement {
 		this._params = new URLSearchParams(window.location.search)
 		this._mic = new Microphone()
 
+		this._initTcvr()
 		this.powerState = false
 		this.pwrbtnDisable = true
 		this.ptt = false
@@ -334,8 +335,12 @@ export class SmartceiverApp extends LitElement {
 		// this.vfo = _vfos[0]
 		this.unackStateQueries = 0
 
-		this._initTcvr()
 		setInterval(() => this._fetchStatus(), 5000)
+
+		// instant connect
+		if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
+			this.connectPower()
+		}
   }
 
   render() {
@@ -538,11 +543,6 @@ export class SmartceiverApp extends LitElement {
 		} else {
 			this.tcvr.reversePaddle = this._params.get('reverse') === '1'
 			setInterval(() => this.tcvr.keepAlive(), 5000)
-		}
-
-		// instant connect
-		if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
-			await this.connectPower()
 		}
 	}
 		
