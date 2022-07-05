@@ -336,13 +336,6 @@ export class SmartceiverApp extends LitElement {
 		this.unackStateQueries = 0
 
 		setInterval(() => this._fetchStatus(), 5000)
-
-		// instant connect
-		setTimeout(() => {
-			if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
-				this.connectPower()
-			}
-		}, 500)
   }
 
   render() {
@@ -546,6 +539,13 @@ export class SmartceiverApp extends LitElement {
 			this.tcvr.reversePaddle = this._params.get('reverse') === '1'
 			setInterval(() => this.tcvr.keepAlive(), 5000)
 		}
+
+		// instant connect
+		setTimeout(() => {
+			if ((this.connectors.pwr && this.connectors.pwr.connected) || (this.connectors.cat && this.connectors.cat.connected)) {
+				await this.connectPower()
+			}
+		}, 500)
 	}
 		
 	_knobParamsByBand() {
@@ -705,8 +705,8 @@ export class SmartceiverApp extends LitElement {
 			await this.tcvr.connect(connectors)
 			// if (pwrWithCat) {
 			// 	console.info('pwr connector contains cat - auto powering on')
-			// 	this.tcvr.poweron()
-				await this.startAudioProcessor()
+			this.tcvr.poweron()
+			await this.startAudioProcessor()
 			// }
 			// not working for Serial now (2020-02-05)
 			// if (this.connectors.pwr && this.connectors.pwr.id === 'remotig') {
