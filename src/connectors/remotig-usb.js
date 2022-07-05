@@ -23,7 +23,7 @@ class RemotigConnector {
   }
 
   async init() {
-    this.#iface.init()
+    await this.#iface.init()
   }
 
   async connect() {
