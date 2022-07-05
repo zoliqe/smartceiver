@@ -23,7 +23,13 @@ export class USBInterface {
 		this._sendSeparator = sendSeparator
 		// this._sendSeparator = _encoder.encode(sendSeparator)
 		this._receiveBuffer = ''
+	}
 
+	get name() {
+		return 'USB'
+	}
+
+	async init() {
 		if (!navigator.usb) {
 			window.alert('USB not supported by browser. Cannot connect to transceiver.')
 			throw new Error('unsupported')
@@ -33,10 +39,6 @@ export class USBInterface {
 			[this._device] = paired
 			console.info('Found 1 paired device - could be opened instantly')
 		}
-	}
-
-	get name() {
-		return 'USB'
 	}
 
 	async connect() {

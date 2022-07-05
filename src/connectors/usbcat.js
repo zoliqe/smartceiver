@@ -25,6 +25,10 @@ class UsbcatConnector {
 		return 'usbcat'
 	}
 
+	async init() {
+		this.#iface.init()
+	}
+
 	async connect() {
 		try {
 			await this.#iface.connect()
