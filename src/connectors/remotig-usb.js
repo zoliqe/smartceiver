@@ -45,7 +45,7 @@ class RemotigConnector {
   async disconnect() {
     if (!this.connected) return
     await this.#remotig.off()
-    await delay(100) // for poweroff signals TODO
+    await delay(200) // for poweroff signals TODO
     await this.#iface.disconnect()
   }
 

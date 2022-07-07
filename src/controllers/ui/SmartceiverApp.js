@@ -572,7 +572,7 @@ export class SmartceiverApp extends LitElement {
 		this.gencov = this._params.get('gencov')
 
 		const remotig = this._params.get('remotig')
-		const conns = this._params.get('powron') // TODO connector=remotig-serial,sercat
+		const conns = this._params.get('connector') // TODO connector=remotig-serial,sercat
 		const cat = this._params.get('cat')
 		const remote = this._params.get('remote')
 		if (remotig && remotig.includes('@')) {
