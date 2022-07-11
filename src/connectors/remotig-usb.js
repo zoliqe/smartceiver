@@ -2,19 +2,21 @@
 import { delay } from '../utils/time.js'
 import { Remotig } from './extensions/remotig.js'
 import { USBInterface } from '../interfaces/usb.js'
+import { BufferedWritter } from '../utils/bufwriter.js'
 
 class RemotigConnector {
 
   #iface
-
   #remotig
+  #writer
 
   constructor(tcvrAdapter, { options, keyerConfig }) {
     this.#iface = new USBInterface()
     this.#iface.receive = this.onReceive
     this.#iface.receiveError = this.onReceiveError
+		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
     this.#remotig = new Remotig(tcvrAdapter,
-      async (cmd) => this.#iface.send(cmd + ';'),
+      async (cmd) => this.#writer.write(cmd + ';'),
       { options, keyerConfig })
   }
 
@@ -38,7 +40,7 @@ class RemotigConnector {
       console.error('UsbRemotig Connection error:', error)
       throw error
     }
-		window.sendRemotig = async data => this.#iface.send(data)
+		window.sendRemotig = async data => this.#writer.write(data)
     return this
   }
 
