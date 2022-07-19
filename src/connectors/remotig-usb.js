@@ -2,7 +2,7 @@
 import { delay } from '../utils/time.js'
 import { Remotig } from './extensions/remotig.js'
 import { USBInterface } from '../interfaces/usb.js'
-import { BufferedWritter } from '../utils/bufwriter.js'
+import { BufferedWriter } from '../utils/bufwriter.js'
 
 class RemotigConnector {
 
