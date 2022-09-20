@@ -16,7 +16,7 @@ class RemotigConnector {
     this.#iface.receiveError = this.onReceiveError
 		this.#writer = new BufferedWriter(async (data) => this.#iface.send(data))
     this.#remotig = new Remotig(tcvrAdapter,
-      async (cmd) => this.#writer.write(cmd + ';'),
+      async (cmd) => this.#writer.write(cmd),
       { options, keyerConfig })
   }
 
