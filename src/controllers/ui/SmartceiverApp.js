@@ -564,7 +564,9 @@ export class SmartceiverApp extends LitElement {
 			this.kredence.token = token.trim()
 		}
 		
-		const connectorParams = {tcvr: {}, kredence: this.kredence}
+		const connectorParams = {tcvr: {}, kredence: this.kredence, options: {
+			host: this._params.get('remotig-host'),
+		}}
 		this._parseTcvrName({value: this._params.get('tcvr'), connectorParams})
 
 		this.remoddle = this._params.get('remoddle')

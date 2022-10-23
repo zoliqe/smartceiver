@@ -15,8 +15,14 @@ export const get = async (connector, params) => {
 	if (connector === 'remotig') {
 		if (!params || !params.kredence)
 			throw new Error('Remote connection credentials required')
-		const conn = await import('./connectors/remotig.js')
+		const conn = await import('./connectors/remotig-remote.js')
 		return new conn.RemotigConnector(params.kredence, params)
+	}
+	if (connector === 'remotig-ws') {
+		requireTcvr(params)
+		const adapter = await adapterFor(params.tcvr)
+		const conn = await import('./connectors/remotig-ws.js')
+		return new conn.RemotigConnector(adapter, params)
 	}
 	if (connector === 'usbpowron' || connector === 'remotig-usb') {
 		requireTcvr(params)
@@ -56,9 +62,9 @@ export const get = async (connector, params) => {
 	}
 	if (connector === 'nocat') {
 //		requireTcvr(params)
-    params.tcvr = params.tcvr || {}
-    params.tcvr.manufacturer = params.tcvr.manufacturer || 'none'
-    params.tcvr.model = params.tcvr.model || 'none'
+		params.tcvr = params.tcvr || {}
+		params.tcvr.manufacturer = params.tcvr.manufacturer || 'none'
+		params.tcvr.model = params.tcvr.model || 'none'
 		const adapter = await adapterFor(params.tcvr)
 		const conn = await import('./connectors/nocat.js')
 		return new conn.NocatConnector(adapter, params)
