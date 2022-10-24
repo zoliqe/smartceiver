@@ -6,17 +6,14 @@ import {delay} from '../utils/time.js'
 import {WebRTC as ConnectionService} from '../utils/webrtc.js'
 import {TransceiverProperties} from '../tcvr.js'
 
+const _connectDelay = 5000  // delay in ms after connection establishment
+// reconnectDelay: 2000,   // delay in ms between disc and conn commands
+
 class RemotigConnector {
 
 	#signals
 
-	constructor(kredence, {options = {
-		session: {
-			connectDelay: 5000,   // delay in ms after connection establishment
-			// reconnectDelay: 2000,   // delay in ms between disc and conn commands
-		}}})
-	{
-		this.options = options || {}
+	constructor(kredence) {
 		this.kredence = kredence || {}
 
 		const conoptions = ConnectionService.defaultOptions
@@ -95,7 +92,7 @@ class RemotigConnector {
 	async _onControlOpen() {
 		console.log('ok, powering on')
 		this._con.sendCommand('poweron')
-		await delay(this.options.session.connectDelay)
+		await delay(_connectDelay)
 		this._onconnect && this._onconnect()
 	}
 
