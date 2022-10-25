@@ -7,7 +7,7 @@ class RemotigConnector {
   #remotig
 
   constructor(tcvrAdapter, { options, keyerConfig }) {
-    const url = `ws://${options.host || '192.168.4.1'}/ctl`
+    const url = `ws://${options.host || 'localhost:8088'}/ctl`
     this.#remotig = new Remotig(tcvrAdapter,
       async (cmd) => this.connected && this.#iface.send(cmd),
       { options, keyerConfig })
