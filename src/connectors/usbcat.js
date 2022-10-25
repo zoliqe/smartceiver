@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { SignalsBinder } from '../utils/signals.js'
+import { SignalsBinder } from '../signals.js'
 import { USBInterface } from '../interfaces/usb.js'
 
 class UsbcatConnector {

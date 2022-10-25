@@ -2,7 +2,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable no-return-assign */
 /* eslint-disable max-classes-per-file */
-import {TcvrSignal, SignalType, SignalBus } from './utils/signals.js'
+import {TcvrSignal, SignalType, SignalBus } from './signals.js'
 
 
 // const _bands = ['1.8', '3.5', '7', /* '10.1', */ '14', /* '18', */ '21', /* '24', */ '28']

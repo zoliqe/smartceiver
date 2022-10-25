@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { SignalsBinder } from '../utils/signals.js'
+import { SignalsBinder } from '../signals.js'
 import { SerialInterface } from '../interfaces/serial.js'
 
 class SercatConnector {

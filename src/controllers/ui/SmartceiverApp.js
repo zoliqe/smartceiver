@@ -4,7 +4,7 @@
 import { LitElement, html, css } from 'lit-element'
 import { classMap } from 'lit-html/directives/class-map.js'
 import { Transceiver, Bands, } from '../../tcvr.js'
-import { SignalsBinder } from '../../utils/signals.js'
+import { SignalsBinder } from '../../signals.js'
 import { get as resolveConnector } from '../../connector.js'
 import { nextValue } from '../../utils/lists.js'
 import { TcvrController } from '../../controller.js'

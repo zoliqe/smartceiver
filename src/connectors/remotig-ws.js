@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { Remotig } from './extensions/remotig.js'
+import { Remotig } from './remotig/remotig.js'
 
 class RemotigConnector {
 

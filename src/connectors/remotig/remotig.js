@@ -2,7 +2,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import { delay } from '../../utils/time.js'
-import { SignalsBinder } from '../../utils/signals.js'
+import { SignalsBinder } from '../../signals.js'
 import { Keyer } from './keyer.js'
 import { PowrSwitch } from './powrsw.js'
 import { AntennaSwitch } from './antsw.js'

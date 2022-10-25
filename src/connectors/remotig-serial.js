@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 // import { delay } from '../utils/time.js'
-import { Remotig, defaultOptions } from './extensions/remotig.js'
+import { Remotig, defaultOptions } from './remotig/remotig.js'
 import { SerialInterface } from '../interfaces/serial.js'
 
 class RemotigConnector {

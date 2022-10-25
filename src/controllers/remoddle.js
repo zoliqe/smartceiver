@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {SignalsBinder} from '../utils/signals.js'
+import {SignalsBinder} from '../signals.js'
 import {delay} from '../utils/time.js'
 import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
-import { BufferedWriter } from '../utils/bufwriter.js'
-import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from '../connectors/extensions/keyer.js'
+import { BufferedWriter } from '../connectors/bufwriter.js'
+import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from '../connectors/remotig/keyer.js'
 
 const _serialBaudrate = 115200
 
