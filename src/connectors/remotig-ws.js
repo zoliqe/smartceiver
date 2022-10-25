@@ -5,9 +5,10 @@ class RemotigConnector {
 
   #iface
   #remotig
+  #options
 
   constructor(tcvrAdapter, { options, keyerConfig }) {
-    const url = `ws://${options.host || 'localhost:8088'}/ctl`
+    this.#options = options || {}
     this.#remotig = new Remotig(tcvrAdapter,
       async (cmd) => this.connected && this.#iface.send(cmd),
       { options, keyerConfig })
@@ -18,6 +19,7 @@ class RemotigConnector {
   }
 
   async init() {
+    const url = `ws://${#options.host || 'localhost:8088'}/ctl`
     this.#iface = new WebSocket(url)
     this.#iface.onmessage = event => this.onReceive(event.data)
     this.#iface.onopen = _ => {
