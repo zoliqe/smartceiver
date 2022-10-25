@@ -629,7 +629,7 @@ export class SmartceiverApp extends LitElement {
 			console.debug(`Resolved connector: id=${connector.id} params=${JSON.stringify(params)}`)
 			connector.init && await connector.init({ onready: async () => {
 				console.info('Instant poweron activated')
-				thic.connectPower()
+				await this.connectPower()
 			}})
 			this.connectors[type] = connector
 		} catch (e) {
