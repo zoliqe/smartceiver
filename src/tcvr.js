@@ -327,7 +327,6 @@ class Transceiver {
 
 		this._d("band", band)
 		this.#state.band = band
-		this.fire(new TcvrSignal(SignalType.band, this.band))
 
 		if (controller.preventSubcmd) return
 		if (this._bandTimer != null) { // another band change hit
@@ -336,6 +335,7 @@ class Transceiver {
 		// reset state - some tcvrs may store state on per band basis
 		this._bandTimer = setTimeout(() => {
 			this._bandTimer = null
+			this.fire(new TcvrSignal(SignalType.band, this.band))
 			this.fire(new TcvrSignal(SignalType.split, 0)) // disable RIT & SPLIT on current band
 			this.fire(new TcvrSignal(SignalType.rit, 0))
 			this.setFreq(this, this.#state.freq[this.#state.band][this.#state.vfobank])
