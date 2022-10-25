@@ -865,6 +865,7 @@ export class SmartceiverApp extends LitElement {
 	switchBand() {
 		this.band = nextValue(this.tcvr.bands, this.band)
 		this.tcvr.band = this.band
+		this._knobParamsByBand()
 	}
 
 	switchStep() {
