@@ -19,7 +19,7 @@ class RemotigConnector {
   }
 
   async init() {
-    const url = `ws://${#this.options.host || 'localhost:8088'}/ctl`
+    const url = `ws://${this.#options.host || 'localhost:8088'}/ctl`
     this.#iface = new WebSocket(url)
     this.#iface.onmessage = event => this.onReceive(event.data)
     this.#iface.onopen = _ => {
