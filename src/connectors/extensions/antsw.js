@@ -6,7 +6,7 @@ export class AntennaSwitch {
 	#timer
 	#pin
 
-	constructor(antConnector = {pinState: (pin, state) => {}, timeout: 60}) {
+	constructor(antConnector = {pinState: (pin, state) => {}, timeout: 0}) {
 		this.#connector = antConnector
 		this.#timer = null
 		this.#pin = null
@@ -18,7 +18,7 @@ export class AntennaSwitch {
 		this.#pin = b ? bandPins[b] : b
 		if (this.#pin) {
 			this.#activate()
-			this.#timer = setInterval(_ => this.#activate(), this.#connector.timeout * 1000)
+			this.#timer = this.#connector.timeout && setInterval(_ => this.#activate(), this.#connector.timeout * 1000)
 		}
 	}
 

@@ -47,11 +47,11 @@ class Remotig {
   ) {
     this._send = async (data) => send(data)
     const opts = options || {}
-    this.#keyerPin = opts.keyerPin
-    this.#pttPins = opts.pttPins || []
-    this.#powerPins = opts.powerPins || []
-    this.#timeout = opts.powerTimeout || 0
-    this.#useStartSeq = opts.useStartSeq
+    this.#keyerPin = opts.keyerPin || opts.keyerPin
+    this.#pttPins = opts.pttPins || defaultOptions.pttPins
+    this.#powerPins = opts.powerPins || defaultOptions.powerPins
+    this.#timeout = opts.powerTimeout || defaultOptions.powerTimeout
+    this.#useStartSeq = opts.useStartSeq || defaultOptions.useStartSeq
     // this.keyerState(true)
     // this.pttState(false)
 
