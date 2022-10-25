@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import {nextValue, prevValue, nextValueBounds, prevValueBounds} from '../../utils/lists.js'
+import {nextValue, prevValue, nextValueBounds, prevValueBounds} from '../../utils.js'
 
 class RemoddleMapper {
 

@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import { delay } from '../utils/time.js'
+import { delay } from '../utils.js'
 import { Remotig } from './remotig/remotig.js'
 import { USBInterface } from '../interfaces/usb.js'
 import { BufferedWriter } from './bufwriter.js'

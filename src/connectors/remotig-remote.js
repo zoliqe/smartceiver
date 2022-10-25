@@ -1,9 +1,9 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import {SignalsBinder} from '../signals.js'
-// import {Microphone} from '../utils/mic.js'
-import {delay} from '../utils/time.js'
-import {WebRTC as ConnectionService} from '../utils/webrtc.js'
+// import {Microphone} from '../connectors/mic.js'
+import {delay} from '../utils.js'
+import {WebRTC as ConnectionService} from '../interfaces/webrtc.js'
 import {TransceiverProperties} from '../tcvr.js'
 
 const _connectDelay = 5000  // delay in ms after connection establishment

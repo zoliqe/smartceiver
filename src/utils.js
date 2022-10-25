@@ -1,4 +1,12 @@
 
+const secondsNow = () => Date.now() / 1000
+
+function delay(ms) {
+	if (ms == null) return null
+	return new Promise(resolve => setTimeout(resolve, ms))
+}
+
+
 function nextValue(values, value) {
 	const i = values.indexOf(value)
 	return values[i < (values.length - 1) ? i + 1 : 0]
@@ -21,4 +29,4 @@ function prevValueBounds(values, value) {
 	return value
 }
 
-export {nextValue, prevValue, nextValueBounds, prevValueBounds}
+export {secondsNow, delay, nextValue, prevValue, nextValueBounds, prevValueBounds}

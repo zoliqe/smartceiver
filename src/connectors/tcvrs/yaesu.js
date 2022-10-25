@@ -1,5 +1,5 @@
 /* eslint-disable class-methods-use-this */
-import {delay} from '../../utils/time.js'
+import {delay} from '../../utils.js'
 import {selectFilter, tcvrOptions} from './utils.js'
 
 const hex2dec = (h) => {

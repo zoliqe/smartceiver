@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
 import {SignalsBinder} from '../signals.js'
-import {delay} from '../utils/time.js'
+import {delay} from '../utils.js'
 import {TcvrController} from '../controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'

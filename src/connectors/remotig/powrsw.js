@@ -1,4 +1,4 @@
-import {delay} from '../../utils/time.js'
+import {delay} from '../../utils.js'
 
 const State = {on: 'active', starting: 'starting', off: 'off', stoping: 'stoping'}
 export class PowrSwitch {

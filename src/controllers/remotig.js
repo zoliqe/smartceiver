@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {WebRTC as ConnectionService} from '../utils/webrtc.js'
-import {delay} from '../utils/time.js'
+import {WebRTC as ConnectionService} from '../interfaces/webrtc.js'
+import {delay} from '../utils.js'
 
 const poweroffDelay = 5 // delay (in sec) to poweroff tcvr after client disconnect
 

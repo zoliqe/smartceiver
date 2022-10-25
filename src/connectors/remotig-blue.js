@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { delay } from '../utils/time.js'
+import { delay } from '../utils.js'
 import { Remotig } from './remotig/remotig.js'
 import { BluetoothInterface } from '../interfaces/bluetooth.js'
 import { SignalsBinder } from '../signals.js'

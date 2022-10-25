@@ -1,7 +1,7 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
-import { delay } from '../../utils/time.js'
+import { delay } from '../../utils.js'
 import { SignalsBinder } from '../../signals.js'
 import { Keyer } from './keyer.js'
 import { PowrSwitch } from './powrsw.js'

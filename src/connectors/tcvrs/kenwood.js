@@ -1,7 +1,7 @@
 /* eslint-disable class-methods-use-this */
 /* eslint-disable no-unused-expressions */
 import {Bands, Modes, AgcTypes} from '../../tcvr.js'
-import {delay} from '../../utils/time.js'
+import {delay} from '../../utils.js'
 import {selectFilter, resolveAgc, tcvrOptions} from './utils.js'
 
 
