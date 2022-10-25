@@ -20,6 +20,7 @@ class RemotigConnector {
 
   async init() {
     const url = `ws://${this.#options.host || 'localhost:8088'}/ctl`
+    console.info('WsRemotig: connecting to', url)
     this.#iface = new WebSocket(url)
     this.#iface.onmessage = event => this.onReceive(event.data)
     this.#iface.onopen = _ => {
@@ -45,6 +46,7 @@ class RemotigConnector {
 
   async disconnect() {
     if (!this.connected) return
+    console.debug('WsRemotig: disconnect')
     await this.#remotig.off()
     // await delay(200) // for poweroff signals TODO
     this.#iface.close()
@@ -67,7 +69,6 @@ class RemotigConnector {
   }
 
   get tcvrProps() {
-    9
     return this.#remotig.tcvrProps
   }
 
