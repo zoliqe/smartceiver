@@ -23,14 +23,12 @@ class RemotigConnector {
     console.info('WsRemotig: connecting to', url)
     this.#iface = new WebSocket(url)
     this.#iface.onmessage = event => this.onReceive(event.data)
-    this.#iface.onopen = _ => {
-      this.onReceive('opened')
-    }
+    this.#iface.onopen = _ => this.onReceive('opened')
     this.#iface.onclose = _ => {
       this.onReceive('closed')
-      setTimeout(this.init, 5000)
+      setTimeout(_ => this.init(), 5000)
     }
-    this.#iface.onerror = this.onReceiveError
+    this.#iface.onerror = event => this.onReceiveError(event)
   }
 
   async connect() {
