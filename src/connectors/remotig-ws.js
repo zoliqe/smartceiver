@@ -18,26 +18,34 @@ class RemotigConnector {
     return 'remotig-ws'
   }
 
-  async init() {
+  async init({onready}) {
     const url = `ws://${this.#options.host || 'localhost:8088'}/ctl`
+    // let cbOnready = onready
     console.info('WsRemotig: connecting to', url)
     this.#iface = new WebSocket(url)
     this.#iface.onmessage = event => this.onReceive(event.data)
-    this.#iface.onopen = _ => this.onReceive('opened')
+    this.#iface.onopen = () => {
+      this.onReceive('opened')
+      onready && onready()
+      // if (cbOnready) { 
+      //   cbOnready()
+      //   cbOnready = null
+      // }
+    }
     this.#iface.onclose = _ => {
       this.onReceive('closed')
-      setTimeout(_ => this.init(), 5000)
+      // setTimeout(_ => this.init(), 5000)
     }
     this.#iface.onerror = event => this.onReceiveError(event)
   }
 
   async connect() {
-    try {
+    // try {
       await this.#remotig.init()
-    } catch (error) {
-      console.error('UsbRemotig Connection error:', error)
-      throw error
-    }
+    // } catch (error) {
+    //   console.error('WsRemotig init error:', error)
+    //   throw error
+    // }
 		window.sendRemotig = async data => this.#iface.send(data)
     return this
   }
