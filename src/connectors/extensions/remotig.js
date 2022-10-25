@@ -32,7 +32,7 @@ class Remotig {
   #keyerPin
   #adapter
   #powr
-  #ant
+  #antsw
   #keyer
   #signals
   #timeout
@@ -67,7 +67,7 @@ class Remotig {
       key: async (state) => this.pinState(this.#keyerPin, state),
       ptt: async (state) => this.pinState(this.#pttPins, state)
     }, keyerConfig)
-    this.#ant = new AntennaSwitch({ 
+    this.#antsw = new AntennaSwitch({ 
       pinState: async (pin, state) => this.pinState(pin, state), 
       timeout: this.#timeout })
 
@@ -103,7 +103,7 @@ class Remotig {
 
   async off() {
     console.debug('Remotig: poweroff')
-    this.#ant.band = null // disconnect ant
+    this.#antsw.band = null // disconnect antsw
     this.#adapter.close && (await this.#adapter.close())
     await this.#powr.off()
   }
@@ -174,7 +174,7 @@ class Remotig {
       gain: async (value) => this.#adapter.gain(value),
       agc: async (value) => this.#adapter.agc(value),
       freq: async (value) => this.#adapter.frequency(value),
-      band: async (value) => this.#ant.band = value,
+      band: async (value) => this.#antsw.band = value,
       split: async (value) => this.#adapter.split(value),
       rit: async (value) => this.#adapter.rit(value),
       xit: async (value) => this.#adapter.xit(value),
