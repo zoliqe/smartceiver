@@ -1,7 +1,7 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {WebRTC as ConnectionService} from '../interfaces/webrtc.js'
-import {delay} from '../utils.js'
+import {WebRTC as ConnectionService} from 'https://zoliqe.github.io/hamium/src/interfaces/webrtc.js'
+import {delay} from 'https://zoliqe.github.io/hamium/src/utils.js'
 
 const poweroffDelay = 5 // delay (in sec) to poweroff tcvr after client disconnect
 

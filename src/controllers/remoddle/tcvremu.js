@@ -1,6 +1,6 @@
 /* eslint-disable class-methods-use-this */
-import { Modes } from '../../tcvr.js'
-// import { delay } from '../../utils.js'
+import { Modes } from 'https://zoliqe.github.io/hamium/src/tcvr.js'
+// import { delay } from 'https://zoliqe.github.io/hamium/src/utils.js'
 
 const _modes = {1: Modes.LSB, 2: Modes.USB, 3: Modes.CW, 6: Modes.RTTY, 7: Modes.CWR}
 

@@ -3,13 +3,13 @@
 /* eslint-disable no-unused-expressions */
 import { LitElement, html, css } from 'lit-element'
 import { classMap } from 'lit-html/directives/class-map.js'
-import { Transceiver, Bands, } from '../../tcvr.js'
-import { SignalsBinder } from '../../signals.js'
-import { get as resolveConnector } from '../../connector.js'
-import { nextValue } from '../../utils.js'
-import { TcvrController } from '../../controller.js'
+import { Transceiver, Bands, } from 'https://zoliqe.github.io/hamium/src/tcvr.js'
+import { SignalsBinder } from 'https://zoliqe.github.io/hamium/src/signals.js'
+import { get as resolveConnector } from 'https://zoliqe.github.io/hamium/src/connector.js'
+import { nextValue } from 'https://zoliqe.github.io/hamium/src/utils.js'
+import { TcvrController } from 'https://zoliqe.github.io/hamium/src/controller.js'
 import { WakeLock } from './wakelock.js'
-import { Microphone } from '../../connectors/mic.js'
+import { Microphone } from 'https://zoliqe.github.io/hamium/src/connectors/mic.js'
 
 // import { template } from './templateMain.js';
 
@@ -601,7 +601,7 @@ export class SmartceiverApp extends LitElement {
 		if (remote && !remotig && remote.includes('@')) {
 			[this.kredence.rig, this.kredence.qth] = remote.trim().toLowerCase().split('@', 2)
 			this.remote = new TcvrController('remotig')
-			const ctlModule = await import('../../controllers/remotig.js')
+			const ctlModule = await import('https://zoliqe.github.io/hamium/src/controllers/remotig.js')
 			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence)
 			this.remoddle = null // disable remoddle controller
 		}

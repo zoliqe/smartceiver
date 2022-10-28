@@ -1,12 +1,12 @@
 /* eslint-disable no-unused-expressions */
 /* eslint-disable class-methods-use-this */
-import {SignalsBinder} from '../signals.js'
-import {delay} from '../utils.js'
-import {TcvrController} from '../controller.js'
+import {SignalsBinder} from 'https://zoliqe.github.io/hamium/src/signals.js'
+import {delay} from 'https://zoliqe.github.io/hamium/src/utils.js'
+import {TcvrController} from 'https://zoliqe.github.io/hamium/src/controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
-import { BufferedWriter } from '../connectors/bufwriter.js'
-import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from '../connectors/remotig/keyer.js'
+import { BufferedWriter } from 'https://zoliqe.github.io/hamium/src/connectors/bufwriter.js'
+import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from 'https://zoliqe.github.io/hamium/src/connectors/remotig/keyer.js'
 
 const _serialBaudrate = 115200
 
@@ -44,14 +44,14 @@ export class RemoddleController {
 		}
 		if (this._iface === 'bt') {
 			this.#writer = new BufferedWriter(async (data) => this._port && this._port.send(data))
-			const module = await import('../interfaces/bluetooth.js')
+			const module = await import('https://zoliqe.github.io/hamium/src/interfaces/bluetooth.js')
 			return new module.BluetoothInterface()
 		}
 		if (this._iface === 'serial') {
-			const module = await import('../interfaces/serial.js')
+			const module = await import('https://zoliqe.github.io/hamium/src/interfaces/serial.js')
 			return new module.SerialInterface(_serialBaudrate)
 		}
-		const module = await import('../interfaces/usb.js')
+		const module = await import('https://zoliqe.github.io/hamium/src/interfaces/usb.js')
 		return new module.USBInterface()
 	}
 
