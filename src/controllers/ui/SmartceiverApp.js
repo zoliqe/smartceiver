@@ -601,7 +601,7 @@ export class SmartceiverApp extends LitElement {
 		if (remote && !remotig && remote.includes('@')) {
 			[this.kredence.rig, this.kredence.qth] = remote.trim().toLowerCase().split('@', 2)
 			this.remote = new TcvrController('remotig')
-			const ctlModule = await import('https://zoliqe.github.io/hamium/src/controllers/remotig.js')
+			const ctlModule = await import('../remotig.js')
 			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence)
 			this.remoddle = null // disable remoddle controller
 		}
