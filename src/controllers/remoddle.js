@@ -131,8 +131,8 @@ export class RemoddleController {
 
 		if (cmd && cmd.startsWith(this._emu.startSeq))
 			this._emu.handleCatCommand(cmd)
-		// else for (let i = 0; i < cmd.length; i += 1)
-		// 	this.mapper.remoddleCommand(cmd[i])
+		else for (let i = 0; i < cmd.length; i += 1)
+			this.mapper.remoddleCommand(cmd[i])
 	}
 
 	get mapper() {
