@@ -554,8 +554,8 @@ export class SmartceiverApp extends LitElement {
 // 			this.knob.max = 10_000_000
 			return
 		}
-		this.knob.min = b.freqFrom - Band.overlap
-		this.knob.max = b.freqTo + Band.overlap
+		this.knob.min = b.freqFrom - b.overlap
+		this.knob.max = b.freqTo + b.overlap
 	}
 
 	async _initConnector() {
