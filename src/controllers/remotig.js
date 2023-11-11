@@ -5,6 +5,9 @@ import {delay} from 'https://zoliqe.github.io/hamium/src/utils.js'
 
 const poweroffDelay = 5 // delay (in sec) to poweroff tcvr after client disconnect
 
+/**
+ * @deprecated
+ */
 export class RemotigController {
 
 	#local

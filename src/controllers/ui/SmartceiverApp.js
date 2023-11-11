@@ -580,7 +580,7 @@ export class SmartceiverApp extends LitElement {
 		const remote = this._params.get('remote')
 		if (remotig && remotig.includes('@')) {
 			[this.kredence.rig, this.kredence.qth] = remotig.trim().toLowerCase().split('@', 2)
-			await this._resolveConnector('remotig', connectorParams, 'pwr')
+			await this._resolveConnector(conns || 'remotig', connectorParams, 'pwr')
 
 			this.audioproc = null // force disable startAudioProcessor()
 			if (this.connectors.pwr) {
@@ -591,7 +591,7 @@ export class SmartceiverApp extends LitElement {
 		if (cat) {
 			await this._resolveConnector(cat, connectorParams, 'cat')
 		}
-		if (conns) {
+		if (conns && !remotig) {
 			await this._resolveConnector(conns, connectorParams, 'pwr')
 		}
 		// if (!this.connectors.cat) {
@@ -599,13 +599,13 @@ export class SmartceiverApp extends LitElement {
 		// }
 
 
-		if (remote && !remotig && remote.includes('@')) {
+		/* if (remote && !remotig && remote.includes('@')) {
 			[this.kredence.rig, this.kredence.qth] = remote.trim().toLowerCase().split('@', 2)
 			this.remote = new TcvrController('remotig')
 			const ctlModule = await import('../remotig.js')
 			this.remoteController = new ctlModule.RemotigController(this.remote, this.kredence)
 			this.remoddle = null // disable remoddle controller
-		}
+		} */
 
 
 		if (!Object.values(this.connectors).length) {
