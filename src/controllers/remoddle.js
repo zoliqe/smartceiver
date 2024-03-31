@@ -69,8 +69,8 @@ export class RemoddleController {
 		this._port.receive = data => this._evaluate(data)
 
 		await delay(1000)
-		this.leadSpaces = 4
-		this.#enableHeartbeat()
+		// this.tailSpaces = 10
+		this.#enableHeartDeat()
 		resolve(this)
 	}
 
@@ -112,8 +112,8 @@ export class RemoddleController {
 		this._send(`R${value ? '1' : '0'}`)
 	}
 
-	set leadSpaces(value) {
-		this._send(`L${value}`)
+	set tailSpaces(value) {
+		this._send(`D${value}`)
 	}
 
 	async _send(data) {
