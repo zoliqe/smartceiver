@@ -70,7 +70,7 @@ export class RemoddleController {
 
 		await delay(1000)
 		// this.tailSpaces = 10
-		this.#enableHeartDeat()
+		this.#enableHeartBeat()
 		resolve(this)
 	}
 
