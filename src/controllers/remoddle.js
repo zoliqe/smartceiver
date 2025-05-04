@@ -6,7 +6,8 @@ import {TcvrController} from 'https://zoliqe.github.io/hamium/src/controller.js'
 import { RemoddleMapper } from './remoddle/mapper.js'
 import { TcvrEmulator } from './remoddle/tcvremu.js'
 import { BufferedWriter } from 'https://zoliqe.github.io/hamium/src/connectors/bufwriter.js'
-import { ditLength, dahLength, elementSpaceLength, letterSpaceLength } from 'https://zoliqe.github.io/hamium/src/connectors/remotig/keyer.js'
+import { ditLength, dahLength, elementSpaceLength, letterSpaceLength,
+			   ditLengthMs, dahLengthMs, elementSpaceLengthMs, letterSpaceLengthMs } from 'https://zoliqe.github.io/hamium/src/connectors/remotig/keyer.js'
 
 const _serialBaudrate = 115200
 
@@ -14,6 +15,7 @@ export class RemoddleController {
 
 	#writer = null
 	#heartbeatTimer
+	#bluetooth = false
 
 	constructor(tcvr, params) {
 		this._iface = (params || '').trim().toLowerCase()
@@ -44,6 +46,7 @@ export class RemoddleController {
 		}
 		if (this._iface === 'bt') {
 			this.#writer = new BufferedWriter(async (data) => this._port && this._port.send(data))
+			this.#bluetooth = true
 			const module = await import('https://zoliqe.github.io/hamium/src/interfaces/bluetooth.js')
 			return new module.BluetoothInterface()
 		}
@@ -97,6 +100,14 @@ export class RemoddleController {
 	}
 
 	set wpm(value) {
+		if (this.#bluetooth) {
+			const dit = ditLengthMs(value).toString().padStart(3, '0')
+			const dah = dahLengthMs(value).toString().padStart(3, '0')
+			const elementSpace = elementSpaceLengthMs(value).toString().padStart(3, '0')
+			const letterSpace = letterSpaceLengthMs(value).toString().padStart(3, '0')
+			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
+			return;
+		}
 		this._send(`S${value}`)
 		this._send(`A${dahLength(value)}`)
 		this._send(`I${ditLength(value)}`)
