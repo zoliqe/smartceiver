@@ -106,9 +106,6 @@ export class RemoddleController {
 			const elementSpace = elementSpaceLengthMs(value).toString().padStart(3, '0')
 			const letterSpace = letterSpaceLengthMs(value).toString().padStart(3, '0')
 			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
-			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
-			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
-			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
 			return;
 		}
 		this._send(`S${value}`)
@@ -133,7 +130,13 @@ export class RemoddleController {
 	async _send(data) {
 		if (!this._port) return
 		if (this.#writer) {
-			await this.#writer.write(data)
+			if (this.#bluetooth) {
+				// repeat commands for bluetooth connection - hack for BLE implementation in arduino-pico wich skips some commands
+				await this.#writer.write(data)
+				await this.#writer.write(data)
+				await this.#writer.write(data)
+				await this.#writer.write(data)
+			}
 		} else {
 			await this._port.send(data)
 		}
