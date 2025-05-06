@@ -106,6 +106,9 @@ export class RemoddleController {
 			const elementSpace = elementSpaceLengthMs(value).toString().padStart(3, '0')
 			const letterSpace = letterSpaceLengthMs(value).toString().padStart(3, '0')
 			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
+			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
+			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
+			this._send(`K${dit}${dah}${elementSpace}${letterSpace}`)
 			return;
 		}
 		this._send(`S${value}`)
