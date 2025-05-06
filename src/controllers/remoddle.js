@@ -72,7 +72,6 @@ export class RemoddleController {
 		this._port.receive = data => this._evaluate(data)
 
 		await delay(1000)
-		// this.tailSpaces = 10
 		this.#enableHeartbeat()
 		resolve(this)
 	}
@@ -121,10 +120,6 @@ export class RemoddleController {
 
 	set reverse(value) {
 		this._send(`R${value ? '1' : '0'}`)
-	}
-
-	set tailSpaces(value) {
-		this._send(`D${value}`)
 	}
 
 	async _send(data) {
