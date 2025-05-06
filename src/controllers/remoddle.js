@@ -45,7 +45,7 @@ export class RemoddleController {
 			this._iface = navigator.appVersion.indexOf('Win') === -1 ? 'usb' : 'serial'
 		}
 		if (this._iface === 'bt') {
-			this.#writer = new BufferedWriter(async (data) => this._port && this._port.send(data))
+			this.#writer = new BufferedWriter(async (data) => {this._port && (await this._port.send(data))} )
 			this.#bluetooth = true
 			const module = await import('https://zoliqe.github.io/hamium/src/interfaces/bluetooth.js')
 			return new module.BluetoothInterface()
