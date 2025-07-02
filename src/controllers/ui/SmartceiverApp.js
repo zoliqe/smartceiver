@@ -575,6 +575,7 @@ export class SmartceiverApp extends LitElement {
 		this.gencov = this._params.get('gencov')
 
 		const remotig = this._params.get('remotig')
+		const remotig2 = this._params.get('remotig2')
 		const conns = this._params.get('connector') // TODO connector=remotig-serial,sercat
 		const cat = this._params.get('cat')
 		const remote = this._params.get('remote')
@@ -587,11 +588,16 @@ export class SmartceiverApp extends LitElement {
 				this.connectors.pwr.onTrack = e => this.audioProcessor.connectStream(e)
 				this.connectors.pwr.onDisconnect = () => this.audioProcessor.close()
 			}
+		} else if (remotig2) {
+			this.kredence.qth = remotig2
+			await this._resolveConnector(conns || 'remotig2', connectorParams, 'pwr')
+
+			this.audioproc = null // force disable startAudioProcessor()
 		}
 		if (cat) {
 			await this._resolveConnector(cat, connectorParams, 'cat')
 		}
-		if (conns && !remotig) {
+		if (conns && !remotig && !remotig2) {
 			await this._resolveConnector(conns, connectorParams, 'pwr')
 		}
 		// if (!this.connectors.cat) {
