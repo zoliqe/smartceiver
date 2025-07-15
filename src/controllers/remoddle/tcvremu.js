@@ -32,9 +32,9 @@ export class TcvrEmulator {
 			else if (cmd.startsWith('MD')) this._send(`MD${this._mode}`)
 			else if (cmd.startsWith('IF')) this._send(`IF${this._info}`)
 			else if (cmd.startsWith('KS')) this._send(`KS${this._keywpm}`)
-			else if (cmd.startsWith('PC')) this._send(`PC${this.#pwr}`)
-			else if (cmd.startsWith('RG')) this._send(`RG${this.#rfg}`)
-			else if (cmd.startsWith('AG')) this._send(`AG${this.#afg}`)
+			else if (cmd.startsWith('PC')) this._send(`PC${this._pwr}`)
+			else if (cmd.startsWith('RG')) this._send(`RG${this._rfg}`)
+			else if (cmd.startsWith('AG')) this._send(`AG${this._afg}`)
 			else if (cmd.startsWith('RX')) this._ptt = false
 			else if (cmd.startsWith('TX')) this._ptt = true
 			return
@@ -44,14 +44,19 @@ export class TcvrEmulator {
 		console.debug(`TcvrEmulator: cmd=${cmd} param=${p}`)
 		if      (cmd.startsWith('FA')) this._freq = p
 		else if (cmd.startsWith('FB')) this._freqtx = p
+		else if (cmd.startsWith('FR')) this._split = 0
 		else if (cmd.startsWith('FT')) this._split = p
 		else if (cmd.startsWith('MD')) this._mode = p
 		else if (cmd.startsWith('KY')) this._keymsg = p
 		else if (cmd.startsWith('KS')) this._keywpm = p
-		else if (cmd.startsWith('PC')) this.#pwr = p
-		else if (cmd.startsWith('RG')) this.#rfg = p
-		else if (cmd.startsWith('AG')) this.#afg = p
-}
+		else if (cmd.startsWith('PC')) this._pwr = p
+		else if (cmd.startsWith('RG')) this._rfg = p
+		else if (cmd.startsWith('AG')) this._afg = p
+	}
+
+	_cfm() {
+		this._send('')
+	}
 
 	get _freq() {
 		return this._freqcat(this._tcvr.freq)
@@ -61,6 +66,7 @@ export class TcvrEmulator {
 		const freq = parseInt(p, 10)
 		if (Number.isNaN(freq)) return
 		this._tcvr.freqAndBand = freq
+		this._cfm()
 	}
 
 	_freqcat(freq) {
@@ -79,8 +85,10 @@ export class TcvrEmulator {
 		const freq = parseInt(p, 10)
 		if (Number.isNaN(freq)) return
 		this._freqTX = freq
-		if (this._tcvr.split) 
+		if (this._tcvr.split) { 
 			this._tcvr.split = freq
+		}
+		this._cfm()
 	}
 
 	get _split() {
@@ -93,8 +101,10 @@ export class TcvrEmulator {
 			if (!this._freqTX || this._tcvr.outOfBand(this._freqTX))
 				this._freqTX = this._tcvr.freq
 			this._tcvr.split = this._freqTX
-		} else
+		} else {
 			this._tcvr.split = 0
+		}
+		this._cfm()
 	}
 
 	get _mode() {
@@ -107,10 +117,12 @@ export class TcvrEmulator {
 		const mode = parseInt(p, 10)
 		if (Number.isNaN(mode) || !Object.keys(_modes).includes(p)) return
 		this._tcvr.mode = _modes[mode]
+		this._cfm()
 	}
 
 	set _keymsg(p) {
 		this._tcvr.keyMsg(p.trim())
+		this._cfm()
 	}
 
 	get _keywpm() {
@@ -121,40 +133,45 @@ export class TcvrEmulator {
 		const wpm = parseInt(p, 10)
 		if (Number.isNaN(wpm)) return
 		this._tcvr.wpm = wpm
+		this._cfm()
 	}
 
 	set _ptt(p) {
 		this._tcvr.ptt = p
+		this._cfm()
 	}
 
-	get #pwr() {
+	get _pwr() {
 		return ('' + this._tcvr.pwr).padStart(3, '0')
 	}
 
-	set #pwr(p) {
+	set _pwr(p) {
 		const pwr = parseInt(p, 10)
 		if (isNaN(pwr)) return
 		this._tcvr.pwr = pwr
+		this._cfm()
 	}
 
-	get #afg() {
+	get _afg() {
 		return ('' + this._tcvr.afg).padStart(3, '0')
 	}
 
-	set #afg(p) {
+	set _afg(p) {
 		const afg = parseInt(p, 10)
 		if (isNaN(afg)) return
 		this._tcvr.afg = afg
+		this._cfm()
 	}
 
-	get #rfg() {
+	get _rfg() {
 		return ('' + this._tcvr.rfg).padStart(3, '0')
 	}
 
-	set #rfg(p) {
+	set _rfg(p) {
 		const rfg = parseInt(p, 10)
 		if (isNaN(rfg)) return
 		this._tcvr.rfg = rfg
+		this._cfm()
 	}
 
 	get _info() {
