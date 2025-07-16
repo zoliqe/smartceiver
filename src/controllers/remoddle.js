@@ -126,11 +126,13 @@ export class RemoddleController {
 		if (!this._port) return
 		if (this.#writer) {
 			if (this.#bluetooth) {
-				// repeat commands for bluetooth connection - hack for BLE implementation in arduino-pico wich skips some commands
+				// repeat commands for bluetooth connection - hack for BLE implementation in arduino-pico which skips some commands
 				await this.#writer.write(data)
-				await this.#writer.write(data)
-				await this.#writer.write(data)
-				await this.#writer.write(data)
+				if (!data.startsWith('$')) {
+					await this.#writer.write(data)
+					await this.#writer.write(data)
+					await this.#writer.write(data)
+				}
 			}
 		} else {
 			await this._port.send(data)
