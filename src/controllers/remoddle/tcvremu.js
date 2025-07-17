@@ -37,6 +37,7 @@ export class TcvrEmulator {
 			else if (cmd.startsWith('AG')) this._send(`AG${this._afg}`)
 			else if (cmd.startsWith('RX')) this._ptt = false
 			else if (cmd.startsWith('TX')) this._ptt = true
+			else this._cfm()
 			return
 		}
 
@@ -52,7 +53,7 @@ export class TcvrEmulator {
 		else if (cmd.startsWith('PC')) this._pwr = p
 		else if (cmd.startsWith('RG')) this._rfg = p
 		else if (cmd.startsWith('AG')) this._afg = p
-		else if (cmd.startsWith('AI')) this._cfm()
+		else this._cfm()
 	}
 
 	_cfm() {
